@@ -10,6 +10,7 @@ class Server:
         self.socket.bind(('', port))
         self.queue = Queue.Queue()
         self.address = None
+        self.index = 0
 
     def process_request(self, request):
         command, data = request.split(' ')
@@ -99,6 +100,12 @@ class Server:
             if not self.queue.empty():
                 to_send = self.queue.get()
                 self.socket.sendto(to_send, self.address)
+            if not self.index == self.motion.index:
+                to_send = self.motion.list[self.index]
+                self.socket.sendto(to_send, self.address)
+                self.index += 1
+                if self.index >= 2000:
+                    self.index = 0
 
     def run(self):
         while 1:

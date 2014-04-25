@@ -55,7 +55,16 @@ class Controller:
         self.z_position = 0
         self.working = False
 
+        self.list = range(2000)
+        self.index = 0
+
         self.timer_init()
+
+    def to_list(self, m):
+        self.list[self.index] = m
+        self.index += 1
+        if self.index >= 2000:
+            self.index = 0
 
     def experiment_init(self, save_file, smooth, track_parameters):
 
@@ -269,6 +278,7 @@ class Controller:
 
         if self.finished:
             self.experiment_finish()
+            self.to_list('experiment done')
             return
 
         if self.count == 0:
@@ -408,7 +418,7 @@ class Controller:
 
         self.md25.drive_motors(um1, um2)
 
-        #TODO: send message
+        self.to_list('position %f,%f' % (self.x_position, self.y_position))
 
         self.working = False
 
