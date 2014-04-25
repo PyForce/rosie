@@ -1,10 +1,10 @@
 import Queue
 import socket
-import controller
 
 
 class Server:
-    def __init__(self, port):
+    def __init__(self, port, motion):
+        self.motion = motion
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', port))
@@ -30,13 +30,12 @@ class Server:
 
             track = {'constant_t': float(track_data[0]),
                      'constant_k': float(track_data[1]),
-                     'desired': controller.desired,
                      'cubic': True,
                      'x_planning': x_planning,
                      'y_planning': y_planning,
                      'z_planning': z_planning}
-            if controller.finished:
-                controller.experiment_init(track_data[2], False, track)
+            if self.motion.finished:
+                self.motion.experiment_init(track_data[2], False, track)
                 self.queue.put('path begin')
             else:
                 self.queue.put('experiment running')
@@ -55,12 +54,11 @@ class Server:
                 else:
                     t_planning.append(float(string))
 
-            track = {'desired': controller.desired,
-                     'x_planning': x_planning,
+            track = {'x_planning': x_planning,
                      'y_planning': y_planning,
                      't_planning': t_planning}
-            if controller.finished:
-                controller.experiment_init(track_data[0], False, track)
+            if self.motion.finished:
+                self.motion.experiment_init(track_data[0], False, track)
                 self.queue.put('points begin')
             else:
                 self.queue.put('experiment running')
@@ -79,22 +77,18 @@ class Server:
                 else:
                     t_planning.append(float(string))
 
-            track = {'desired': controller.desired,
-                     'x_planning': x_planning,
+            track = {'x_planning': x_planning,
                      'y_planning': y_planning,
                      't_planning': t_planning}
-            if controller.finished:
-                controller.experiment_init(track_data[0], True, track)
+            if self.motion.finished:
+                self.motion.experiment_init(track_data[0], True, track)
                 self.queue.put('reference begin')
             else:
                 self.queue.put('experiment running')
         elif command == 'experiment':
             if data == 'stop':
-                controller.experiment_stop()
+                self.motion.finished = True
                 self.queue.put('stop ok')
-            elif data == 'emergency':
-                controller.experiment_emergency()
-                self.queue.put('emergency ok')
             else:
                 self.queue.put('bad message')
         else:

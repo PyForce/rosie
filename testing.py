@@ -3,9 +3,9 @@ import server
 import thread
 import controller
 
-controller.timer_init()
+motion = controller.Controller()
 
-my_server = server.Server(50007)
+my_server = server.Server(50007, motion)
 thread.start_new_thread(my_server.run, ())
 thread.start_new_thread(my_server.sender_thread(), ())
 
