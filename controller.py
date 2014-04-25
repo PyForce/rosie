@@ -58,6 +58,12 @@ class Controller:
         self.list = range(2000)
         self.index = 0
 
+        self.encoder1 = 0
+        self.encoder2 = 0
+        self.current1 = 0
+        self.current2 = 0
+        self.battery = 0
+
         self.timer_init()
 
     def to_list(self, m):
@@ -65,6 +71,19 @@ class Controller:
         self.index += 1
         if self.index >= 2000:
             self.index = 0
+
+    def ask_status(self):
+        encoder1, encoder2, battery, current1, current2 = self.md25.read_state()
+        self.md25.reset_encoders()
+
+        self.encoder1 = encoder1
+        self.encoder2 = encoder2
+        self.current1 = current1
+        self.current2 = current2
+        self.battery = battery
+
+        self.to_list('status %d,%d,%f,%f,%f' % (self.encoder1, self.encoder2, self.battery, self.current1,
+                                                self.current2))
 
     def experiment_init(self, save_file, smooth, track_parameters):
 
@@ -296,6 +315,12 @@ class Controller:
 
         encoder1, encoder2, battery, current1, current2 = self.md25.read_state()
         self.md25.reset_encoders()
+
+        self.encoder1 = encoder1
+        self.encoder2 = encoder2
+        self.current1 = current1
+        self.current2 = current2
+        self.battery = battery
 
         if encoder1 > 130 or encoder1 < -130:
             return

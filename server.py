@@ -40,6 +40,7 @@ class Server:
                 self.queue.put('path begin')
             else:
                 self.queue.put('experiment running')
+
         elif command == 'points':
             track_data = data.split(',')
 
@@ -63,6 +64,7 @@ class Server:
                 self.queue.put('points begin')
             else:
                 self.queue.put('experiment running')
+
         elif command == 'reference':
             track_data = data.split(',')
 
@@ -86,12 +88,27 @@ class Server:
                 self.queue.put('reference begin')
             else:
                 self.queue.put('experiment running')
-        elif command == 'experiment':
-            if data == 'stop':
-                self.motion.finished = True
-                self.queue.put('stop ok')
+
+        elif command == 'experiment' and data == 'stop':
+            self.motion.finished = True
+            self.queue.put('stop ok')
+
+        elif command == 'status' and data == 'ask':
+            if self.motion.finished:
+                self.motion.ask_status()
             else:
-                self.queue.put('bad message')
+                self.queue.put('status %d,%d,%f,%f,%f' % (self.motion.encoder1, self.motion.encoder2,
+                                                          self.motion.battery, self.motion.current1,
+                                                          self.motion.current2))
+        elif command == 'parameter':
+            pass
+
+        elif command == 'localization':
+            pass
+
+        elif command == 'movement':
+            pass
+
         else:
             self.queue.put('bad message')
 
