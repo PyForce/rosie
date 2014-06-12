@@ -94,9 +94,19 @@ class Server:
             self.motion.finished = True
             self.queue.put('stop ok')
 
-        elif command == 'position' and data == 'ask':
-            self.queue.put('position %f,%f,%f' % (
-                self.motion.globalPositionX, self.motion.globalPositionY, self.motion.globalPositionZ))
+        elif command == 'position':
+            if data == 'ask':
+                self.queue.put('position %f,%f,%f' % (
+                    self.motion.globalPositionX, self.motion.globalPositionY, self.motion.globalPositionZ))
+            elif data == 'reset':
+                self.motion.globalPositionX = 0
+                self.motion.globalPositionY = 0
+                self.motion.globalPositionZ = 0
+                self.queue.put('position %f,%f,%f' % (
+                    self.motion.globalPositionX, self.motion.globalPositionY, self.motion.globalPositionZ))
+            else:
+                position_data = data.split(',')
+                self.motion.movement_init(float(position_data[0]), float(position_data[1]), float(position_data[2]))
 
         elif command == 'status' and data == 'ask':
             if self.motion.finished:
