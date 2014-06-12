@@ -35,6 +35,7 @@ class Server:
                      'x_planning': x_planning,
                      'y_planning': y_planning,
                      'z_planning': z_planning}
+
             if self.motion.finished:
                 self.motion.experiment_init(track_data[2], False, track)
                 self.queue.put('path begin')
@@ -93,6 +94,10 @@ class Server:
             self.motion.finished = True
             self.queue.put('stop ok')
 
+        elif command == 'position' and data == 'ask':
+            self.queue.put('position %f,%f,%f' % (
+                self.motion.globalPositionX, self.motion.globalPositionY, self.motion.globalPositionZ))
+
         elif command == 'status' and data == 'ask':
             if self.motion.finished:
                 self.motion.ask_status()
@@ -100,8 +105,15 @@ class Server:
                 self.queue.put('status %d,%d,%f,%f,%f' % (self.motion.encoder1, self.motion.encoder2,
                                                           self.motion.battery, self.motion.current1,
                                                           self.motion.current2))
+
         elif command == 'parameter':
-            pass
+            parameter, value = data.split(',')
+            if parameter == 'constant_kc' or parameter == 'constant_ki' or parameter == 'constant_kd' or \
+                            parameter == 'constant_k1' or parameter == 'constant_k2' or parameter == 'constant_b':
+                self.motion.set_parameter(parameter, value)
+                self.queue.put('parameter ok')
+            else:
+                self.queue.put('parameter bad')
 
         elif command == 'localization':
             pass

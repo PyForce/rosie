@@ -64,7 +64,14 @@ class Controller:
         self.current2 = 0
         self.battery = 0
 
+        self.globalPositionX = 0
+        self.globalPositionY = 0
+        self.globalPositionZ = 0
+
         self.timer_init()
+
+    def set_parameter(self, parameter, value):
+        self.__dict__[parameter] = value
 
     def to_list(self, m):
         self.list[self.index] = m
@@ -338,6 +345,10 @@ class Controller:
         self.y_position += ds * math.sin(self.z_position + dz / 2)
         self.z_position += dz
 
+        self.globalPositionX += ds * math.cos(self.globalPositionZ + dz / 2)
+        self.globalPositionY += ds * math.sin(self.globalPositionZ + dz / 2)
+        self.globalPositionZ += dz
+
         self.x_position_vector[self.count] = self.x_position
         self.y_position_vector[self.count] = self.y_position
         self.z_position_vector[self.count] = self.z_position
@@ -443,7 +454,7 @@ class Controller:
 
         self.md25.drive_motors(um1, um2)
 
-        self.to_list('position %f,%f' % (self.x_position, self.y_position))
+        self.to_list('position %f,%f,%f' % (self.globalPositionX, self.globalPositionY, self.globalPositionZ))
 
         self.working = False
 
