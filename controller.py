@@ -92,6 +92,46 @@ class Controller:
         self.to_list('status %d,%d,%f,%f,%f' % (self.encoder1, self.encoder2, self.battery, self.current1,
                                                 self.current2))
 
+    def movement_init(self, x, y, t):
+        self.smooth_flag = True
+        self.file_name = 'movement.m'
+        self.experiment_reset()
+
+        delta_x = x - self.globalPositionX
+        delta_y = y - self.globalPositionY
+
+        beta = math.atan2(delta_y, delta_x)
+        theta_n = math.atan2(math.sin(self.globalPositionZ), math.cos(self.globalPositionZ))
+        alpha = beta - theta_n
+        l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
+        xf_p = l * math.cos(alpha)
+        yf_p = l * math.sin(alpha)
+
+        track_parameters = {'x_planning': [0, xf_p],
+                            'y_planning': [0, yf_p],
+                            't_planning': [0, t],
+                            'sample_time': self.sample_time}
+
+        self.reference.generate(**track_parameters)
+
+        self.time_vector = range(self.reference.n_points)
+        self.sample_time_vector = range(self.reference.n_points)
+        self.x_position_vector = range(self.reference.n_points)
+        self.x_position_dot_vector = range(self.reference.n_points)
+        self.y_position_vector = range(self.reference.n_points)
+        self.y_position_dot_vector = range(self.reference.n_points)
+        self.z_position_vector = range(self.reference.n_points)
+        self.z_position_dot_vector = range(self.reference.n_points)
+        self.x_ref_vector = range(self.reference.n_points)
+        self.y_ref_vector = range(self.reference.n_points)
+        self.value1 = range(self.reference.n_points)
+        self.current1_vector = range(self.reference.n_points)
+        self.reference1 = range(self.reference.n_points)
+        self.value2 = range(self.reference.n_points)
+        self.current2_vector = range(self.reference.n_points)
+        self.reference2 = range(self.reference.n_points)
+        self.timer_start()
+
     def experiment_init(self, save_file, smooth, track_parameters):
 
         self.smooth_flag = smooth
