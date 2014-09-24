@@ -64,6 +64,13 @@ class Controller:
         self.current2 = 0
         self.battery = 0
 
+        self.ccc = 0
+
+        self.prev_encoder1 = 0
+        self.prev_encoder2 = 0
+        self.prev_delta_encoder_1 = 0
+        self.prev_delta_encoder_2 = 0
+
         self.globalPositionX = 0
         self.globalPositionY = 0
         self.globalPositionZ = 0
@@ -164,7 +171,8 @@ class Controller:
         self.md25.drive_motors(0, 0)
         signal.setitimer(signal.ITIMER_REAL, 0, 0)
         self.experiment_save()
-        print 'Done'
+        # print 'Done'
+        print self.ccc
         self.working = False
         self.finished = True
 
@@ -182,12 +190,12 @@ class Controller:
         self.y_position_dot_vector[self.count - 1] = self.y_position_dot_vector[self.count - 2]
         self.z_position_dot_vector[self.count - 1] = self.z_position_dot_vector[self.count - 2]
 
-        print("Sample time was not achieved: %4d times" % self.missed)
-        print("Sample time was achieved:     %4d times" % self.accurate)
-        print("Total:                        %4d times" % (self.missed + self.accurate))
-        print("Total Expected:               %4d times" % self.reference.n_points)
-        print("Worth sample time:            %12f ms" % (self.max_elapsed * 1000))
-        print("Desired sample time:          %12f ms" % (self.sample_time * 1000))
+        # print("Sample time was not achieved: %4d times" % self.missed)
+        # print("Sample time was achieved:     %4d times" % self.accurate)
+        # print("Total:                        %4d times" % (self.missed + self.accurate))
+        # print("Total Expected:               %4d times" % self.reference.n_points)
+        # print("Worth sample time:            %12f ms" % (self.max_elapsed * 1000))
+        # print("Desired sample time:          %12f ms" % (self.sample_time * 1000))
 
         save_file = open(self.file_name, 'w')
 
@@ -333,6 +341,18 @@ class Controller:
         self.x_position = 0
         self.y_position = 0
         self.z_position = 0
+
+        self.encoder1 = 0
+        self.encoder2 = 0
+        self.current1 = 0
+        self.current2 = 0
+        self.battery = 0
+
+        self.prev_encoder1 = 0
+        self.prev_encoder2 = 0
+        self.prev_delta_encoder_1 = 0
+        self.prev_delta_encoder_2 = 0
+
         self.md25.reset_encoders()
 
     def timer_handler(self, signum, frame):
@@ -361,7 +381,10 @@ class Controller:
             self.accurate += 1
 
         encoder1, encoder2, battery, current1, current2 = self.md25.read_state()
-        self.md25.reset_encoders()
+        # self.md25.reset_encoders()
+
+        delta_encoder_1 = encoder1 - self.prev_encoder1
+        delta_encoder_2 = encoder2 - self.prev_encoder2
 
         self.encoder1 = encoder1
         self.encoder2 = encoder2
@@ -369,14 +392,33 @@ class Controller:
         self.current2 = current2
         self.battery = battery
 
-        if encoder1 > 130 or encoder1 < -130:
-            return
+        if delta_encoder_1 > 130 or delta_encoder_1 < -130:
+            delta_encoder_1 = self.prev_delta_encoder_1
+            self.ccc += 1
+            self.encoder1 = 0
+            self.encoder2 = 0
+            self.md25.reset_encoders()
 
-        if encoder2 > 130 or encoder2 < -130:
-            return
+        if delta_encoder_2 > 130 or delta_encoder_2 < -130:
+            delta_encoder_2 = self.prev_delta_encoder_2
+            self.ccc += 1
+            self.encoder1 = 0
+            self.encoder2 = 0
+            self.md25.reset_encoders()
 
-        dfr = encoder2 * 2 * math.pi / 360
-        dfl = encoder1 * 2 * math.pi / 360
+        if encoder1 > 2000000000 or encoder1 < -2000000000 or encoder2 > 2000000000 or encoder2 < -2000000000:
+            self.encoder1 = 0
+            self.encoder2 = 0
+            self.md25.reset_encoders()
+
+        self.prev_encoder1 = self.encoder1
+        self.prev_encoder2 = self.encoder2
+
+        self.prev_delta_encoder_1 = delta_encoder_1
+        self.prev_delta_encoder_2 = delta_encoder_2
+
+        dfr = delta_encoder_2 * 2 * math.pi / 360
+        dfl = delta_encoder_1 * 2 * math.pi / 360
 
         ds = (dfr + dfl) * self.radius / 2
         dz = (dfr - dfl) * self.radius / self.distance
@@ -429,14 +471,14 @@ class Controller:
         set_point2 = the_v / self.radius + the_omega * self.distance / 2 / self.radius
         set_point1 = the_v / self.radius - the_omega * self.distance / 2 / self.radius
 
-        steps_per_sec1 = encoder1 / elapsed
+        steps_per_sec1 = delta_encoder_1 / elapsed
         angular_speed1 = steps_per_sec1 * 2 * math.pi / 360
 
         self.value1[self.count] = angular_speed1
         self.current1_vector[self.count] = current1
         self.reference1[self.count] = set_point1
 
-        steps_per_sec2 = encoder2 / elapsed
+        steps_per_sec2 = delta_encoder_2 / elapsed
         angular_speed2 = steps_per_sec2 * 2 * math.pi / 360
 
         self.value2[self.count] = angular_speed2
