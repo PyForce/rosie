@@ -53,7 +53,6 @@ class Controller:
         self.x_position = 0
         self.y_position = 0
         self.z_position = 0
-        self.working = False
 
         self.list = range(2000)
         self.index = 0
@@ -172,7 +171,6 @@ class Controller:
         self.experiment_save()
         # print 'Done'
         # print self.ccc
-        self.working = False
         self.finished = True
 
     def experiment_save(self):
@@ -356,40 +354,38 @@ class Controller:
 
     def timer_handler(self, signum, frame):
 
-        self.working = True
-
-        now = time.time()
-        elapsed = now - self.prev
-
         if self.finished:
             self.experiment_finish()
             self.to_list('experiment done')
             return
 
-        if self.count == 0:
-            self.time_vector[0] = 0
-        else:
-            self.time_vector[self.count] = self.time_vector[self.count - 1] + elapsed
-        self.sample_time_vector[self.count] = elapsed
-
-        self.prev = now
-        self.max_elapsed = elapsed if self.max_elapsed < elapsed else self.max_elapsed
-        if elapsed > self.sample_time:
-            self.missed += 1
-        else:
-            self.accurate += 1
+        elapsed = self.process_time()
 
         encoder1, encoder2, battery, current1, current2 = self.md25.read_state()
         # self.md25.reset_encoders()
 
+        delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
+        
+        set_point1, set_point2 = self.tracking()
+
+        um1, um2 = self.speeds_regulation(set_point1, set_point2, delta_encoder_1, delta_encoder_2, elapsed, current1,
+                                          current2, battery)
+
+        self.md25.drive_motors(um1, um2)
+
+        self.count += 1
+
+        if self.count >= self.reference.n_points:
+            self.finished = True
+
+        self.to_list('position %f,%f,%f' % (self.globalPositionX, self.globalPositionY, self.globalPositionZ))
+
+    def navigation(self, encoder1, encoder2):
         delta_encoder_1 = encoder1 - self.prev_encoder1
         delta_encoder_2 = encoder2 - self.prev_encoder2
 
         self.encoder1 = encoder1
         self.encoder2 = encoder2
-        self.current1 = current1
-        self.current2 = current2
-        self.battery = battery
 
         if delta_encoder_1 > 130 or delta_encoder_1 < -130:
             delta_encoder_1 = self.prev_delta_encoder_1
@@ -434,6 +430,9 @@ class Controller:
         self.y_position_vector[self.count] = self.y_position
         self.z_position_vector[self.count] = self.z_position
 
+        return delta_encoder_1, delta_encoder_2
+
+    def tracking(self):
         xd = self.reference.xd_vector[self.count]
         xd_dot = self.reference.xd_dot_vector[self.count]
         yd = self.reference.yd_vector[self.count]
@@ -470,6 +469,33 @@ class Controller:
         set_point2 = the_v / self.radius + the_omega * self.distance / 2 / self.radius
         set_point1 = the_v / self.radius - the_omega * self.distance / 2 / self.radius
 
+        return set_point1, set_point2
+
+    def process_time(self):
+        now = time.time()
+        elapsed = now - self.prev
+
+        if self.count == 0:
+            self.time_vector[0] = 0
+        else:
+            self.time_vector[self.count] = self.time_vector[self.count - 1] + elapsed
+        self.sample_time_vector[self.count] = elapsed
+
+        self.prev = now
+        self.max_elapsed = elapsed if self.max_elapsed < elapsed else self.max_elapsed
+        if elapsed > self.sample_time:
+            self.missed += 1
+        else:
+            self.accurate += 1
+
+        return elapsed
+
+    def speeds_regulation(self, set_point1, set_point2, delta_encoder_1, delta_encoder_2, elapsed, current1, current2,
+                          battery):
+        self.current1 = current1
+        self.current2 = current2
+        self.battery = battery
+
         steps_per_sec1 = delta_encoder_1 / elapsed
         angular_speed1 = steps_per_sec1 * 2 * math.pi / 360
 
@@ -483,11 +509,6 @@ class Controller:
         self.value2[self.count] = angular_speed2
         self.current2_vector[self.count] = current2
         self.reference2[self.count] = set_point2
-
-        self.count += 1
-
-        if self.count >= self.reference.n_points:
-            self.finished = True
 
         e1k = set_point1 - angular_speed1
 
@@ -533,11 +554,7 @@ class Controller:
 
         um2 = int(uuu2)
 
-        self.md25.drive_motors(um1, um2)
-
-        self.to_list('position %f,%f,%f' % (self.globalPositionX, self.globalPositionY, self.globalPositionZ))
-
-        self.working = False
+        return um1, um2
 
     def timer_start(self):
         self.prev = time.time()

@@ -45,76 +45,86 @@ class Track:
         self.constant_t = constant_t
 
         if cubic:
+            self.generate_cubic(x_planning, y_planning, sample_time, z_planning, t_planning, constant_k, constant_t,
+                                cubic)
+        else:
+            self.generate_lineal(x_planning, y_planning, sample_time, z_planning, t_planning, constant_k, constant_t,
+                                 cubic)
 
-            if not constant_k > 0 and constant_t > 0:
-                raise InvalidTrackParametersException('Both constants T and K must be positive.')
+    def generate_cubic(self, x_planning=None, y_planning=None, sample_time=None,
+                       z_planning=None, t_planning=None, constant_k=None,
+                       constant_t=None, cubic=False):
+        if not constant_k > 0 and constant_t > 0:
+            raise InvalidTrackParametersException('Both constants T and K must be positive.')
 
-            dn = constant_t / float(sample_time)
+        dn = constant_t / float(sample_time)
 
-            n = int(dn)
+        n = int(dn)
 
-            intervals = len(x_planning) - 1
+        intervals = len(x_planning) - 1
 
-            if (n * intervals) > 2000:
-                raise InvalidTrackParametersException('Too much points.')
+        if (n * intervals) > 2000:
+            raise InvalidTrackParametersException('Too much points.')
 
-            self.xd_vector = range(n * intervals)
-            self.yd_vector = range(n * intervals)
-            self.zd_vector = range(n * intervals)
+        self.xd_vector = range(n * intervals)
+        self.yd_vector = range(n * intervals)
+        self.zd_vector = range(n * intervals)
 
-            self.xd_dot_vector = range(n * intervals)
-            self.yd_dot_vector = range(n * intervals)
-            self.zd_dot_vector = range(n * intervals)
+        self.xd_dot_vector = range(n * intervals)
+        self.yd_dot_vector = range(n * intervals)
+        self.zd_dot_vector = range(n * intervals)
 
-            self.n_points = n * intervals
+        self.n_points = n * intervals
 
-            for j in range(0, intervals):
-                x_i = x_planning[j]
-                y_i = y_planning[j]
-                theta_i = z_planning[j]
+        for j in range(0, intervals):
+            x_i = x_planning[j]
+            y_i = y_planning[j]
+            theta_i = z_planning[j]
 
-                x_f = x_planning[j + 1]
-                y_f = y_planning[j + 1]
-                theta_f = z_planning[j + 1]
+            x_f = x_planning[j + 1]
+            y_f = y_planning[j + 1]
+            theta_f = z_planning[j + 1]
 
-                alpha_x = constant_k * math.cos(theta_f) - 3 * x_f
-                alpha_y = constant_k * math.sin(theta_f) - 3 * y_f
+            alpha_x = constant_k * math.cos(theta_f) - 3 * x_f
+            alpha_y = constant_k * math.sin(theta_f) - 3 * y_f
 
-                beta_x = constant_k * math.cos(theta_i) + 3 * x_i
-                beta_y = constant_k * math.sin(theta_i) + 3 * y_i
+            beta_x = constant_k * math.cos(theta_i) + 3 * x_i
+            beta_y = constant_k * math.sin(theta_i) + 3 * y_i
 
-                for i in range(0, n):
-                    s = i / float(n)
-                    self.xd_vector[n * j + i] = - (s - 1) * (s - 1) * (s - 1) * x_i + s * s * s * x_f + alpha_x * (
-                        s * s) * (s - 1) + beta_x * s * ((s - 1) * (s - 1))
-                    self.yd_vector[n * j + i] = - (s - 1) * (s - 1) * (s - 1) * y_i + s * s * s * y_f + alpha_y * (
-                        s * s) * (s - 1) + beta_y * s * ((s - 1) * (s - 1))
+            for i in range(0, n):
+                s = i / float(n)
+                self.xd_vector[n * j + i] = - (s - 1) * (s - 1) * (s - 1) * x_i + s * s * s * x_f + alpha_x * (
+                    s * s) * (s - 1) + beta_x * s * ((s - 1) * (s - 1))
+                self.yd_vector[n * j + i] = - (s - 1) * (s - 1) * (s - 1) * y_i + s * s * s * y_f + alpha_y * (
+                    s * s) * (s - 1) + beta_y * s * ((s - 1) * (s - 1))
 
-                    self.xd_dot_vector[n * j + i] = - 3 * (s - 1) * (s - 1) * x_i + 3 * s * s * x_f + alpha_x * (
-                        3 * s * s - 2 * s) + beta_x * (3 * s * s - 4 * s + 1)
-                    self.yd_dot_vector[n * j + i] = - 3 * (s - 1) * (s - 1) * y_i + 3 * s * s * y_f + alpha_y * (
-                        3 * s * s - 2 * s) + beta_y * (3 * s * s - 4 * s + 1)
+                self.xd_dot_vector[n * j + i] = - 3 * (s - 1) * (s - 1) * x_i + 3 * s * s * x_f + alpha_x * (
+                    3 * s * s - 2 * s) + beta_x * (3 * s * s - 4 * s + 1)
+                self.yd_dot_vector[n * j + i] = - 3 * (s - 1) * (s - 1) * y_i + 3 * s * s * y_f + alpha_y * (
+                    3 * s * s - 2 * s) + beta_y * (3 * s * s - 4 * s + 1)
 
-                    xd_dot_dot = - 6 * (s - 1) * x_i + 6 * s * x_f + alpha_x * (6 * s - 2) + beta_x * (6 * s - 4)
-                    yd_dot_dot = - 6 * (s - 1) * y_i + 6 * s * y_f + alpha_y * (6 * s - 2) + beta_y * (6 * s - 4)
+                xd_dot_dot = - 6 * (s - 1) * x_i + 6 * s * x_f + alpha_x * (6 * s - 2) + beta_x * (6 * s - 4)
+                yd_dot_dot = - 6 * (s - 1) * y_i + 6 * s * y_f + alpha_y * (6 * s - 2) + beta_y * (6 * s - 4)
 
-                    self.zd_dot_vector[n * j + i] = \
-                        (yd_dot_dot * self.xd_dot_vector[n * j + i] - xd_dot_dot * self.yd_dot_vector[n * j + i]) \
-                        / (self.xd_dot_vector[n * j + i] * self.xd_dot_vector[n * j + i]
-                           + self.yd_dot_vector[n * j + i] * self.yd_dot_vector[n * j + i])
+                self.zd_dot_vector[n * j + i] = \
+                    (yd_dot_dot * self.xd_dot_vector[n * j + i] - xd_dot_dot * self.yd_dot_vector[n * j + i]) \
+                    / (self.xd_dot_vector[n * j + i] * self.xd_dot_vector[n * j + i]
+                       + self.yd_dot_vector[n * j + i] * self.yd_dot_vector[n * j + i])
 
-                    self.xd_dot_vector[n * j + i] = self.xd_dot_vector[n * j + i] / constant_t
-                    self.yd_dot_vector[n * j + i] = self.yd_dot_vector[n * j + i] / constant_t
+                self.xd_dot_vector[n * j + i] = self.xd_dot_vector[n * j + i] / constant_t
+                self.yd_dot_vector[n * j + i] = self.yd_dot_vector[n * j + i] / constant_t
 
-                    self.zd_dot_vector[n * j + i] = self.zd_dot_vector[n * j + i] / constant_t
+                self.zd_dot_vector[n * j + i] = self.zd_dot_vector[n * j + i] / constant_t
 
-                self.zd_vector[n * j] = theta_i
+            self.zd_vector[n * j] = theta_i
 
-                for i in range(0, n - 1):
-                    self.zd_vector[n * j + i + 1] = self.zd_vector[n * j + i] + self.zd_dot_vector[
-                        n * j + i] * sample_time
-            return
+            for i in range(0, n - 1):
+                self.zd_vector[n * j + i + 1] = self.zd_vector[n * j + i] + self.zd_dot_vector[
+                    n * j + i] * sample_time
 
+    def generate_lineal(self, x_planning=None, y_planning=None, sample_time=None,
+                        z_planning=None, t_planning=None, constant_k=None,
+                        constant_t=None, cubic=False):
         if not len(x_planning) == len(t_planning):
             raise InvalidTrackParametersException('T vector must have the same length as points.')
 
