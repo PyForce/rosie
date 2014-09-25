@@ -129,7 +129,8 @@ class Server:
             pass
 
         elif command == 'movement':
-            pass
+            parameter, value = data.split(',')
+            print parameter
 
         else:
             self.queue.put('bad message')

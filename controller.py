@@ -26,7 +26,7 @@ class Controller:
         self.value2 = []
         self.current2_vector = []
         self.reference2 = []
-        self.file_name = ''
+        self.file_name = '/home/pi/file.m'
 
         self.radius = 0.05
         self.distance = 0.2995
@@ -64,7 +64,7 @@ class Controller:
         self.current2 = 0
         self.battery = 0
 
-        self.ccc = 0
+        # self.ccc = 0
 
         self.prev_encoder1 = 0
         self.prev_encoder2 = 0
@@ -101,7 +101,6 @@ class Controller:
 
     def movement_init(self, x, y, t):
         self.smooth_flag = True
-        self.file_name = 'movement.m'
         self.experiment_reset()
 
         delta_x = x - self.globalPositionX
@@ -172,7 +171,7 @@ class Controller:
         signal.setitimer(signal.ITIMER_REAL, 0, 0)
         self.experiment_save()
         # print 'Done'
-        print self.ccc
+        # print self.ccc
         self.working = False
         self.finished = True
 
@@ -394,14 +393,14 @@ class Controller:
 
         if delta_encoder_1 > 130 or delta_encoder_1 < -130:
             delta_encoder_1 = self.prev_delta_encoder_1
-            self.ccc += 1
+            # self.ccc += 1
             self.encoder1 = 0
             self.encoder2 = 0
             self.md25.reset_encoders()
 
         if delta_encoder_2 > 130 or delta_encoder_2 < -130:
             delta_encoder_2 = self.prev_delta_encoder_2
-            self.ccc += 1
+            # self.ccc += 1
             self.encoder1 = 0
             self.encoder2 = 0
             self.md25.reset_encoders()
