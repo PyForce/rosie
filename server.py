@@ -150,7 +150,7 @@ class Server:
 
         elif command == 'movement':
             parameter, value = data.split(',')
-            print parameter
+            self.motion.continuous(parameter, float(value))
 
         else:
             self.queue.put('bad message')
@@ -174,3 +174,7 @@ class Server:
             self.process_request(request)
             #print 'Request:[%s]' % request
             #self.socket.sendto(request, address)
+
+            #todo: add continuos traslation backward
+            #todo: add continuos rotation
+            #todo: add fixed rotation

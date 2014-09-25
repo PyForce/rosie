@@ -1,5 +1,6 @@
 import math
 import signal
+from werkzeug.security import safe_str_cmp
 import board
 import time
 import track
@@ -73,6 +74,9 @@ class Controller:
         self.globalPositionX = 0
         self.globalPositionY = 0
         self.globalPositionZ = 0
+
+        self.safe_count = False
+        self.safe_counter = 0
 
         self.timer_init()
 
@@ -350,6 +354,9 @@ class Controller:
         self.prev_delta_encoder_1 = 0
         self.prev_delta_encoder_2 = 0
 
+        self.safe_count = False
+        self.safe_counter = 0
+
         self.md25.reset_encoders()
 
     def timer_handler(self, signum, frame):
@@ -365,7 +372,7 @@ class Controller:
         # self.md25.reset_encoders()
 
         delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
-        
+
         set_point1, set_point2 = self.tracking()
 
         um1, um2 = self.speeds_regulation(set_point1, set_point2, delta_encoder_1, delta_encoder_2, elapsed, current1,
@@ -374,6 +381,11 @@ class Controller:
         self.md25.drive_motors(um1, um2)
 
         self.count += 1
+
+        if self.safe_count:
+            self.safe_counter -= 1
+            if self.safe_counter <= 0:
+                self.finished = True
 
         if self.count >= self.reference.n_points:
             self.finished = True
@@ -555,6 +567,65 @@ class Controller:
         um2 = int(uuu2)
 
         return um1, um2
+
+    def forward(self, value):
+        if value:
+            if self.finished:
+                self.smooth_flag = True
+                self.experiment_reset()
+
+                self.safe_count = True
+                self.safe_counter = 20
+
+                track_parameters = {'x_planning': [0, value * 100.0],
+                                    'y_planning': [0, 0],
+                                    't_planning': [0, 100.0],
+                                    'sample_time': self.sample_time}
+
+                self.reference.generate(**track_parameters)
+
+                self.time_vector = range(self.reference.n_points)
+                self.sample_time_vector = range(self.reference.n_points)
+                self.x_position_vector = range(self.reference.n_points)
+                self.x_position_dot_vector = range(self.reference.n_points)
+                self.y_position_vector = range(self.reference.n_points)
+                self.y_position_dot_vector = range(self.reference.n_points)
+                self.z_position_vector = range(self.reference.n_points)
+                self.z_position_dot_vector = range(self.reference.n_points)
+                self.x_ref_vector = range(self.reference.n_points)
+                self.y_ref_vector = range(self.reference.n_points)
+                self.value1 = range(self.reference.n_points)
+                self.current1_vector = range(self.reference.n_points)
+                self.reference1 = range(self.reference.n_points)
+                self.value2 = range(self.reference.n_points)
+                self.current2_vector = range(self.reference.n_points)
+                self.reference2 = range(self.reference.n_points)
+                self.timer_start()
+            else:
+                # self.safe_count = True
+                self.safe_counter = 20
+        else:
+            self.finished = True
+
+    def continuous(self, parameter, value):
+        if parameter == 'forward':
+            self.forward(value)
+
+        elif parameter == 'backward':
+            if value:
+                pass
+            else:
+                self.finished = True
+        elif parameter == 'right':
+            if value:
+                pass
+            else:
+                self.finished = True
+        elif parameter == 'left':
+            if value:
+                pass
+            else:
+                self.finished = True
 
     def timer_start(self):
         self.prev = time.time()
