@@ -1,12 +1,12 @@
 var map = L.map('map', {
     crs: L.CRS.Simple,
     zoomAnimation: false
-}).setView([0, 0], 20);
+}).setView([0, 0], 9);
 
 var imageUrl = "static/images/LTL_min1.png";
 
-var width = 0.2;
-var height = 0.4;
+var width = 0.43;
+var height = 0.25;
 var coords = [0, 0];
 
 L.DomUtil.setTransform = function(el, offset, scale, angle) {
@@ -16,7 +16,7 @@ L.DomUtil.setTransform = function(el, offset, scale, angle) {
         (L.Browser.ie3d ?
         'translate(' + pos.x + 'px,' + pos.y + 'px)' :
         'translate3d(' + pos.x + 'px,' + pos.y + 'px,0)') +
-        (angle ? ' rotate(' + angle + 'deg)' : '') +
+        (angle ? ' rotate(' + angle + 'rad)' : '') +
         (scale ? ' scale(' + scale + ')' : '');
 };
 
@@ -93,7 +93,7 @@ L.MyImageOverlay = L.ImageOverlay.extend({
 
         if (L.DomUtil.TRANSFORM) {
             // use the CSS transform rule if available
-            this._image.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'deg)';
+            this._image.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'rad)';
         }
 
         return this.fire('move', {
