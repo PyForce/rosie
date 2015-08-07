@@ -4,15 +4,13 @@ from WebHUD.utils import allow_origin
 from modules.kernel import handler as robot_handler
 from modules.kernel.kernel import link_robot as set_position_notifier
 
-import socketio
-
 from threading import Thread
 from time import sleep
 
-@sio.on('echo')
-def echo(message):
-    print(message)
-    emit('echo reply', message)
+#@sio.on('echo')
+#def echo(message):
+#    print(message)
+#    emit('echo reply', message)
 
 
 @app.route('/odometry', methods=['GET'])
@@ -161,18 +159,18 @@ count = 0
 #        sio.emit('position', )
 
 
-@sio.on("get_positions")
-def io_send_position():
-    
-    print('"get_positions" received')
+#@sio.on("get_positions")
+#def io_send_position():
+#    
+#    print('"get_positions" received')
+#
+#    t = Thread(target=background_pos)
+#    t.setDaemon(True)
+#    t.start()
+#
+#    #emit('position', [1,2,3])
 
-    t = Thread(target=background_pos)
-    t.setDaemon(True)
-    t.start()
+#def send_position(x, y, theta):
+#    sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
-    #emit('position', [1,2,3])
-
-def send_position(x, y, theta):
-    sio.emit('position', {"x": x, "y": y, 'theta': theta})
-
-set_position_notifier(send_position)
+#set_position_notifier(send_position)

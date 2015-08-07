@@ -1,18 +1,13 @@
 var map = L.map('map', {
     crs: L.CRS.Simple,
     zoomAnimation: false
-}).setView([0, 0], 5);
+}).setView([0, 0], 20);
 
 var imageUrl = "static/images/LTL_min1.png";
-var imagebounds = [
-    [-10, -10],
-    [10, 22]
-];
 
-var width = 20;
-var height = 32;
+var width = 0.2;
+var height = 0.4;
 var coords = [0, 0];
-
 
 L.DomUtil.setTransform = function(el, offset, scale, angle) {
     var pos = offset || new L.Point(0, 0);
