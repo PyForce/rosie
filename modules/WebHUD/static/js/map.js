@@ -119,7 +119,7 @@ L.myImageOverlay = function(imageUrl, coords, width, height, options) {
 
 car = L.myImageOverlay(imageUrl, coords, width, height).addTo(map);
 
-var plottedPolyline = L.Polyline.Plotter([
+trajectory = L.Polyline.Plotter([
     [0, 6]
 ], {
     weight: 5,
@@ -127,7 +127,8 @@ var plottedPolyline = L.Polyline.Plotter([
 }).addTo(map);
 
 var readOnly = true;
+
 $("#i-p2p").click(function() {
     readOnly = !readOnly;
-    plottedPolyline.setReadOnly(readOnly);
+    trajectory.setReadOnly(readOnly);
 });
