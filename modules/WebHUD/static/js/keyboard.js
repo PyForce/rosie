@@ -11,6 +11,10 @@ $(document).ready(function(){
     if ([87, 65, 83, 68].some(function(element, index, array) { return element === e.which })) {
       pressed.add(e.which);
     }
+
+	if (e.which == 32){
+		setPath();
+	}
     
   }, true);
 
