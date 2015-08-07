@@ -260,10 +260,8 @@ class Controller:
         # send position
         COUNTER_POS+=1
         if COUNTER_POS==3:
-            try:
-                self.SEND_POSITION((-self.y_position, self.x_position, self.z_position))
-            except Exception as e:
-                print('Error sending position')
+            print('bot', -self.y_position, self.x_position, self.z_position)
+            self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
             COUNTER_POS=0;
 		
         

@@ -1,10 +1,15 @@
 from flask import request, jsonify, json
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
+from modules.kernel import handler as robot_handler
 from modules.kernel.kernel import link_robot as set_position_notifier
 
+import socketio
 
-@sio.on('echo', namespace='/test')
+from threading import Thread
+from time import sleep
+
+@sio.on('echo')
 def echo(message):
     print(message)
     emit('echo reply', message)
@@ -91,7 +96,7 @@ def text():
     robot_handler.process_text(text)
 
 
-@sio.on('manual', namespace='/test')  # key press
+@sio.on('manual')  # key press
 def drive_manual(data):
     """
     {
@@ -109,6 +114,7 @@ def manual_mode():
     {}
     """
     robot_handler.set_mode('manual')
+    return 'OK'
 
 
 @app.route('/auto_mode', methods=['PUT'])
@@ -118,6 +124,7 @@ def auto_mode():
     {}
     """
     robot_handler.set_mode('auto')
+    return 'OK'
 
 
 @app.route('/maps', methods=['PUT'])
@@ -131,13 +138,41 @@ def maps():
     map = request.values['map']
 
 
-def send_position(x, y, theta):
-    data = {
-        "x": x,
-        "y": y,
-        "theta": theta
-    }
-    emit(data)
+count = 0
 
+#@sio.on("send_position_to_client")
+#def send_position_to_client():
+#
+#    emit('position', [1,2,3])
+#    print('got into send_position_to_client')
+#
+#    if count < 20:
+#        emit('send_position_to_client')
+#        count += 1
+
+
+#def background_pos():
+#    while True:
+#        print('test!')
+#        sleep(100./1000)
+#
+#        
+#
+#        sio.emit('position', )
+
+
+@sio.on("get_positions")
+def io_send_position():
+    
+    print('"get_positions" received')
+
+    t = Thread(target=background_pos)
+    t.setDaemon(True)
+    t.start()
+
+    #emit('position', [1,2,3])
+
+def send_position(x, y, theta):
+    sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
 set_position_notifier(send_position)
