@@ -25,6 +25,7 @@ function toggleOverlay(mode) {
     $("#overlay").toggleClass("visible", mode);
 }
 
+/*
 imageOverlay.on("mouseover", function() {
     $("#robot-logo").css("visibility", "visible");
     $("#video-streaming").css("visibility", "visible");
@@ -36,3 +37,4 @@ imageOverlay.on("mouseout", function() {
     $("#video-streaming").css("visibility", "hidden");
     $("#video-streaming").attr("src", null);
 });
+*/
