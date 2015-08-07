@@ -5,7 +5,6 @@ import time
 from robot import pid, track
 from robot import settings
 
-from modules.kernel.handler import send_updated_position
 
 print('    '+str(settings.MOBILE_ROBOT))
 
@@ -20,26 +19,26 @@ class Controller:
     def __init__(self):
         
         #---------------------------------
-        self.robot=None
-        self.action=()
-        self.SEND_POSITION=send_updated_position
+        self.robot = None
+        self.action = ()
+        self.SEND_POSITION = lambda x, y, theta: None
         #==== ROVERT ====        
-        if settings.MOBILE_ROBOT=='ROBERT':
-            self.robot=board.MD25(1, 0x58)
+        if settings.MOBILE_ROBOT == 'ROBERT':
+            self.robot = board.MD25(1, 0x58)
         #==== LTL ====
         else:
-            self.robot=board.Arduino()
+            self.robot = board.Arduino()
         #---------------------------------
       
-        self.constant_b = 0.1  #0.05
-        self.constant_k1 = 1.0 #3.0
-        self.constant_k2 = 1.0 #3.0
+        self.constant_b = 0.1  # 0.05
+        self.constant_k1 = 1.0 # 3.0
+        self.constant_k2 = 1.0 # 3.0
         self.sample_time = 0.05
 		
         self.reference = track.Track()
         
-        self.compass = None #HMC6352()
-        self.compass_angle = None #self.compass.read_state()*math.pi/180 
+        self.compass = None # HMC6352()
+        self.compass_angle = None # self.compass.read_state()*math.pi/180 
         
         self.time_vector = []
         self.sample_time_vector = []
@@ -103,10 +102,12 @@ class Controller:
         xf_p = l * math.cos(alpha)
         yf_p = l * math.sin(alpha)
 
-        track_parameters = {'x_planning': [0, xf_p],
-                            'y_planning': [0, yf_p],
-                            't_planning': [0, t],
-                            'sample_time': self.sample_time}
+        track_parameters = {
+            'x_planning': [0, xf_p],
+            'y_planning': [0, yf_p],
+            't_planning': [0, t],
+            'sample_time': self.sample_time
+        }
 
         self.reference.generate(**track_parameters)
 
@@ -248,8 +249,6 @@ class Controller:
         ds = (dfr + dfl) * settings.RADIUS / 2
         dz = (dfr - dfl) * settings.RADIUS / settings.DISTANCE
 
-        #self.get_compass() #get_compass
-
         self.x_position += ds * math.cos(self.z_position + dz / 2)
         self.y_position += ds * math.sin(self.z_position + dz / 2)
         self.z_position += dz
@@ -258,7 +257,7 @@ class Controller:
         self.globalPositionY += ds * math.sin(self.globalPositionZ + dz / 2)
         self.globalPositionZ += dz
 
-        #send position
+        # send position
         COUNTER_POS+=1
         if COUNTER_POS==3:
             try:
@@ -309,39 +308,41 @@ class Controller:
         self.y_ref_vector[self.count] = u2
 
         the_v = math.cos(self.z_position) * u1 + u2 * math.sin(self.z_position)
-        the_omega = u1 * (- math.sin(self.z_position) / self.constant_b) + u2 * math.cos(
-            self.z_position) / self.constant_b
+        the_omega = u1 * (- math.sin(self.z_position) / self.constant_b) + \
+                u2 * math.cos(self.z_position) / self.constant_b
 
         set_point2 = the_v / settings.RADIUS + the_omega * settings.DISTANCE / 2 / settings.RADIUS
         set_point1 = the_v / settings.RADIUS - the_omega * settings.DISTANCE / 2 / settings.RADIUS
 
         return set_point1, set_point2
 
-    def wasd_velocities(self,x,y):
-        left=right=y
-        ratio=abs(x/settings.MAX_SPEED)
-        if x>0:
-            right*=(1-ratio)
-        elif x<0:
-            left*=(1-ratio)
+    def wasd_velocities(self, x, y):
+        left = right = y
+        ratio = abs(x/settings.MAX_SPEED)
+        if x > 0:
+            right *= 1 - ratio
+        elif x < 0:
+            left *= 1 - ratio
         return right, left
 
     def timer_start(self):
         try:
             if not settings.PID:
-                config_parameters = {'prev': time.time(),
-                                     'sample': self.sample_time}
+                config_parameters = {
+                    'prev': time.time(),
+                    'sample': self.sample_time
+                }
                 pid.config(**config_parameters)
             signal.setitimer(signal.ITIMER_REAL, self.sample_time, self.sample_time)
         except:
-            print ("    Error signal")
+            print("    Error signal")
 
     def timer_init(self):
         try:
             signal.signal(signal.SIGALRM, self.timer_handler)
             signal.setitimer(signal.ITIMER_REAL, 0, 0)
         except:
-            print ("    Error signal")
+            print("    Error signal")
 
 #########################################################
 #########################################################

@@ -1,7 +1,7 @@
 from flask import request, jsonify, json
-from WebHUD import app , sio, emit
+from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
-import kernel.handler as robot_handler
+from modules.kernel.kernel import link_robot as set_position_notifier
 
 
 @sio.on('echo', namespace='/test')
@@ -129,3 +129,15 @@ def maps():
     }
     """
     map = request.values['map']
+
+
+def send_position(x, y, theta):
+    data = {
+        "x": x,
+        "y": y,
+        "theta": theta
+    }
+    emit(data)
+
+
+set_position_notifier(send_position)

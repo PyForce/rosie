@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+"""
 try:
     print('Loading modules...')
     try:
@@ -25,9 +26,9 @@ try:
 except Exception as e:
     print(e)
     print('modules... Fail')
+"""
 
-
-from modules.WebHUD.manage import *
+from modules.WebHUD.manage import run_server
 
 if __name__ == '__main__':
     run_server()
