@@ -5,6 +5,8 @@ import time
 from robot import pid, track
 from robot import settings
 
+from modules.kernel.handler import send_updated_position
+
 print('    '+str(settings.MOBILE_ROBOT))
 
 if settings.MOBILE_ROBOT=='ROBERT':
@@ -20,7 +22,7 @@ class Controller:
         #---------------------------------
         self.robot=None
         self.action=()
-        self.SEND_POSITION=None
+        self.SEND_POSITION=send_updated_position
         #==== ROVERT ====        
         if settings.MOBILE_ROBOT=='ROBERT':
             self.robot=board.MD25(1, 0x58)
@@ -263,7 +265,6 @@ class Controller:
                 self.SEND_POSITION((-self.y_position, self.x_position, self.z_position))
             except Exception as e:
                 print('Error sending position')
-                print(e)
             COUNTER_POS=0;
 		
         
