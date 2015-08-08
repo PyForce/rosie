@@ -53,4 +53,12 @@ $(document).ready(function() {
         $('.icon').removeClass('active');
         $(this).addClass('active');
     });
+
+    setInterval(function(){
+		getOdometry(undefined, function(pos){
+			car.setLatLng([pos.x, pos.y]);
+			//car.setAngle(pos.theta*180/Math.pi); // converting to degrees
+			car.setAngle(pos.theta);
+		});
+	}, 100);
 });

@@ -21,7 +21,12 @@ function setPosition(host, x, y, theta, callback) {
     });
 }
 
-function setPath(host, path, callback) {
+function setPath(host, callback) {
+
+	path = trajectory.getLatLngs().map(
+			function(elem){return [elem.lat, elem.lng]}
+			);
+
     setRequest(host, 'path', callback, {
         'path': path
     });
@@ -55,7 +60,7 @@ function getRequest(host, route, callback, param) {
 
     $.ajax(request).done(function(data) {
         if (callback !== undefined) {
-            callback.call(data)
+            callback(data);
         }
         if (debug) {
             for (var prop in data) {
