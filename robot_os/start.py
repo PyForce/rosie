@@ -11,7 +11,6 @@ except Exception as e:
     print('modules... Fail')
 
 
-
 IP = '10.0.0.1'
 PORT = 3128
 LISTEN = 1
