@@ -98,7 +98,7 @@ class Protocol:
         trivial(message)
         print('exec_get_odometry')
         odometry = [1, 2, 3]
-        nw_message = message()
+        nw_message = ptcl.message()
         nw_message.new("reply", message.cmd, odometry)
         my_socket.sendto(nw_message.toString(), client_socket)
 
