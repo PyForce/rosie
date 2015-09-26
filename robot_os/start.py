@@ -1,4 +1,3 @@
-import time
 import threading
 
 
@@ -29,7 +28,7 @@ if __name__ == '__main__':
     #TODO: Find another way
     try:
         while True:
-            time.sleep(2**32)
+            pass
     except KeyboardInterrupt as e:
         myServer.shutdown()
         myServer.server_close()
