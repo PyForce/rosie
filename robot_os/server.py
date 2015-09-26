@@ -151,8 +151,8 @@ class UDPHandler(SocketServer.BaseRequestHandler):
 
         # Call the functions from the dictionary
         # depends of the name of decMessage.type
-        getattr(protocol, "exec_%s_%s" % (message.mtype, message.cmd),
-                message, s, self.client_address)
+        func = getattr(protocol, "exec_%s_%s" % (message.mtype, message.cmd))
+        func(message, s, self.client_address)
 
         #decMessage.FromString(message.message_data)
         #print(decMessage.command)
