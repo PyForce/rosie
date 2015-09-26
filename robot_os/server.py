@@ -124,22 +124,6 @@ class Protocol:
         print('exec_get_audio_stream')
 
 
-# EVALUATOR = {
-#     'set_speed': exec_set_speed,
-#     'set_position': exec_set_position,
-#     'set_path': exec_set_path,
-#     'set_command': exec_set_command,
-#     'set_wasd': exec_set_wasd,
-#     'set_update': exec_set_update,
-
-#     'get_speed': exec_get_speed,
-#     'get_sensor': exec_get_sensor,
-#     'get_odometry': exec_get_odometry,
-#     'get_photo': exec_get_photo,
-#     'get_video_stream': exec_get_video_stream,
-#     'get_audio_stream': exec_get_audio_stream
-# }
-
 protocol = Protocol()
 
 
