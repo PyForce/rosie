@@ -141,8 +141,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
     """
 
     def __init__(self, request, client_address, server):
-        a = super(self, UDPHandler)
-        a.__init__(request, client_address, server)
+        super(type(self), self).__init__(request, client_address, server)
         self.protocol = Protocol()
 
     def handle(self):
