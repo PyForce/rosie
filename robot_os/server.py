@@ -78,9 +78,11 @@ class Protocol:
         trivial(message)
         print('exec_set_update')
 
-    # @staticmethod
-    # def reply(message, my_socket, client_socket):
-    #     my_socket, client_socket.sendto()
+    @staticmethod
+    def reply(message, my_socket, client_socket, argv):
+        nw_message = ptcl.message()
+        nw_message.new("reply", message.cmd, argv)
+        my_socket.sendto(nw_message.toString(), client_socket)
 
     @staticmethod
     def exec_get_speed(message, my_socket, client_socket):
@@ -97,10 +99,14 @@ class Protocol:
     def exec_get_odometry(message, my_socket, client_socket):
         trivial(message)
         print('exec_get_odometry')
-        odometry = [1, 2, 3]
-        nw_message = ptcl.message()
-        nw_message.new("reply", message.cmd, odometry)
-        my_socket.sendto(nw_message.toString(), client_socket)
+
+        # TODO: Change for the real functionality
+        from random import Random
+        r = Random()
+        a, b, c = [r.randint(1, 255) for i in range(3)]
+        odometry = [a, b, c]
+
+        Protocol.reply(message, my_socket, client_socket, odometry)
 
     @staticmethod
     def exec_get_photo(message, my_socket, client_socket):
