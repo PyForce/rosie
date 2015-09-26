@@ -134,15 +134,13 @@ class Protocol:
 #     'get_audio_stream': exec_get_audio_stream
 # }
 
+protocol = Protocol()
+
 
 class UDPHandler(SocketServer.BaseRequestHandler):
     """
-        Handles the messages coming from HUD
+    Handles the messages coming from HUD
     """
-
-    def __init__(self, request, client_address, server):
-        super(type(self), self).__init__(request, client_address, server)
-        self.protocol = Protocol()
 
     def handle(self):
         data, s = self.request
@@ -163,6 +161,6 @@ class UDPHandler(SocketServer.BaseRequestHandler):
 
 class ThreadedServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
     """
-        Receives and send messages in separate threads
+    Receives and send messages in separate threads
     """
     pass

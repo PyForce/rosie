@@ -17,10 +17,13 @@ LISTEN = 1
 
 
 if __name__ == '__main__':
+    print('Creating server...')
     myServer = server.ThreadedServer((IP, PORT), server.UDPHandler)
 
     server_thread = threading.Thread(target=myServer.serve_forever)
     # server_thread.daemon = True
+
+    print('Starting server...')
     server_thread.start()
 
 #TODO: Find another way
