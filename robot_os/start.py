@@ -26,6 +26,10 @@ if __name__ == '__main__':
     print('Starting server...')
     server_thread.start()
 
-#TODO: Find another way
-while True:
-    time.sleep(2**32)
+    #TODO: Find another way
+    try:
+        while True:
+            time.sleep(2**32)
+    except KeyboardInterrupt as e:
+        myServer.shutdown()
+        myServer.server_close()
