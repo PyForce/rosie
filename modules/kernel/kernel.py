@@ -24,7 +24,7 @@ import time, datetime, threading
 from threading import Timer, Thread
 
 #XXX editar
-from robot import master
+import robot
 
 #### global variables ####
 Q_TEMPORAL=queue.Queue()
@@ -37,7 +37,7 @@ PROCESS='SLEEP'
 
 
 ROBOT_POS=(0,0)
-MASTER=master.Master()
+MASTER=robot.Master()
 
 ROBOT_THREAD=False
 CURRENT_COMMAND=None

@@ -3,20 +3,20 @@ rOSi settings for app.
 """
 
 # Name of the mobile robot
-MOBILE_ROBOT = 'ROBERT'
+MOBILE_ROBOT = 'LTL'
 
 # Filename of board (this file is located in the folder: robot/board)
-FILENAME = 'robert.py'
+FILENAME = 'ltl.py'
 
-# PID settings for control of motors
-PID = False
+# Hardware PID settings for control of motors
+PID = True
 
 
 
-ENCODER_STEPS = 360
+ENCODER_STEPS = 270.9
 
 # Distance between the wheels (in meters)
-DISTANCE = 0.2995
+DISTANCE = 0.38
 
 # Radius of the wheels (in meters)
-RADIUS = 0.05
+RADIUS = 0.04911
