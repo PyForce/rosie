@@ -1,8 +1,10 @@
 import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from os.path import abspath, join, dirname
+sys.path.append(abspath(join(dirname(__file__), '..')))
 
 from WebHUD import app
 from WebHUD.restapi import *
+from WebHUD.views import *
 
 host = '0.0.0.0'
 port = 5000
