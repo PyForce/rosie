@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Protocol Test</title>
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='js/protocol.js') }}" type="text/javascript"></script>
+</head>
+
+<body>
+    <!-- <div id="link">send</div> -->
+    <p id="res"></p>
+    <input type="text" name="" value="" placeholder="" id="hostn">
+    <input type="button" id="link" value="send">
+
+    <script type="text/javascript">
+
+    function WebSocketConn() {
+        if ("WebSocket" in window) {
+            var ws = new WebSocket("ws://{{ host }}/echo");
+
+            ws.onopen = function() {
+                ws.send("Hello World!!, from client side");
+                alert("connection open, mesage sent");
+            };
+
+            ws.onmessage = function(evt) {
+                alert(evt.data);
+            }
+
+            ws.onclose = function() {
+                alert("connection closed");
+            }
+        } else {
+            alert("Websocket is not supoorted by your browser");
+        }
+    }
+
+    $('#link').mousedown(function() {
+        getOdometry('{{ host }}', function(reply) {
+            var x = $('#res');
+            x.text('odometry:');
+            x.append('<br>x: ' + reply.x);
+            x.append('<br>y: ' + reply.y);
+            x.append('<br>theta: ' + reply.theta);
+        });
+
+        getMetadata('{{ host }}', function(reply) {
+            var x = $('#res');
+            x.append('<br>metadata:');
+            x.append('<br>motor_controller: ' + reply.motor_controller);
+            x.append('<br>name: ' + reply.name);
+            x.append('<br>photo: ' + reply.photo);
+            x.append('<br>processor: ' + reply.processor);
+            x.append('<br>sensors: ' + reply.sensors);
+            x.append('<br>size: ' + reply.size);
+        })
+    });
+    </script>
+</body>
+
+</html>
