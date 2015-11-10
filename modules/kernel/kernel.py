@@ -72,8 +72,7 @@ def execute(commands,mode=None):
         if not USER_THREAD:
             _user_thread()
     else:
-        if USER_THREAD:
-            USER_THREAD=False
+        USER_THREAD=False
         PROCESS='EXEC_TEMPORAL'
 
 def _run():
@@ -181,7 +180,6 @@ def _start_temporal_cmd(cmd):
     #==== ROBOT USER-CODE ====
     _robot_thread(cmd, 'TEMPORAL')
 
-
 def _user_thread():
     """
     Start the thread of the user direct control.
@@ -197,6 +195,7 @@ def _user():
     """
     global KEYS
     x, y = 0, 0
+    print('USER MODE: STARTED')
     while USER_THREAD:
         dx, dy = 0, 0
         if 87 in KEYS:  # W
@@ -211,6 +210,8 @@ def _user():
         y=(y+dy)/2.0
         MASTER.process_user_request((x,y))
         time.sleep(0.5)
+    MASTER.end_task()
+    print('USER MODE: ENDED')
 
 def _robot_thread(cmd, cmd_type):
     """
