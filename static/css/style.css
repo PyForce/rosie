@@ -1,0 +1,25 @@
+
+	body {
+		font: 14px "Helvetica Neue", "Arial";
+		margin: auto;
+		text-align: center;
+		padding: 20px;
+	}
+
+	#container {
+		text-align: left;;
+		margin: auto;
+		width: 1282px;
+	}
+
+	#container p {
+		line-height: 20px;
+	}
+
+	#footer {
+		font-size: 10px;
+		font-family: verdana;
+		color: #666;
+		margin-top: 15px;
+	}
+	#footer p { margin: 0;}

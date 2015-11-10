@@ -1,0 +1,144 @@
+body{
+	margin: 0;
+	overflow-x: hidden;
+	/*background-image: url('file:///C:/Users/FarSeer/Desktop/WebHUD/images/basemapWeatherLight.png');*/
+}
+
+div.top-bar {
+	background: #282828;
+}
+
+div.top-bar img{
+	width: 35px;
+	margin: 10px;
+	margin-right: 0;
+	transition: box-shadow 0.2s;
+}
+
+div.top-bar img:hover{
+	box-shadow: white 0px 0px 20px 2px;
+}
+
+#video-streaming {
+	width: 250px;
+	/*border-left: 3px solid blueviolet;*/
+	padding: 10px;
+	position: absolute;
+	background-color: rgba(0, 0, 0, 0.8);
+	bottom: 0;
+	left: 0;
+	margin-bottom: 10px;
+	margin-left: 10px;
+	z-index: 0;
+	visibility: hidden;
+}
+
+.robot-info-wrapper{
+	visibility: hidden;
+}
+
+#robot-logo {
+	/*border-left: 3px solid lightgreen;*/
+	padding: 10px;
+	background-color: rgba(0, 0, 0, 0.8);
+	color: lightgray;
+	margin-top: 10px;
+	position: absolute;
+	width: 200px;
+	right: 0px;
+	margin-right: 10px;
+}
+
+#robot-logo ul{
+	padding-left: 20px;
+}
+
+#robot-logo img{
+	width: 100%;
+}
+
+#sidebar-left{
+	transition: all 0.2s;
+	background-color: rgba(0, 0, 0, 1);
+	width: 200px;
+	position: fixed;
+	left: -200px;
+	bottom: 0;
+	top: 0;
+	z-index: 1001;
+	margin-top: -55px;
+}
+
+#sidebar-left.expanded{
+	left:0px;
+}
+
+.sidebar-settings{
+	/*transition: all 0.2s;
+	background-color: rgba(0, 0, 0, 1);
+
+	position: fixed;
+	left: -200px;
+	bottom: 0;
+	top: 0;
+	z-index: 1001;
+	font-family: "Open Sans",serif;
+	margin-top: -55px;*/
+	margin-top: 10px;
+	padding-top: 50px;
+	padding-left: 30px;
+	width: 200px;
+	height: 90px;
+	background-color: rgba(255, 0, 0, 1);
+}
+
+.sidebar-element{
+	/*transition: all 0.2s;
+	background-color: rgba(0, 0, 0, 1);
+
+	position: fixed;
+	left: -200px;
+	bottom: 0;
+	top: 0;
+	z-index: 1001;
+	margin-top: -55px;*/
+	margin: 5px;
+	padding-top: 10px;
+	width: 190px;
+	height: 40px;
+	padding-left: 10px;
+	background-color: rgba(0, 255, 0, 1);
+}
+
+#overlay{
+	transition: visibility 0.2s;
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: black;
+	z-index: 1000;
+	opacity: 0.4;
+	visibility: hidden;
+}
+
+#overlay.visible{
+	visibility: visible;
+}
+
+body > .container{
+	z-index: -1;
+}
+
+#map{
+	/*background-color: gray;*/
+}
+
+#map{
+	position: fixed;
+	bottom: 0;
+	top: 55px;
+	left: 0;
+	right: 0px;
+}

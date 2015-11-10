@@ -1,0 +1,18 @@
+<html>
+<head>
+	<title>Web HUD</title>
+	<script type="text/javascript" src="scripts/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/style.css"></script>
+</head>
+<body>
+	<div id="formatter">
+		{% for field in data %}
+			{{ field }} => {{ data[field] }} <br>
+		{% endfor %}
+	</div>
+	<div id="footer">
+		<p>by PyForce</p>
+	</div>
+</div>
+</body>
+</html>
