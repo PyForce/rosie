@@ -211,6 +211,7 @@ def _user():
         MASTER.process_user_request((x,y))
         time.sleep(0.5)
     MASTER.end_task()
+    KEYS=[]
     print('USER MODE: ENDED')
 
 def _robot_thread(cmd, cmd_type):
