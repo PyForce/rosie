@@ -1,5 +1,6 @@
 body{
 <<<<<<< HEAD
+<<<<<<< HEAD
 	font: 14px "Helvetica Neue", "Arial";
 	margin: 0;
 	overflow-x: hidden;
@@ -8,6 +9,11 @@ body{
 	overflow-x: hidden;
 	/*background-image: url('file:///C:/Users/FarSeer/Desktop/WebHUD/images/basemapWeatherLight.png');*/
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+	font: 14px "Helvetica Neue", "Arial";
+	margin: 0;
+	overflow-x: hidden;
+>>>>>>> eee193a... Cleanup and beautify some static assets
 }
 
 div.top-bar {
@@ -31,8 +37,11 @@ div.top-bar img:hover{
 
 #video-streaming {
 	width: 250px;
+<<<<<<< HEAD
 	/*border-left: 3px solid blueviolet;*/
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 	padding: 10px;
 	position: absolute;
 	background-color: rgba(0, 0, 0, 0.8);
@@ -50,9 +59,12 @@ div.top-bar img:hover{
 
 #robot-logo {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	/*border-left: 3px solid lightgreen;*/
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 	padding: 10px;
 	background-color: rgba(0, 0, 0, 0.8);
 	color: lightgray;
@@ -95,6 +107,7 @@ div.top-bar img:hover{
 }
 
 .sidebar-settings{
+<<<<<<< HEAD
 	/*transition: all 0.2s;
 	background-color: rgba(0, 0, 0, 1);
 
@@ -106,6 +119,8 @@ div.top-bar img:hover{
 	font-family: "Open Sans",serif;
 	margin-top: -55px;*/
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 	margin-top: 10px;
 	padding-top: 50px;
 	padding-left: 30px;

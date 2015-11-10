@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 var map = L.map('map').setView([0, 0], 5);
 
 var url = "static/images/LTL_min1.png";
@@ -32,6 +33,8 @@ $("#i-p2p").click(function() {
 //            -Math.sin(theta) * x.lat + Math.cos(theta) * x.lng];
 // }
 
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 var map = L.map('map').setView([0, 0], 5);
 <<<<<<< HEAD
 var botpos = [0, 0];
@@ -88,7 +91,7 @@ $("#plot").click(function() {
 
 =======
 
-var url = "assets/images/LTL_min1.png";
+var url = "static/images/LTL_min1.png";
 var imagebounds = [
     [-10, -10],
     [10, 22]
@@ -96,23 +99,27 @@ var imagebounds = [
 var imageOverlay = L.imageOverlay(url, imagebounds).addTo(map);
 
 var plottedPolyline = L.Polyline.Plotter([
-        [0,6]        
-    ],{
-        weight: 5,
-		readOnly: true,		
-    }).addTo(map);
+    [0, 6]
+], {
+    weight: 5,
+    readOnly: true,
+}).addTo(map);
 
 //function plot(enable){
 //	if(enable)plottedPolyline.
 //}
 
 var readOnly = true;
-$("#plot").click(function(){
-        readOnly = !readOnly;
-        plottedPolyline.setReadOnly(readOnly);
+$("#plot").click(function() {
+    readOnly = !readOnly;
+    plottedPolyline.setReadOnly(readOnly);
 });
+<<<<<<< HEAD
 	
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+
+>>>>>>> eee193a... Cleanup and beautify some static assets
 L.DomEvent.on(imageOverlay._image, 'mouseenter', function(e) {
     $("#robot-logo").css("visibility", "visible");
     $("#video-streaming").css("visibility", "visible");
