@@ -7,9 +7,6 @@ Created on Mon Apr 13 21:12:48 2015
 
 __all__=['execute']
 
-#XXX script de prueba (eliminar despues)
-# import experiment
-
 #### import ####
 try:
     import queue
@@ -30,40 +27,54 @@ import robot
 Q_TEMPORAL=queue.Queue()
 Q_NON_TEMPORAL=queue.LifoQueue()
 
+MODE='USER'
+     # KERNEL
 PROCESS='SLEEP'    
         # EXEC_TEMPORAL
         # EXEC_NON_TEMPORAL
 
-
-
+KEYS=[]
 ROBOT_POS=(0,0)
 MASTER=robot.Master()
 
+USER_THREAD=False
 ROBOT_THREAD=False
 CURRENT_COMMAND=None
 PREVIOUS_TIMER_NAME=None
 
 #### functions ####
-def execute(commands):
+def execute(commands,mode=None):
     """       
     Classification of the input commands.
     
     :param commands: commands
     :type commands: list(str,dict))
+    :param mode: work mode USER/KERNEL
+    :type mode: str
     
     >>> cmd=[{'start': None, 'end': None},
     ...      {'place': 'table', 'pos': 'in'},
     ...      {'command':'stop'}]
     >>> execute(cmd)
     """
-    global PROCESS
-    for cmd in commands:
-        #---- classification of commands ----
-        if cmd[0]['start'] or cmd[0]['end']:
-            Q_TEMPORAL.put_nowait(cmd)
-        else:
-            Q_NON_TEMPORAL.put_nowait(cmd)
-    PROCESS='EXEC_TEMPORAL'
+    global PROCESS, MODE, USER_THREAD
+    #---- classification of commands ----
+    if commands:
+        for cmd in commands:
+            if cmd[0]['start'] or cmd[0]['end']:
+                Q_TEMPORAL.put_nowait(cmd)
+            else:
+                Q_NON_TEMPORAL.put_nowait(cmd)
+    #---- switch: mode ----    
+    MODE=mode
+    if MODE=='USER':
+        PROCESS='SLEEP'
+        if not USER_THREAD:
+            _user_thread()
+    else:
+        if USER_THREAD:
+            USER_THREAD=False
+        PROCESS='EXEC_TEMPORAL'
 
 def _run():
     """
@@ -170,6 +181,37 @@ def _start_temporal_cmd(cmd):
     #==== ROBOT USER-CODE ====
     _robot_thread(cmd, 'TEMPORAL')
 
+
+def _user_thread():
+    """
+    Start the thread of the user direct control.
+    """
+    global USER_THREAD
+    USER_THREAD=True
+    robot=Thread(target=_user, name='USER')
+    robot.start()
+
+def _user():
+    """
+    Thread of the USER mode.
+    """
+    global KEYS
+    x, y = 0, 0
+    while USER_THREAD:
+        dx, dy = 0, 0
+        if 87 in KEYS:  # W
+            dy+=8
+        if 65 in KEYS:  # A
+            dx-=8
+        if 83 in KEYS:  # S
+            dy-=8
+        if 68 in KEYS:  # D
+            dx+=8
+        x=(x+dx)/2.0
+        y=(y+dy)/2.0
+        MASTER.process_user_request((x,y))
+        time.sleep(0.5)
+
 def _robot_thread(cmd, cmd_type):
     """
     Start the thread of the robot.
@@ -193,8 +235,10 @@ def _robot_thread(cmd, cmd_type):
         #---- waiting for finishing (robot-thread) ----
         while CURRENT_COMMAND:
             pass
+    #---- kill all thread in USER mode ----
+    if MODE=='USER':
+        return
     #---- start robot thread ----
-    # experiment.add_time('start robot thread')
     ROBOT_THREAD=True
     CURRENT_COMMAND=(cmd_type,cmd)
     robot=Thread(target=_robot, name='ROBOT', args=([cmd]))

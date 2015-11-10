@@ -76,3 +76,15 @@ class Master:
                 self.process_points(path)
         else:
             self.motion.execute_action()
+            
+    def process_user_request(self, request):
+        
+        right, left = controller.wasd_velocities(request[0], request[1])
+        if right or left:
+            encoder1, encoder2, _ = self.arduino.read_state()
+            self.calculatePosition(encoder1, encoder2)
+            
+            controller.robot_speed(right, left)
+    
+    
+    

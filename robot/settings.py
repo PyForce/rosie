@@ -20,3 +20,6 @@ DISTANCE = 0.38
 
 # Radius of the wheels (in meters)
 RADIUS = 0.04911
+
+# Max speed (in radians by seconds)
+MAX_SPEED = 8.0

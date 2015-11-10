@@ -74,6 +74,9 @@ class Controller:
 
         self.timer_init()
 
+    def robot_speed(self,set_point1, set_point2):
+        self.robot.set_speeds(set_point1, set_point2)
+    
     def ask_status(self):
         encoder1, encoder2, battery = self.robot.read_state()
         # self.robot.reset_encoders()
@@ -297,6 +300,15 @@ class Controller:
         set_point1 = the_v / settings.RADIUS - the_omega * settings.DISTANCE / 2 / settings.RADIUS
 
         return set_point1, set_point2
+
+    def wasd_velocities(self,x,y):
+        left=right=y
+        ratio=abs(x/settings.MAX_SPEED)
+        if x>0:
+            right*=(1-ratio)
+        elif x<0:
+            left*=(1-ratio)
+        return right, left
 
     def timer_start(self):
         try:
