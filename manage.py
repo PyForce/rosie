@@ -1,4 +1,4 @@
-import os, sys
+import sys
 from os.path import abspath, join, dirname
 sys.path.append(abspath(join(dirname(__file__), '..')))
 

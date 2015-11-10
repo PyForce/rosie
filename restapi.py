@@ -10,6 +10,7 @@ def echo(ws):
         print(msg)
         ws.send(msg)
 
+
 @app.route('/odometry', methods=['GET'])
 @allow_origin
 def odometry():
@@ -21,6 +22,7 @@ def odometry():
     }
     """
     return jsonify(**json.loads(odometry.__doc__))
+
 
 @app.route('/metadata', methods=['GET'])
 @allow_origin
@@ -36,6 +38,7 @@ def metadata():
     }
     """
     return jsonify(**json.loads(metadata.__doc__))
+
 
 @app.route('/sensor/<string:name>', methods=['GET'])
 @allow_origin
@@ -58,9 +61,11 @@ def position():
         "theta": theta
     }
     """
+
     x = request.json['x']
     y = request.json['y']
     theta = request.json['theta']
+
 
 @app.route('/goto', methods=['PUT'])
 @allow_origin
@@ -72,6 +77,7 @@ def goto():
     """
     path = request.json['path']
 
+
 @app.route('/text', methods=['PUT'])
 @allow_origin
 def text():
@@ -82,6 +88,7 @@ def text():
     """
     text = request.json['text']
 
+
 @app.route('/manual_mode', methods=['PUT'])
 @allow_origin
 def manual_mode():
@@ -89,6 +96,7 @@ def manual_mode():
     {}
     """
     pass
+
 
 @app.route('/maps', methods=['PUT'])
 @allow_origin
@@ -98,4 +106,3 @@ def maps():
     }
     """
     geojson = request.json
-
