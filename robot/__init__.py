@@ -81,9 +81,8 @@ class Master:
         
         right, left = self.motion.wasd_velocities(request[0], request[1])
         if right or left:
-            encoder1, encoder2, _ = self.arduino.read_state()
-            self.calculatePosition(encoder1, encoder2)
-            
+#            encoder1, encoder2, _ = self.arduino.read_state()
+#            self.calculatePosition(encoder1, encoder2)
             self.motion.robot_speed(right, left)
     
     
