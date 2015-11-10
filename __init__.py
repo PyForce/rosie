@@ -1,10 +1,9 @@
 from flask import Flask
-from flask_sockets import Sockets
+from flask_socketio import SocketIO, emit
 
 
 app = Flask(__name__)
-sockets = Sockets(app)
-
+sio = SocketIO(app)
 
 if __name__ == '__main__':
     app.run()

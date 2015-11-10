@@ -1,14 +1,12 @@
 from flask import request, jsonify, json
-from WebHUD import app, sockets
+from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
 
 
-@sockets.route('/echo')
-def echo(ws):
-    while True:
-        msg = ws.receive()
-        print(msg)
-        ws.send(msg)
+@sio.on('echo', namespace='/test')
+def echo(message):
+    print(message)
+    emit('echo reply', message)
 
 
 @app.route('/odometry', methods=['GET'])
