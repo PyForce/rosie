@@ -48,7 +48,11 @@ class Master:
                         self.motion.x_position,
                         self.motion.z_position)
         return self.ROBOT_POS
-        
+    
+    def set_robot_pos(self,X,Y,theta):
+        self.motion.y_position=-X
+        self.motion.x_position=Y
+        self.motion.z_position=theta 
 
     def is_finished(self):
         self.get_robot_pos()
@@ -81,8 +85,8 @@ class Master:
         
         right, left = self.motion.wasd_velocities(request[0], request[1])
         if right or left:
-#            encoder1, encoder2, _ = self.arduino.read_state()
-#            self.calculatePosition(encoder1, encoder2)
+            encoder1, encoder2, _ = self.motion.robot.read_state()
+            self.motion.calculatePosition(encoder1, encoder2)
             self.motion.robot_speed(right, left)
     
     

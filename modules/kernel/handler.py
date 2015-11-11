@@ -16,7 +16,7 @@ def get_sensor(name=''):
     
 
 def set_position(X=0,Y=0,theta=0):
-    kernel.MASTER.ROBOT_POS=(X,Y,theta)
+    kernel.MASTER.set_robot_pos(X,Y,theta)
 
 def process_text(text=""):
     cmd = command.extraction(text)
