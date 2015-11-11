@@ -1,16 +1,16 @@
-from flask import request, make_response, jsonify, json
-from WebHUD import app
+from flask import request, jsonify, json
+from WebHUD import app, sio, emit
+from WebHUD.utils import allow_origin
 
-def allow_origin(f):
-    def g(*args, **kwargs):
-        response = make_response(f(*args, **kwargs))
-        response.headers['Access-Control-Allow-Origin']='*'
-        return response
-    g.__doc__ = f.__doc__
-    return g
 
-@allow_origin
+@sio.on('echo', namespace='/test')
+def echo(message):
+    print(message)
+    emit('echo reply', message)
+
+
 @app.route('/odometry', methods=['GET'])
+@allow_origin
 def odometry():
     """
     {
@@ -21,8 +21,9 @@ def odometry():
     """
     return jsonify(**json.loads(odometry.__doc__))
 
-@allow_origin
+
 @app.route('/metadata', methods=['GET'])
+@allow_origin
 def metadata():
     """
     {
@@ -36,18 +37,20 @@ def metadata():
     """
     return jsonify(**json.loads(metadata.__doc__))
 
+
 @app.route('/sensor/<string:name>', methods=['GET'])
-#@allow_origin
+@allow_origin
 def sensor(name):
     """
     {
+        "name": %s
     }
     """
-    return jsonify(**json.loads(sensor.__doc__))
+    return jsonify(**json.loads(sensor.__doc__ % name))
 
 
 @app.route('/position', methods=['PUT'])
-#@allow_origin
+@allow_origin
 def position():
     """
     {
@@ -56,12 +59,14 @@ def position():
         "theta": theta
     }
     """
+
     x = request.json['x']
     y = request.json['y']
     theta = request.json['theta']
 
+
 @app.route('/goto', methods=['PUT'])
-#@allow_origin
+@allow_origin
 def goto():
     """
     {
@@ -70,8 +75,9 @@ def goto():
     """
     path = request.json['path']
 
+
 @app.route('/text', methods=['PUT'])
-#@allow_origin
+@allow_origin
 def text():
     """
     {
@@ -80,20 +86,21 @@ def text():
     """
     text = request.json['text']
 
+
 @app.route('/manual_mode', methods=['PUT'])
-#@allow_origin
+@allow_origin
 def manual_mode():
     """
     {}
     """
     pass
 
+
 @app.route('/maps', methods=['PUT'])
-#@allow_origin
+@allow_origin
 def maps():
     """
     {
     }
     """
     geojson = request.json
-
