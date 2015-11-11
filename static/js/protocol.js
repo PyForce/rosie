@@ -14,15 +14,16 @@ function getMetadata(host, callback) {
 
 // SET
 
-function setPosition(host, x, y, callback) {
+function setPosition(host, x, y, theta, callback) {
     setRequest(host, "position", callback, {
         'x': x,
-        'y': y
+        'y': y,
+        'theta': theta
     });
 }
 
-function setGoto(host, path, callback) {
-    setRequest(host, 'goto', callback, {
+function setPath(host, path, callback) {
+    setRequest(host, 'path', callback, {
         'path': path
     });
 }
