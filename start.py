@@ -1,34 +1,32 @@
-import threading
-
-
-print('Loading modules...')
 try:
-    import server
+    print('Loading modules...')
+    try:
+        print('Importing module: ordex...')
+        from modules import ordex
+        print('ordex... Ok')
+    except Exception as e:
+        print(e)
+        print('ordex... Fail')
+
+    try:
+        print('Importing module: kernel...')
+        from modules.kernel import kernel
+        print('kernel... Ok')
+    except Exception as e:
+        print(e)
+        print('kernel... Fail')
+
+    command = ordex.Command()
+    command.draw_syntactic_trees(False)
+
     print('modules... Ok')
 except Exception as e:
     print(e)
     print('modules... Fail')
 
 
-IP = '10.0.0.1'
-PORT = 3128
-LISTEN = 1
-
+from modules.WebHUD.manage import *
 
 if __name__ == '__main__':
-    print('Creating server...')
-    myServer = server.ThreadedServer((IP, PORT), server.UDPHandler)
+    run_server()
 
-    server_thread = threading.Thread(target=myServer.serve_forever)
-    # server_thread.daemon = True
-
-    print('Starting server...')
-    server_thread.start()
-
-    #TODO: Find another way
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt as e:
-        myServer.shutdown()
-        myServer.server_close()
