@@ -34,7 +34,6 @@ PROCESS='SLEEP'
         # EXEC_NON_TEMPORAL
 
 KEYS=[]
-ROBOT_POS=(0,0)
 MASTER=robot.Master()
 
 USER_THREAD=False

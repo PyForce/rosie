@@ -20,7 +20,7 @@ class Master:
         self.queue = queue.Queue()
         self.address = None
         self.index = 0
-        self.ROBOT_POS = (0,0)
+        self.ROBOT_POS = (0,0,0)
 
     #==== CUBIC ====
     def process_path(self, track):
@@ -45,10 +45,10 @@ class Master:
     
     def get_robot_pos(self):
         self.ROBOT_POS=(-self.motion.y_position,
-                        self.motion.x_position)
-#        return (self.motion.y_position,
-#                self.motion.x_position,
-#                self.motion.z_position)
+                        self.motion.x_position,
+                        self.motion.z_position)
+        return self.ROBOT_POS
+        
 
     def is_finished(self):
         self.get_robot_pos()

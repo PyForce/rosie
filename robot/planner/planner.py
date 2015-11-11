@@ -85,6 +85,7 @@ def _get_path(start,target,show=False):
         elif type(start) is str:
             START_POINT=MAP.pos_of(start)
         elif type(start) is tuple:
+            start=start[:2]
             START_POINT=MAP.pos_of(_pos_approach(start))
         elif type(start) is graph.Node:
             START_POINT=start
@@ -92,7 +93,10 @@ def _get_path(start,target,show=False):
             START_POINT=None
         #---- target ----    
         if type(target) is dict:
-            TARGET_POINT=MAP.pos_of(target)
+            try:
+                TARGET_POINT=target['path']
+            except:
+                TARGET_POINT=MAP.pos_of(target)
         elif type(target) is str:
             TARGET_POINT=MAP.pos_of(target)
         elif type(target) is tuple:
@@ -119,7 +123,13 @@ def _get_path(start,target,show=False):
             try:
                 if type(TARGET_POINT) is list:
                     for item in TARGET_POINT[1:]:
-                        path_list.append(item.pos)    
+                        path_list.append(item.pos) 
+            except: pass
+        else:
+            try:
+                if type(TARGET_POINT) is list and TARGET_POINT:
+                    for item in TARGET_POINT:
+                        path_list.append(item.pos) 
             except: pass
     #---- without map ----
     else:
