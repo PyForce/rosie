@@ -41,5 +41,5 @@ def set_path(path=[]):
     cmd=[{'start': None, 'end': None},
          {'path': path},
          {'command':'stop'}]
-    kernel.execute(cmd)
+    kernel.execute([cmd])
     

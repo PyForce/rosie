@@ -23,3 +23,11 @@ RADIUS = 0.04911
 
 # Max speed (in radians by seconds)
 MAX_SPEED = 8.0
+
+
+#
+#        "processor" : "RaspberryPi",
+#        "motor_controller" : "Arduino Uno",
+#        "size" : [0.3, 0.5, 0.34],
+#        "photo": "http://photo_url",
+#        "sensors": ["seensor1", "sensor2"]
