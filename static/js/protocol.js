@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 function getRequest(host, route, callback, param) {
     var request = {
@@ -12,6 +13,8 @@ function getRequest(host, route, callback, param) {
 
 
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> 7207f9e... Mega commit
 // GET
 
 function getSensor(host, name, callback) {
@@ -27,6 +30,7 @@ function getMetadata(host, callback) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 function setRequest(host, route, callback, param) {
     var request = {
@@ -39,6 +43,8 @@ function setRequest(host, route, callback, param) {
 }
 
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> 7207f9e... Mega commit
 // SET
 
 function setPosition(host, x, y, callback) {
@@ -60,6 +66,9 @@ function setText(host, text, callback) {
     });
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7207f9e... Mega commit
 
 // Helpers
 var debug = true;
@@ -106,5 +115,8 @@ function setRequest(host, route, callback, param) {
         };
     });
 }
+<<<<<<< HEAD
 =======
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> 7207f9e... Mega commit

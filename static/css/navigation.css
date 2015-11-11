@@ -21,6 +21,7 @@ div.top-bar {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #video-streaming {
 	width: 250px;
 =======
@@ -35,6 +36,8 @@ div.top-bar img:hover{
 	box-shadow: white 0px 0px 20px 2px;
 }
 
+=======
+>>>>>>> 7207f9e... Mega commit
 #video-streaming {
 	width: 250px;
 <<<<<<< HEAD
@@ -74,9 +77,13 @@ div.top-bar img:hover{
 	right: 0px;
 	margin-right: 10px;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	z-index: 2000;
 =======
 >>>>>>> 8b2eebc... Add static assets to repo
+=======
+	z-index: 2000;
+>>>>>>> 7207f9e... Mega commit
 }
 
 #robot-logo ul{
@@ -87,6 +94,7 @@ div.top-bar img:hover{
 	width: 100%;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 .sidebar-settings{
 =======
@@ -106,6 +114,8 @@ div.top-bar img:hover{
 	left:0px;
 }
 
+=======
+>>>>>>> 7207f9e... Mega commit
 .sidebar-settings{
 <<<<<<< HEAD
 	/*transition: all 0.2s;

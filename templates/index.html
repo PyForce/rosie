@@ -6,10 +6,11 @@
 		<!-- General styles -->
 		<link rel="stylesheet" type="text/css" href="static/lib/css/bootstrap.min.css" />
 		<link rel="stylesheet" type="text/css" href="static/css/navigation.css" />
+		<link rel="stylesheet" href="static/css/icon-menu.css">
 
 		<!-- Map related -->
-	    <link rel="stylesheet" href="static/lib/css/leaflet.css" />
-	    <link rel="stylesheet" href="static/lib/css/leaflet-1.0.css" />
+	  <!-- <link rel="stylesheet" href="static/lib/css/leaflet.css" /> -->
+	  <link rel="stylesheet" href="static/lib/css/leaflet-1.0.css" />
 
 	</head>
 	<body>
@@ -17,26 +18,52 @@
 		<div id="overlay"></div>
 
 	    <!-- Navigation -->
-	    	<div class="top-bar">
-			    <div class="row">
-					<div class="col-md-12">
-						<img id="settings" class="icon" src="static/images/ico.png"></img>
-						<img class="icon" src="static/images/ico2.png"></img>
-						<img id="plot" class="icon" src="static/images/ico3.png"></img>
-						<img class="icon" src="static/images/ico4.png"></img>
+			<div class="top-bar">
+			<div class="row">
+				<div class="col-md-12">
+					<!-- Settings button -->
+					<img class="icon" id="i-settings" title="Settings" src="static/icons/settings.png"></img>
+					<!-- Menu button -->
+					<img class="icon" id="i-menu" title="Menu" src="static/icons/menu.png"></img>
+					<!-- Function button -->
+					<img class="icon" id="i-key" title="Key mode" src="static/icons/b-key.png"></img>
+					<img class="icon" id="i-text" title="Text mode" src="static/icons/b-text.png"></img>
+					<img class="icon" id="i-p2p" title="Point to point mode" src="static/icons/b-p2p.png"></img>
+				</div>
+			</div>
+			<!-- Settings list -->
+			<div class="row">
+				<div class="col-md-12">
+					<div class="responsive">
+						<div class="list-menu" id="settings">
+							<ul>
+								<li><a>Setting 1</a></li>
+								<li><a>Setting 2</a></li>
+								<li><a>Setting 3</a></li>
+								<li><a>Setting 4</a></li>
+								<li><a>Setting 5</a></li>
+							</ul>
+						</div>
 					</div>
 				</div>
 			</div>
+			<!-- Menu list -->
+			<div class="row">
+				<div class="col-md-12">
+					<div class="list-menu" id="menu">
+						<ul>
+							<li><a id="m-item1">Text</a></li>
+							<li><a id="m-item2">Key</a></li>
+							<li><a id="m-item3">Point to Point</a></li>
+							<li><a id="m-item4">Streaming</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
 
 			<div class="container-fluid">
 				<div class="row">
-					<!-- Left sidebar -->
-					<div id="sidebar-left">
-						<h1 class="sidebar-settings">Settings</h1>
-						<h2 class="sidebar-element">Element 1</h2>
-						<h2 class="sidebar-element">Element 2</h2>
-						<h2 class="sidebar-element">Element 3</h2>
-					</div>
 
 					<div id="map-container" class="col-sm-10 col-md-10">
 						<div id="map" ></div>
@@ -62,6 +89,17 @@
 			</div>
 
 			<img id="video-streaming" src=""/>
+
+			<!-- TEXT MODE -->
+		<div id="mode-text">
+			<form>
+				<div id="input-text">
+					<input id="text-order" autocomplete="off" placeholder="Order" type="text">
+					<button id="btn-order" type="submit">
+				</div>
+			</form>
+		</div>
+
 		</div>
 
 		<!-- Load libs -->
@@ -76,5 +114,8 @@
 		<script src="static/js/map.js"></script>
 		<script src="static/js/ui-actions.js"></script>
 		<script src="static/js/sio.js"></script>
+		<script src="static/js/protocol.js"></script>
+		<script src="static/js/main.js"></script>
+
 	</body>
 </html>
