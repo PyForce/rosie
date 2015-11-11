@@ -8,7 +8,10 @@ $(document).ready(function(){
     // 39 -> right
     // 40 -> down
 
-    pressed.add(e.which);
+    if (e.which in [37,38,39,40]) {
+      pressed.add(e.which);
+    }
+    
   }, true);
 
   document.body.addEventListener('keyup', function(e) {
