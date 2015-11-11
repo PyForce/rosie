@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var sio = io.connect('http://' + document.domain + ':' + location.port + '/test');
+    sio = io.connect('http://' + document.domain + ':' + location.port + '/test');
 
     sio.on('echo reply', function(msg) {
         console.log(msg['text']);
