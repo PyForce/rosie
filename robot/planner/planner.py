@@ -58,7 +58,11 @@ def path_xyt(start,target,show=False):
      't_planning': [0, 6.4]}
     """
     x,y,t=[],[],[]
-    path_list=_get_path(start,target,show)
+    try:
+        path_list=target['path']
+        path_list.insert(0,start)
+    except:
+        path_list=_get_path(start,target,show)
     #---- generate the vector of time ----
     if len(path_list)>1:
         prev_point=path_list[0]
@@ -93,10 +97,7 @@ def _get_path(start,target,show=False):
             START_POINT=None
         #---- target ----    
         if type(target) is dict:
-            try:
-                TARGET_POINT=target['path']
-            except:
-                TARGET_POINT=MAP.pos_of(target)
+            TARGET_POINT=MAP.pos_of(target)
         elif type(target) is str:
             TARGET_POINT=MAP.pos_of(target)
         elif type(target) is tuple:
@@ -123,12 +124,6 @@ def _get_path(start,target,show=False):
             try:
                 if type(TARGET_POINT) is list:
                     for item in TARGET_POINT[1:]:
-                        path_list.append(item.pos) 
-            except: pass
-        else:
-            try:
-                if type(TARGET_POINT) is list and TARGET_POINT:
-                    for item in TARGET_POINT:
                         path_list.append(item.pos) 
             except: pass
     #---- without map ----
