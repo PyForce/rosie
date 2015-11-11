@@ -16,7 +16,7 @@ var plottedPolyline = L.Polyline.Plotter([
 }).addTo(map);
 
 var readOnly = true;
-$("#plot").click(function() {
+$("#i-p2p").click(function() {
     readOnly = !readOnly;
     plottedPolyline.setReadOnly(readOnly);
 });

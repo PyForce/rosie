@@ -4,6 +4,10 @@
 	margin: 0 3px;
 }
 
+.icon.active {
+    background: grey;
+}
+
 /**** MENU/SETTINGS BUTTON ****/
 #i-menu, #i-settings{
 	margin: 2px 10px;
