@@ -8,7 +8,7 @@ $(document).ready(function(){
     // 39 -> right
     // 40 -> down
 
-    if (e.which in [37,38,39,40]) {
+    if ([37,38,39,40].some(function(element, index, array) { return element === e.which })) {
       pressed.add(e.which);
     }
     
@@ -22,5 +22,5 @@ $(document).ready(function(){
     var l = [...pressed];
     console.log(l);
     sio.emit('manual', {'keys': l});
-  }, 1000);
+  }, 100);
 });
