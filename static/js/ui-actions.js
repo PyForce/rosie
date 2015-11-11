@@ -12,14 +12,14 @@ $("#overlay").click(function() {
     $("#sidebar-left").removeClass("expanded");
 });
 
-imageOverlay.on("mouseover", function() {
+L.DomEvent.on(imageOverlay._image, 'click', function(e) {
     $("#robot-logo").css("visibility", "visible");
     $("#video-streaming").css("visibility", "visible");
     $("#video-streaming").attr("src", "http://10.0.0.1:8080/stream/video.mjpeg")
 });
 
-imageOverlay.on("mouseout", function() {
-    $("#robot-logo").css("visibility", "hidden");
-    $("#video-streaming").css("visibility", "hidden");
-    $("#video-streaming").attr("src", null);
-});
+// L.DomEvent.on(imageOverlay._image, 'mouseout', function(e) {
+//     $("#robot-logo").css("visibility", "hidden");
+//     $("#video-streaming").css("visibility", "hidden");
+//     $("#video-streaming").attr("src", null);
+// });
