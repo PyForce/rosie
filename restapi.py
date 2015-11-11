@@ -1,6 +1,7 @@
 from flask import request, jsonify, json
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
+import handler as robot_handler
 
 
 @sio.on('echo', namespace='/test')
@@ -19,7 +20,8 @@ def odometry():
         "theta": 3.21
     }
     """
-    return jsonify(**json.loads(odometry.__doc__))
+    x, y, theta = robot_handler.get_odometry()
+    return jsonify(x=x, y=y, theta=theta)
 
 
 @app.route('/metadata', methods=['GET'])
@@ -59,21 +61,22 @@ def position():
         "theta": theta
     }
     """
-
     x = request.json['x']
     y = request.json['y']
     theta = request.json['theta']
+    robot_handler.set_position(x, y, theta)
 
 
-@app.route('/goto', methods=['PUT'])
+@app.route('/path', methods=['PUT'])
 @allow_origin
-def goto():
+def path():
     """
     {
         "path": [(x, y), (x, y), ... ]
     }
     """
     path = request.json['path']
+    robot_handler.set_path(path)
 
 
 @app.route('/text', methods=['PUT'])
@@ -85,6 +88,18 @@ def text():
     }
     """
     text = request.json['text']
+    robot_handler.process_text(text)
+
+
+@sio.on('manual', namespace='/test') # key press
+def drive_manual(message):
+    """
+    {
+        "keys": [37, 38, 39, 40]
+    }
+    """
+    keys = json.loads(message)['keys']
+    robot_handler.set_keys(keys)
 
 
 @app.route('/manual_mode', methods=['PUT'])
@@ -93,7 +108,14 @@ def manual_mode():
     """
     {}
     """
-    pass
+    robot_handler.set_mode('manual')
+
+
+@app.route('/auto_mode', methods=['PUT'])
+@allow_origin
+def auto_mode():
+    kernel.KEYS = []
+    robot_handler.set_mode('auto')
 
 
 @app.route('/maps', methods=['PUT'])
@@ -101,6 +123,7 @@ def manual_mode():
 def maps():
     """
     {
+        "map": "map_name"
     }
     """
-    geojson = request.json
+    map = request.json['map']
