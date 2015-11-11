@@ -1,7 +1,7 @@
 from flask import request, jsonify, json
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
-import handler as robot_handler
+import kernel.handler as robot_handler
 
 
 @sio.on('echo', namespace='/test')
@@ -92,13 +92,13 @@ def text():
 
 
 @sio.on('manual', namespace='/test') # key press
-def drive_manual(message):
+def drive_manual(data):
     """
     {
         "keys": [37, 38, 39, 40]
     }
     """
-    keys = json.loads(message)['keys']
+    keys = data['keys']
     robot_handler.set_keys(keys)
 
 

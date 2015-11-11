@@ -11,5 +11,8 @@ port = 5000
 debug = False
 use_reloader = True
 
-if __name__ == '__main__':
+def run_server():
     sio.run(app, host=host, port=port, debug=debug, use_reloader=use_reloader)
+
+if __name__ == '__main__':
+    run_server()
