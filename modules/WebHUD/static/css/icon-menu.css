@@ -1,0 +1,219 @@
+/**** GENERAL ****/
+.icon{
+	cursor: pointer;
+	margin: 0 3px;
+}
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bfdbab2... Set selected mode button background and fix path building
+.icon.active {
+    background: grey;
+}
+
+<<<<<<< HEAD
+=======
+>>>>>>> 7207f9e... Mega commit
+=======
+>>>>>>> bfdbab2... Set selected mode button background and fix path building
+/**** MENU/SETTINGS BUTTON ****/
+#i-menu, #i-settings{
+	margin: 2px 10px;
+}
+
+#i-menu{
+	float: right;
+}
+
+#i-menu:hover{
+	background-color: #2A6496;
+}
+
+#i-settings:hover{
+	background-color: #2A6496;
+}
+
+/**** MENU/SETTINGS LIST ****/
+.list-menu {
+	display: none;
+	z-index: 9999;
+	position: relative;
+	border-top: 5px solid #2f2f2f;
+}
+
+.list-menu ul {
+	position: absolute;
+	background-color: #282828;
+}
+
+.list-menu ul li {
+	display: inline-block;
+	width: 100%;
+	border-bottom: 1px solid #2f2f2f;
+}
+
+.list-menu ul li a {
+	line-height: 30px;
+	padding: 5px 0px 5px 50px;
+	cursor: pointer;
+	display: block;
+	color: white;
+	text-indent: 10px;
+	text-transform: uppercase;
+	font-weight: 600;
+	font-size: 18px;
+	background-repeat: no-repeat;
+	background-position: 10px left;
+}
+
+/**** FUNCTION BUTTON ****/
+#i-text:hover{
+	background-color: #2A6496;
+}
+
+#i-key:hover{
+	background-color: #2A6496;
+}
+
+#i-p2p:hover{
+	background-color: #2A6496;
+}
+
+/**** TEXT MODE ****/
+#mode-text {
+	position: fixed;
+	bottom: 0px;
+	height: 50px;
+	width: 100%;
+	z-index: 9999;
+	background-color: #282828;
+	display: none;
+}
+
+#input-text{
+	margin: 10px;
+	position: relative;
+	border: 0px none;
+}
+
+#text-order{
+    width: 100%;
+	padding-right: 35px;
+	height: 31px;
+	border: 0;
+	text-indent: 5px;
+}
+
+#btn-order{
+	background-image: url("/static/icons/text-send.png");
+	background-repeat: no-repeat;
+    background-position: center;
+	height: 31px;
+	width: 31px;
+	background-color: transparent;
+	border-color: transparent;
+	position: absolute;
+	right: 0px;
+}
+
+#btn-order:hover{
+	background-color: #2A6496;
+}
+
+/**** ZOOM BOTTOM (LEAFLET) ****/
+.leaflet-control {
+	margin: 12px !important;
+}
+
+.leaflet-bar {
+    box-shadow: none !important;
+}
+
+.leaflet-bar a {
+	border-radius: 0px !important;
+    background-color: #282828 !important;
+    width: 45px !important;
+    height: 45px !important;
+    color: transparent !important;
+}
+
+.leaflet-bar a:hover{
+	background-color: #2A6496 !important;
+}
+
+.leaflet-control-zoom-out{
+	border-bottom: 0px !important;
+	background-image: url("/static/icons/zoom-out.png") !important;
+}
+
+.leaflet-control-zoom-in{
+	border-bottom: 1px solid white !important;
+	background-image: url("/static/icons/zoom-in.png") !important;
+}
+
+/**************************/
+/*           MAX          */
+/**************************/
+@media (max-width: 3000px) {
+
+	/**** MAX ****/
+	#i-text, #i-key, #i-p2p {
+		float: right;
+		margin-top: 3px;
+	}
+
+	#i-key{
+		margin-right: 15px;
+	}
+
+	/**** MIN ****/
+	#i-menu {
+		display: none;
+	}
+
+	.list-menu {
+		display: none;
+	}
+
+	#settings{
+		width: 300px;
+	}
+}
+
+/**************************/
+/*           MIN          */
+/**************************/
+@media (max-width: 600px) {
+
+	/**** MAX ****/
+	#video-streaming, #robot-logo, #i-text, #i-key, #i-p2p{
+		display: none;
+	}
+
+	#m-item1{
+	  background-image: url("/static/icons/l-text.png");
+	}
+
+	#m-item2{
+	  background-image: url("/static/icons/l-key.png");
+	}
+
+	#m-item3{
+	  background-image: url("/static/icons/l-p2p.png");
+	}
+
+	#m-item4{
+	  background-image: url("/static/icons/l-camera.png");
+	}
+
+	/**** MIN ****/
+	#i-menu{
+		display: block;
+	}
+
+	#settings {
+		width: 100%;
+	}
+
+}
