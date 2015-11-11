@@ -1,15 +1,50 @@
 body{
+<<<<<<< HEAD
+<<<<<<< HEAD
 	font: 14px "Helvetica Neue", "Arial";
 	margin: 0;
 	overflow-x: hidden;
+=======
+	margin: 0;
+	overflow-x: hidden;
+	/*background-image: url('file:///C:/Users/FarSeer/Desktop/WebHUD/images/basemapWeatherLight.png');*/
+>>>>>>> 8b2eebc... Add static assets to repo
+=======
+	font: 14px "Helvetica Neue", "Arial";
+	margin: 0;
+	overflow-x: hidden;
+>>>>>>> eee193a... Cleanup and beautify some static assets
 }
 
 div.top-bar {
 	background: #282828;
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 #video-streaming {
 	width: 250px;
+=======
+div.top-bar img{
+	width: 35px;
+	margin: 10px;
+	margin-right: 0;
+	transition: box-shadow 0.2s;
+}
+
+div.top-bar img:hover{
+	box-shadow: white 0px 0px 20px 2px;
+}
+
+=======
+>>>>>>> 7207f9e... Mega commit
+#video-streaming {
+	width: 250px;
+<<<<<<< HEAD
+	/*border-left: 3px solid blueviolet;*/
+>>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 	padding: 10px;
 	position: absolute;
 	background-color: rgba(0, 0, 0, 0.8);
@@ -26,6 +61,13 @@ div.top-bar {
 }
 
 #robot-logo {
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+	/*border-left: 3px solid lightgreen;*/
+>>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 	padding: 10px;
 	background-color: rgba(0, 0, 0, 0.8);
 	color: lightgray;
@@ -34,7 +76,14 @@ div.top-bar {
 	width: 200px;
 	right: 0px;
 	margin-right: 10px;
+<<<<<<< HEAD
+<<<<<<< HEAD
 	z-index: 2000;
+=======
+>>>>>>> 8b2eebc... Add static assets to repo
+=======
+	z-index: 2000;
+>>>>>>> 7207f9e... Mega commit
 }
 
 #robot-logo ul{
@@ -45,7 +94,43 @@ div.top-bar {
 	width: 100%;
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 .sidebar-settings{
+=======
+#sidebar-left{
+	transition: all 0.2s;
+	background-color: rgba(0, 0, 0, 1);
+	width: 200px;
+	position: fixed;
+	left: -200px;
+	bottom: 0;
+	top: 0;
+	z-index: 1001;
+	margin-top: -55px;
+}
+
+#sidebar-left.expanded{
+	left:0px;
+}
+
+=======
+>>>>>>> 7207f9e... Mega commit
+.sidebar-settings{
+<<<<<<< HEAD
+	/*transition: all 0.2s;
+	background-color: rgba(0, 0, 0, 1);
+
+	position: fixed;
+	left: -200px;
+	bottom: 0;
+	top: 0;
+	z-index: 1001;
+	font-family: "Open Sans",serif;
+	margin-top: -55px;*/
+>>>>>>> 8b2eebc... Add static assets to repo
+=======
+>>>>>>> eee193a... Cleanup and beautify some static assets
 	margin-top: 10px;
 	padding-top: 50px;
 	padding-left: 30px;
