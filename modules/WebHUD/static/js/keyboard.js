@@ -21,6 +21,6 @@ $(document).ready(function(){
   setInterval(function(){
     var l = [...pressed];
     console.log(l);
-    sio.emit('manual', {'keys': l});
+    // sio.emit('manual', {'keys': l});
   }, 100);
 });
