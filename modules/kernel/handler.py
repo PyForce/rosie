@@ -19,6 +19,7 @@ def set_position(X=0,Y=0,theta=0):
     kernel.MASTER.set_robot_pos(X,Y,theta)
 
 def process_text(text=""):
+    print('Processing text: %s' % text)
     cmd = command.extraction(text)
     if isinstance(cmd, ordex.base.Common_Commands):
         print(cmd.CMD)
