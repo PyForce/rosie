@@ -28,6 +28,7 @@ function setPath(host, path, callback) {
 }
 
 function setText(host, text, callback) {
+    console.log('setText in progress')
     setRequest(host, 'text', callback, {
         'text': text
     });
