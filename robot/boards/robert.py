@@ -1,7 +1,7 @@
 try:
     import smbus
 except:
-    print ("      Error SMBus")
+    print ("      Error importing SMBus")
 
 """
 class Gyro:
