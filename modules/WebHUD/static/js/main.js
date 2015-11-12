@@ -1,13 +1,9 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> bfdbab2... Set selected mode button background and fix path building
+
 $(document).ready(function(){
 		// MENU
 		$('#i-menu').click(function(){
 			$('#settings').hide();
       $('#menu').toggle();
-<<<<<<< HEAD
     });
 
 		// SETTINGS
@@ -58,59 +54,54 @@ $(document).ready(function(){
 // 	var document = window.document;
 //
 // })(window, jQuery);
-=======
-(function (window, $) {
-	'use strict';
+// (function (window, $) {
+// 	'use strict';
+// 	// Cache document for fast access.
+// 	var document = window.document;
 
-	// Cache document for fast access.
-	var document = window.document;
+// 	// MENU
+// 	$('#i-menu').click(function(){
+// 		$('#settings').hide();
+//         $('#menu').toggle();
+//     });
 
-	// MENU
-	$('#i-menu').click(function(){
-		$('#settings').hide();
-        $('#menu').toggle();
-=======
->>>>>>> bfdbab2... Set selected mode button background and fix path building
-    });
+// 		// SETTINGS
+// 		$('#i-settings').click(function(){
+// 			$('#menu').hide();
+//       $('#settings').toggle();
+//     });
 
-		// SETTINGS
-		$('#i-settings').click(function(){
-			$('#menu').hide();
-      $('#settings').toggle();
-    });
+// 		// TOGGLE MENU/SETTINGS
+//     $('.list-menu a').click(function(){
+//         $('.list-menu').hide();
+//     });
 
-		// TOGGLE MENU/SETTINGS
-    $('.list-menu a').click(function(){
-        $('.list-menu').hide();
-    });
+// 		// MODE (TEXT)
+// 		$('#m-item1, #i-text').click(function(){
+//       $('#mode-text').toggle(true);
+// 			$("#video-streaming").css("margin-bottom", "60px");
+//     });
 
-		// MODE (TEXT)
-		$('#m-item1, #i-text').click(function(){
-      $('#mode-text').toggle(true);
-			$("#video-streaming").css("margin-bottom", "60px");
-    });
+// 		// KEY
+// 		$('#m-item2, #i-key').click(function(){
+//       $('#mode-text').hide();
+// 			$("#video-streaming").css("margin-bottom", "10px");
+//     });
 
-		// KEY
-		$('#m-item2, #i-key').click(function(){
-      $('#mode-text').hide();
-			$("#video-streaming").css("margin-bottom", "10px");
-    });
+// 		// P2P
+// 		$('#m-item3, #i-p2p').click(function(){
+//       $('#mode-text').hide();
+// 			$("#video-streaming").css("margin-bottom", "10px");
+//     });
 
-		// P2P
-		$('#m-item3, #i-p2p').click(function(){
-      $('#mode-text').hide();
-			$("#video-streaming").css("margin-bottom", "10px");
-    });
-
-		// CAMERA
-		$('#m-item4').click(function(){
-			$('#video-streaming').toggle();
-    });
-<<<<<<< HEAD
+// 		// CAMERA
+// 		$('#m-item4').click(function(){
+// 			$('#video-streaming').toggle();
+//     });
 	
-})(window, jQuery);
->>>>>>> 7207f9e... Mega commit
-=======
+// })(window, jQuery);
+
+
 
 		$('.icon').click(function(){
 			$('.icon').removeClass('active');
@@ -126,4 +117,3 @@ $(document).ready(function(){
 // 	var document = window.document;
 //
 // })(window, jQuery);
->>>>>>> bfdbab2... Set selected mode button background and fix path building
