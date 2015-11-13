@@ -52,5 +52,5 @@ def set_path(path=[]):
 
 def send_updated_position(pos):
     # send position
-    print(str(pos))
+    print(pos)
     pass
