@@ -11,8 +11,7 @@ if settings.MOBILE_ROBOT=='ROBERT':
     from robot.boards import robert as board
 else:
     from robot.boards import ltl as board
-   
-SEND_POSITION=None
+
 COUNTER_POS=0
 
 class Controller:
@@ -21,6 +20,7 @@ class Controller:
         #---------------------------------
         self.robot=None
         self.action=()
+        self.SEND_POSITION=None
         #==== ROVERT ====        
         if settings.MOBILE_ROBOT=='ROBERT':
             self.robot=board.MD25(1, 0x58)
@@ -259,9 +259,9 @@ class Controller:
         #send position
         COUNTER_POS+=1
         if COUNTER_POS==3:
-            pos=(-self.y_position, self.x_position, self.z_position)
-            SEND_POSITION(pos)
-            print(SEND_POSITION)
+            try:
+                self.SEND_POSITION((-self.y_position, self.x_position, self.z_position))
+            except: pass
             COUNTER_POS=0;
 		
         
