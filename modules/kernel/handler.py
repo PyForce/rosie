@@ -3,8 +3,6 @@ from modules import ordex
 
 command = ordex.Command()
 
-
-
 def get_odometry():
     return kernel.MASTER.get_robot_pos()
 
@@ -48,3 +46,6 @@ def send_updated_position(pos):
 #    send position
     print(str(pos))
     pass
+
+
+kernel.MASTER.motion.SEND_POSITION=send_updated_position
