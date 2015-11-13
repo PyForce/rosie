@@ -6,8 +6,8 @@ from WebHUD import app, sio
 from WebHUD.restapi import *
 from WebHUD.views import *
 
-myhost = '0.0.0.0'
-myport = 5000
+host = '0.0.0.0'
+port = 5000
 debug = False
 use_reloader = True
 
