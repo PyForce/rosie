@@ -28,10 +28,12 @@ function setPath(host, path, callback) {
 }
 
 function setText(host, text, callback) {
-    console.log('setText in progress')
-    setRequest(host, 'text', callback, {
-        'text': text
-    });
+    if (host === undefined) {
+        host = document.domain + ':' + location.port;
+    };
+    console.log(text);
+    alert('setText in progress');
+    setRequest(host, 'text', callback, {'text': text});
 }
 
 // Helpers
@@ -66,7 +68,7 @@ function setRequest(host, route, callback, param) {
         "url": "http://" + host + '/' + route,
         "method": "PUT",
         "crossDomain": true,
-        "body": $.parseJSON(param)
+        "body": param
     };
     $.ajax(request).done(function(data) {
         if (callback !== undefined) {
