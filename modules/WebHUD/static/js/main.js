@@ -23,7 +23,6 @@ $(document).ready(function() {
     });
 
     $('#btn-order').click(function() {
-        // Put hard wired
         setText(undefined, $("#text-order").val());
     })
 
