@@ -334,23 +334,26 @@ class Controller:
 #########################################################
 
     def execute_action(self):
-        _action=self.action
-        self.action=()
-        print('      EXEC: '+_action[0])
-        if _action:
-            #==== STOP ====
-            if _action[0]=='stop':
-                self.robot.set_speeds(0, 0)
-            #==== TURN ====
-            elif _action[0]=='turn':
-                pass
-            #==== MOVE ====
-            elif _action[0]=='move':
-                pass
-            #==== SPEED ====
-            elif _action[0]=='speed':
-                pass
-            #==== FOLLOW ====
-            elif _action[0]=='follow':
-                pass
+        # TODO:
+        # Ready to go to heaven
+        # _action=self.action
+        # self.action=()
+        # print('      EXEC: '+_action[0])
+        # if _action:
+        #     #==== STOP ====
+        #     if _action[0]=='stop':
+        #         self.robot.set_speeds(0, 0)
+        #     #==== TURN ====
+        #     elif _action[0]=='turn':
+        #         pass
+        #     #==== MOVE ====
+        #     elif _action[0]=='move':
+        #         pass
+        #     #==== SPEED ====
+        #     elif _action[0]=='speed':
+        #         pass
+        #     #==== FOLLOW ====
+        #     elif _action[0]=='follow':
+        #         pass
+        self.robot.set_speeds(0, 0)
         self.experiment_finish()
