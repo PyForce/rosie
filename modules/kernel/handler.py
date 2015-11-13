@@ -44,3 +44,7 @@ def set_path(path=[]):
          {'command':'stop'}]
     kernel.execute([cmd])
     
+def send_updated_position(pos):
+#    send position
+    print(str(pos))
+    pass
