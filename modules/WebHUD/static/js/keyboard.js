@@ -3,12 +3,12 @@ var pressed = new Set();
 $(document).ready(function(){
   document.body.addEventListener('keydown', function(e) {
 
-    // 37 -> left
-    // 38 -> up
-    // 39 -> right
-    // 40 -> down
+    // 87 -> W
+    // 65 -> A
+    // 83 -> S
+    // 68 -> D
 
-    if ([37,38,39,40].some(function(element, index, array) { return element === e.which })) {
+    if ([87, 65, 83, 68].some(function(element, index, array) { return element === e.which })) {
       pressed.add(e.which);
     }
     
