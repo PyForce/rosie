@@ -1,13 +1,13 @@
 from flask import request, jsonify, json
-from WebHUD import app #, sio, emit
+from WebHUD import app , sio, emit
 from WebHUD.utils import allow_origin
 import kernel.handler as robot_handler
 
 
-# @sio.on('echo', namespace='/test')
-# def echo(message):
-#     print(message)
-#     emit('echo reply', message)
+@sio.on('echo', namespace='/test')
+def echo(message):
+    print(message)
+    emit('echo reply', message)
 
 
 @app.route('/odometry', methods=['GET'])
@@ -91,15 +91,15 @@ def text():
     robot_handler.process_text(text)
 
 
-# @sio.on('manual', namespace='/test') # key press
-# def drive_manual(data):
-#     """
-#     {
-#         "keys": [37, 38, 39, 40]
-#     }
-#     """
-#     keys = data['keys']
-#     robot_handler.set_keys(keys)
+@sio.on('manual', namespace='/test') # key press
+def drive_manual(data):
+    """
+    {
+        "keys": [37, 38, 39, 40]
+    }
+    """
+    keys = data['keys']
+    robot_handler.set_keys(keys)
 
 
 @app.route('/manual_mode', methods=['PUT'])

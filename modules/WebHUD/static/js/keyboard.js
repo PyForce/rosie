@@ -19,8 +19,8 @@ $(document).ready(function(){
   }, true);
 
   setInterval(function(){
-    // var l = [...pressed];
-    // console.log(l);
-    // sio.emit('manual', {'keys': l});
+    var l = [...pressed];
+    console.log(l);
+    sio.emit('manual', {'keys': l});
   }, 100);
 });
