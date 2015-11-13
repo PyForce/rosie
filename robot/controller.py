@@ -261,7 +261,9 @@ class Controller:
         if COUNTER_POS==3:
             try:
                 self.SEND_POSITION((-self.y_position, self.x_position, self.z_position))
-            except: pass
+            except Exception as e:
+                print('Error sending position')
+                print(e)
             COUNTER_POS=0;
 		
         
