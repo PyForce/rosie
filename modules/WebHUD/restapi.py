@@ -91,7 +91,7 @@ def text():
     robot_handler.process_text(text)
 
 
-@sio.on('manual', namespace='/test') # key press
+@sio.on('keys', namespace='/test')  # key press
 def drive_manual(data):
     """
     {

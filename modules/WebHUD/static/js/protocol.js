@@ -28,10 +28,15 @@ function setPath(host, path, callback) {
 }
 
 function setText(host, text, callback) {
-    if (host === undefined) {
-        host = document.domain + ':' + location.port;
-    };
     setRequest(host, 'text', callback, {'text': text});
+}
+
+function setManualMode(host, callback) {
+    setRequest(host, 'manual_mode', callback);
+}
+
+function setAutoMode(host, callback) {
+    setRequest(host, 'auto_mode', callback);
 }
 
 // Helpers
@@ -62,6 +67,9 @@ function getRequest(host, route, callback, param) {
 
 // Uses HTTP PUT verb for settings
 function setRequest(host, route, callback, param) {
+    if (host === undefined) {
+        host = document.domain + ':' + location.port;
+    };
     var request = {
         "url": "http://" + host + '/' + route,
         "method": "PUT",

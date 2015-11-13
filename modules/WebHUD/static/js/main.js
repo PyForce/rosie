@@ -20,6 +20,7 @@ $(document).ready(function() {
     $('#m-item1, #i-text').click(function() {
         $('#mode-text').toggle(true);
         $("#video-streaming").css("margin-bottom", "60px");
+        setAutoMode();
     });
 
     $('#btn-order').click(function() {
@@ -34,6 +35,7 @@ $(document).ready(function() {
     $('#m-item2, #i-key').click(function() {
         $('#mode-text').hide();
         $("#video-streaming").css("margin-bottom", "10px");
+        setManualMode();
     });
 
     // P2P
