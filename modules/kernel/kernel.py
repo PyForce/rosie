@@ -211,7 +211,7 @@ def _user():
         x=(x+dx)/2.0
         y=(y+dy)/2.0
         MASTER.process_user_request((x,y))
-        time.sleep(0.5)
+        time.sleep(0.1)
     MASTER.end_task()
     KEYS=[]
     print('USER MODE: ENDED')
