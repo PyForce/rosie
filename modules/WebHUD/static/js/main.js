@@ -23,8 +23,13 @@ $(document).ready(function() {
     });
 
     $('#btn-order').click(function() {
-        setText(undefined, 'Hi my bro');
+        // Put hard wired
+        setText(undefined, 'go to the hall');
     })
+
+    $("#form-text").submit(function(event) {
+        event.preventDefault();
+    });
 
     // KEY
     $('#m-item2, #i-key').click(function() {

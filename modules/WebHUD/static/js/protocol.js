@@ -31,8 +31,6 @@ function setText(host, text, callback) {
     if (host === undefined) {
         host = document.domain + ':' + location.port;
     };
-    console.log(text);
-    alert('setText in progress');
     setRequest(host, 'text', callback, {'text': text});
 }
 
@@ -68,7 +66,7 @@ function setRequest(host, route, callback, param) {
         "url": "http://" + host + '/' + route,
         "method": "PUT",
         "crossDomain": true,
-        "body": param
+        "data": param
     };
     $.ajax(request).done(function(data) {
         if (callback !== undefined) {

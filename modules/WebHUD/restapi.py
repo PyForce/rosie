@@ -87,8 +87,7 @@ def text():
         "text": "some text"
     }
     """
-    print('Sending text')
-    text = request.json['text']
+    text = request.values['text']
     robot_handler.process_text(text)
 
 
