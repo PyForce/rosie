@@ -11,7 +11,8 @@ if settings.MOBILE_ROBOT=='ROBERT':
     from robot.boards import robert as board
 else:
     from robot.boards import ltl as board
-    
+   
+from modules.kernel import handler
 SEND_POSITION=None
 COUNTER_POS=0
 
@@ -259,11 +260,11 @@ class Controller:
         #send position
         COUNTER_POS+=1
         if COUNTER_POS==3:
-            try:
-                SEND_POSITION((-self.y_position,
-                               self.x_position,
-                               self.z_position))
-            except: pass
+            handler.send_updated_position((-self.y_position,
+                           self.x_position,
+                           self.z_position))
+			COUNTER_POS=0;
+		
         
         return delta_encoder_1, delta_encoder_2
 
