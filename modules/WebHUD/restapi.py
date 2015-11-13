@@ -61,9 +61,9 @@ def position():
         "theta": theta
     }
     """
-    x = request.json['x']
-    y = request.json['y']
-    theta = request.json['theta']
+    x = request.values['x']
+    y = request.values['y']
+    theta = request.values['theta']
     robot_handler.set_position(x, y, theta)
 
 
@@ -75,7 +75,7 @@ def path():
         "path": [(x, y), (x, y), ... ]
     }
     """
-    path = request.json['path']
+    path = request.values['path']
     robot_handler.set_path(path)
 
 
@@ -91,11 +91,11 @@ def text():
     robot_handler.process_text(text)
 
 
-@sio.on('manual', namespace='/test') # key press
+@sio.on('manual', namespace='/test')  # key press
 def drive_manual(data):
     """
     {
-        "keys": [37, 38, 39, 40]
+        "keys": [87, 65, 83, 68]
     }
     """
     keys = data['keys']
@@ -114,7 +114,9 @@ def manual_mode():
 @app.route('/auto_mode', methods=['PUT'])
 @allow_origin
 def auto_mode():
-    kernel.KEYS = []
+    """
+    {}
+    """
     robot_handler.set_mode('auto')
 
 
@@ -126,4 +128,4 @@ def maps():
         "map": "map_name"
     }
     """
-    map = request.json['map']
+    map = request.values['map']
