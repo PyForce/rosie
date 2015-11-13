@@ -12,6 +12,9 @@ if settings.MOBILE_ROBOT=='ROBERT':
 else:
     from robot.boards import ltl as board
     
+SEND_POSITION=None
+COUNTER_POS=0
+
 class Controller:
     def __init__(self):
         
@@ -206,6 +209,7 @@ class Controller:
             self.finished = True
 
     def calculatePosition(self, encoder1, encoder2):
+        global COUNTER_POS
     
         delta_encoder_1 = encoder1 - self.prev_encoder1
         delta_encoder_2 = encoder2 - self.prev_encoder2
@@ -252,6 +256,15 @@ class Controller:
         self.globalPositionY += ds * math.sin(self.globalPositionZ + dz / 2)
         self.globalPositionZ += dz
 
+        #send position
+        COUNTER_POS+=1
+        if COUNTER_POS==3:
+            try:
+                SEND_POSITION((-self.y_position,
+                               self.x_position,
+                               self.z_position))
+            except: pass
+        
         return delta_encoder_1, delta_encoder_2
 
     def navigation(self, encoder1, encoder2):

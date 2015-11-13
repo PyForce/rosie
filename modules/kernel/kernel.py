@@ -42,6 +42,9 @@ CURRENT_COMMAND=None
 PREVIOUS_TIMER_NAME=None
 
 #### functions ####
+def link_robot(function):
+    MASTER.motion.SEND_POSITION=function
+
 def execute(commands,mode=None):
     """       
     Classification of the input commands.
