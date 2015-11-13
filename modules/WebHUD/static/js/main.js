@@ -24,7 +24,7 @@ $(document).ready(function() {
 
     $('#btn-order').click(function() {
         // Put hard wired
-        setText(undefined, 'go to the hall');
+        setText(undefined, $("#text-order").val());
     })
 
     $("#form-text").submit(function(event) {
