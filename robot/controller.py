@@ -261,9 +261,9 @@ class Controller:
         COUNTER_POS+=1
         if COUNTER_POS==3:
             handler.send_updated_position((-self.y_position,
-                           self.x_position,
-                           self.z_position))
-			COUNTER_POS=0;
+                                           self.x_position,
+                                           self.z_position))
+            COUNTER_POS=0;
 		
         
         return delta_encoder_1, delta_encoder_2
