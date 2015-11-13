@@ -114,7 +114,9 @@ def manual_mode():
 @app.route('/auto_mode', methods=['PUT'])
 @allow_origin
 def auto_mode():
-    kernel.KEYS = []
+    """
+    {}
+    """
     robot_handler.set_mode('auto')
 
 
