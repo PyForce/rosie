@@ -12,7 +12,6 @@ if settings.MOBILE_ROBOT=='ROBERT':
 else:
     from robot.boards import ltl as board
    
-from modules.kernel import handler
 SEND_POSITION=None
 COUNTER_POS=0
 
@@ -260,9 +259,6 @@ class Controller:
         #send position
         COUNTER_POS+=1
         if COUNTER_POS==3:
-            handler.send_updated_position((-self.y_position,
-                                           self.x_position,
-                                           self.z_position))
             COUNTER_POS=0;
 		
         
