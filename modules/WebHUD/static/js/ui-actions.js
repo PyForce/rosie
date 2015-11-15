@@ -8,12 +8,21 @@ $("#overlay").click(function() {
     var settings = $("#settings-dialog");
     if (settings.hasClass(settings.data('transition')))
         toggleOverlay(false);
-    toggleTransition($(".side-bar"), false);
+    toggleTransition($(".side-bar"), true);
 });
 
 $(".clickable#settings").click(function() {
     toggleTransition($(".side-bar"), true);
-    toggleTransition($("#settings-dialog"), false);
+    var settings = $("#settings-dialog");
+    toggleTransition(settings, false);
+    settings.addClass('open-dialog');
+});
+
+$('.cancel-btn, .close').click(function(){
+    var open = $('.open-dialog');
+    toggleTransition(open, true);
+    open.removeClass('open-dialog');
+    toggleOverlay(false);
 });
 
 /*
