@@ -17,7 +17,7 @@ $(document).ready(function() {
     });
 
     // MODE (TEXT)
-    $('#m-item1, #i-text').click(function() {
+    $('#m-item1, #text').click(function() {
         $('#mode-text').toggle(true);
         $("#video-streaming").css("margin-bottom", "60px");
         setAutoMode();
@@ -32,14 +32,14 @@ $(document).ready(function() {
     });
 
     // KEY
-    $('#m-item2, #i-key').click(function() {
+    $('#m-item2, #key').click(function() {
         $('#mode-text').hide();
         $("#video-streaming").css("margin-bottom", "10px");
         setManualMode();
     });
 
     // P2P
-    $('#m-item3, #i-p2p').click(function() {
+    $('#m-item3, #p2p').click(function() {
         $('#mode-text').hide();
         $("#video-streaming").css("margin-bottom", "10px");
     });

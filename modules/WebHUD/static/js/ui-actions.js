@@ -1,12 +1,11 @@
-
-$(".icon#settings").click(function() {
-    $("#sidebar-left").toggleClass("expanded");
-    toggleOverlay($("#sidebar-left").hasClass("expanded"));
+$(".icon#menu").click(function() {
+    $(".side-bar").toggleClass("transition-out");
+    toggleOverlay(!$(".side-bar").hasClass("transition-out"));
 });
 
 $("#overlay").click(function() {
     toggleOverlay(false);
-    $("#sidebar-left").removeClass("expanded");
+    $(".side-bar").toggleClass("transition-out");
 });
 
 /*
