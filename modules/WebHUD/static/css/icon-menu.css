@@ -72,7 +72,7 @@
 }
 
 /**** TEXT MODE ****/
-#mode-text {
+/*#mode-text {
 	position: fixed;
 	bottom: 0px;
 	height: 50px;
@@ -80,7 +80,7 @@
 	z-index: 9999;
 	background-color: #282828;
 	display: none;
-}
+}*/
 
 #input-text{
 	margin: 10px;
@@ -90,10 +90,12 @@
 
 #text-order{
     width: 100%;
-	padding-right: 35px;
-	height: 31px;
+	/*padding-right: 35px;
+	height: 31px;*/
 	border: 0;
 	text-indent: 5px;
+	font-size: xx-large;
+	border-radius: 5px;
 }
 
 #btn-order{
