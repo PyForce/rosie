@@ -50,8 +50,10 @@ $(document).ready(function() {
     });
 
     $('.icon').click(function() {
+        var wasActive = $(this).hasClass('active');
         $('.icon').removeClass('active');
-        $(this).addClass('active');
+        if (!wasActive)
+            $(this).addClass('active');
     });
 
     setInterval(function(){
