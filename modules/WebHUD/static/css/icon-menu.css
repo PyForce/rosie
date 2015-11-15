@@ -4,9 +4,9 @@
 	margin: 0 3px;
 }
 
-.icon.active {
+/*.icon.active {
     background: grey;
-}
+}*/
 
 /**** MENU/SETTINGS BUTTON ****/
 #i-menu, #i-settings{
@@ -114,7 +114,7 @@
 }
 
 /**** ZOOM BOTTOM (LEAFLET) ****/
-.leaflet-control {
+/*.leaflet-control {
 	margin: 12px !important;
 }
 
@@ -142,7 +142,7 @@
 .leaflet-control-zoom-in{
 	border-bottom: 1px solid white !important;
 	background-image: url("/static/icons/zoom-in.png") !important;
-}
+}*/
 
 /**************************/
 /*           MAX          */

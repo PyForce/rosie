@@ -100,7 +100,7 @@ body > .container{
 #map{
 	position: fixed;
 	bottom: 0;
-	top: 55px;
+	top: 50px;
 	left: 0;
 	right: 0px;
 }
