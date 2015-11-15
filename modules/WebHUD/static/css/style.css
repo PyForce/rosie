@@ -132,6 +132,9 @@
     transition: all .4s ease-in-out;
     z-index: 100;
 }
+.transition-out-top {
+    margin-top: -100%;
+}
 .input-text {
     position: relative;
     line-height: 1.4;
