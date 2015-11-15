@@ -1,0 +1,114 @@
+/************************
+*       TOP BAR         *
+*************************/
+ .nav-bar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 0 3px;
+    font-size: 24px;
+    background: #3891BB;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, .2);
+}
+.nav-bar-nav>li>a>i:hover {
+    color: #BB6276;
+    background-color: transparent;
+}
+.nav>li>a {
+    color: #fff;
+}
+.nav>li>a:hover {
+    background-color: inherit;
+}
+.nav-bar-nav {
+    float: left;
+}
+.nav-bar-nav > li>a {
+    line-height: 50px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.nav-bar-nav > li>a>i {
+    color: #fff;
+    top:3px;
+}
+.nav-bar-right {
+    float: right!important;
+}
+.nav-bar-right > li>a {
+    font-size: 17px;
+}
+/****************
+*    COMMANDS   *
+*****************/
+ .commands {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    padding: 0 0 3px;
+    margin-right: 20px;
+}
+.commands-list {
+    /*display: table-column;*/
+    list-style: none;
+}
+.commands-list>li>a>img {
+    border-radius: 50%;
+    background: #1066BF;
+    margin-bottom: 10px;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.26);
+    height: 45px;
+    transition: all .2s;
+}
+.commands-list>li>a>img:hover {
+    transform: scale(1.3, 1.3);
+}
+.commands-list>li>a.active>img {
+    background: #A24359;
+}
+/****************
+*    SIDE BAR   *
+*****************/
+ .side-bar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1001;
+    width: 25%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transition: all .2s;
+    background-color: #151515;
+}
+.side-bar h2 {
+    /*font-size: 14px;*/
+    color: #555;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: 10px;
+}
+.side-bar.transition-out {
+    transform: translate(-100%, 0);
+}
+.side-bar-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.side-bar-list a {
+    display: block;
+    padding: 2px 15px;
+    border-radius: 3px;
+    text-decoration: none;
+    list-style-position: outside;
+    line-height: 24px;
+    color: rgb(153, 153, 153);
+    font-size: 16px;
+}
+.side-bar-list a:hover {
+    background-color: rgba(255, 255, 255, .05);
+}
