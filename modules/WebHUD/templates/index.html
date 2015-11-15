@@ -26,7 +26,7 @@
             </li>
         </ul>
         <ul class="nav nav-bar-nav nav-bar-right">
-            <li><a class="clickable">About</a>
+            <li><a id="about" class="clickable">About</a>
             </li>
         </ul>
     </div>
@@ -158,9 +158,36 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="cancel-btn btn btn-default">Cancel</button>
-                <button type="button" class="save-btn btn btn-primary btn-loading next">
+                <button type="button" class="save-btn btn btn-primary">
                     <span class="btn-label">
                         <span class="save-btn-label-next">Apply</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-dialog" class="modal-dialog transition-out-top" data-transition="transition-out-top">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close">
+                    <i class="glyphicon glyphicon-remove"></i>
+                </button>
+                <h4 class="modal-title">About</h4>
+            </div>
+            <div class="modal-body modal-body-with-panes">
+                <div class="modal-body-pane">
+                    <div>
+                        <form class="settings-container">
+                            <p class="prompt about-text">This application it's designed by the <b>PyForce</b> group</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ok-btn btn btn-primary">
+                    <span class="btn-label">
+                        <span class="save-btn-label-next">OK</span>
                     </span>
                 </button>
             </div>

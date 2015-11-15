@@ -18,7 +18,14 @@ $(".clickable#settings").click(function() {
     settings.addClass('open-dialog');
 });
 
-$('.cancel-btn, .close').click(function(){
+$('.clickable#about').click(function() {
+    toggleOverlay(true);
+    var about = $('#about-dialog');
+    toggleTransition(about, false);
+    about.addClass('open-dialog');
+})
+
+$('.cancel-btn, .close, .ok-btn').click(function(){
     var open = $('.open-dialog');
     toggleTransition(open, true);
     open.removeClass('open-dialog');

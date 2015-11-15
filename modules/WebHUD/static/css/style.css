@@ -4,6 +4,13 @@
  .clickable {
     cursor: pointer;
 }
+.input-text {
+    position: relative;
+    line-height: 1.4;
+}
+.about-text {
+    text-align: center;
+}
 /************************
 *       TOP BAR         *
 *************************/
@@ -118,6 +125,9 @@
 .side-bar-list a:hover {
     background-color: rgba(255, 255, 255, .05);
 }
+/********************
+*    MODAL DIALOGS  *
+*********************/
 .modal-dialog {
     position: absolute;
     top: 10%;
@@ -141,13 +151,12 @@
 .modal-header .close {
     font-size: 16px;
 }
+/******************
+*   TRANSITIONS   *
+*******************/
 .transition-out-top {
     margin-top: -100%;
 }
 .transition-in {
     transform: scale(0, 0);
-}
-.input-text {
-    position: relative;
-    line-height: 1.4;
 }
