@@ -138,6 +138,9 @@
     transition: all .4s ease-in-out;
     z-index: 100;
 }
+.modal-header .close {
+    font-size: 16px;
+}
 .transition-out-top {
     margin-top: -100%;
 }
