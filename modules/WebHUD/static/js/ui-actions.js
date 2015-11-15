@@ -1,17 +1,19 @@
 $(".clickable#menu").click(function() {
-    $(".side-bar").toggleClass("transition-out");
-    toggleOverlay(!$(".side-bar").hasClass("transition-out"));
+    var sbar = $(".side-bar");
+    toggleTransition(sbar);
+    toggleOverlay(!sbar.hasClass(sbar.data('transition')));
 });
 
 $("#overlay").click(function() {
-    if ($("#settings-dialog").hasClass('transition-in'))
+    var settings = $("#settings-dialog");
+    if (settings.hasClass(settings.data('transition')))
         toggleOverlay(false);
-    $(".side-bar").addClass("transition-out");
+    toggleTransition($(".side-bar"), false);
 });
 
-$(".clickable#settings").click(function(){
-    $(".side-bar").addClass("transition-out");
-    $("#settings-dialog").removeClass('transition-in');
+$(".clickable#settings").click(function() {
+    toggleTransition($(".side-bar"), true);
+    toggleTransition($("#settings-dialog"), false);
 });
 
 /*
@@ -27,6 +29,10 @@ L.DomEvent.on(imageOverlay._image, 'click', function(e) {
 //     $("#video-streaming").css("visibility", "hidden");
 //     $("#video-streaming").attr("src", null);
 // });
+
+function toggleTransition(elem, val) {
+    elem.toggleClass(elem.data('transition'), val);
+}
 
 function toggleOverlay(mode) {
     $("#overlay").toggleClass("visible", mode);
