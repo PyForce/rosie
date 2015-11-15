@@ -144,6 +144,9 @@
 .transition-out-top {
     margin-top: -100%;
 }
+.transition-in {
+    transform: scale(0, 0);
+}
 .input-text {
     position: relative;
     line-height: 1.4;

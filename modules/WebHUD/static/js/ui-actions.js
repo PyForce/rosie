@@ -1,11 +1,17 @@
-$(".icon#menu").click(function() {
+$(".clickable#menu").click(function() {
     $(".side-bar").toggleClass("transition-out");
     toggleOverlay(!$(".side-bar").hasClass("transition-out"));
 });
 
 $("#overlay").click(function() {
-    toggleOverlay(false);
-    $(".side-bar").toggleClass("transition-out");
+    if ($("#settings-dialog").hasClass('transition-in'))
+        toggleOverlay(false);
+    $(".side-bar").addClass("transition-out");
+});
+
+$(".clickable#settings").click(function(){
+    $(".side-bar").addClass("transition-out");
+    $("#settings-dialog").removeClass('transition-in');
 });
 
 /*
