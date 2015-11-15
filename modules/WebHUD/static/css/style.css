@@ -112,3 +112,27 @@
 .side-bar-list a:hover {
     background-color: rgba(255, 255, 255, .05);
 }
+.modal-dialog {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    right: 10%;
+    width: auto;
+    padding: 0;
+    margin: 0;
+    box-shadow: rgba(0, 0, 0, 0.498039) 0px 3px 9px 0px;
+    border-radius: 5px;
+    z-index: 1001;
+    transition: all .2s ease;
+}
+.modal-text {
+    left: 25%;
+    right: 25%;
+    width: 50%;
+    transition: all .4s ease-in-out;
+    z-index: 100;
+}
+.input-text {
+    position: relative;
+    line-height: 1.4;
+}
