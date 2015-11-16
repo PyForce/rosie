@@ -142,7 +142,7 @@
     left: 25%;
     right: 25%;
     width: 50%;
-    transition: all .4s ease-in-out;
+    transition: all .2s ease-in-out;
     z-index: 100;
 }
 .modal-header .close {
