@@ -77,16 +77,22 @@ div.top-bar {
 	position: absolute;
 	left: 0;
 	right: 0;
-	top: 0;
+	top: 50px;
 	bottom: 0;
 	background: black;
-	z-index: 1000;
+	z-index: 12;
 	opacity: 0.4;
 	visibility: hidden;
 }
 
 #overlay.visible{
 	visibility: visible;
+}
+
+#overlay.dim {
+    opacity: .9;
+    top: 0;
+    z-index: 1000;
 }
 
 body > .container{

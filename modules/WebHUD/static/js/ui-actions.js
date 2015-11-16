@@ -82,8 +82,12 @@ function toggleTransition(elem, val) {
     elem.toggleClass(elem.data('transition'), val);
 }
 
-function toggleOverlay(mode) {
-    $("#overlay").toggleClass("visible", mode);
+function toggleOverlay(mode, dim) {
+    var overlay = $("#overlay");
+    if (dim)
+        overlay.addClass('dim');
+    else overlay.removeClass('dim');
+    overlay.toggleClass("visible", mode);
 }
 
 /*
