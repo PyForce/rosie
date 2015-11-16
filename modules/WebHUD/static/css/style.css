@@ -104,9 +104,6 @@
     text-transform: uppercase;
     margin-left: 10px;
 }
-.side-bar.transition-out {
-    transform: translate(-100%, 0);
-}
 .side-bar-list {
     margin: 0;
     padding: 0;
@@ -154,9 +151,15 @@
 /******************
 *   TRANSITIONS   *
 *******************/
-.transition-out-top {
-    margin-top: -100%;
+.transition {
+    visibility: hidden;
 }
-.transition-in {
+.transition.out {
+    transform: translate(-100%, 0);
+}
+.transition.in {
     transform: scale(0, 0);
+}
+.transition.out-top {
+    margin-top: -100%;
 }
