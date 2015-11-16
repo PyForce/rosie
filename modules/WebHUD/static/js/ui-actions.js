@@ -45,23 +45,18 @@ $("#overlay").click(function() {
 
 $(".clickable#settings").click(function() {
     toggleTransition($(".side-bar"), true);
-    var settings = $("#settings-dialog");
-    toggleTransition(settings, false);
-    settings.addClass('open-dialog');
+    openDialog($("#settings-dialog"));
 });
 
 $('.clickable#about').click(function() {
-    toggleOverlay(true);
-    var about = $('#about-dialog');
-    toggleTransition(about, false);
-    about.addClass('open-dialog');
+    openDialog($('#about-dialog'));
 })
 
-$('.cancel-btn, .close, .ok-btn').click(function(){
+$('.cancel-btn, .close, .ok-btn').click(function() {
     var open = $('.open-dialog');
     toggleTransition(open, true);
     open.removeClass('open-dialog');
-    toggleOverlay(false);
+    toggleOverlay(false, true);
 });
 
 /*
@@ -88,6 +83,12 @@ function toggleOverlay(mode, dim) {
         overlay.addClass('dim');
     else overlay.removeClass('dim');
     overlay.toggleClass("visible", mode);
+}
+
+function openDialog (dialog) {
+    toggleTransition(dialog, false);
+    dialog.addClass('open-dialog');
+    toggleOverlay(true, true);
 }
 
 /*
