@@ -86,11 +86,11 @@
 *    SIDE BAR   *
 *****************/
  .side-bar {
-    position: fixed;
-    top: 0;
+    position: absolute;
+    top: 50px;
     bottom: 0;
     left: 0;
-    z-index: 1001;
+    z-index: 15;
     width: 25%;
     overflow-x: hidden;
     overflow-y: auto;
