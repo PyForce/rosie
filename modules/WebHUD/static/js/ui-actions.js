@@ -1,3 +1,35 @@
+$('.icon').click(function() {
+    var wasActive = $(this).hasClass('active');
+    $('.icon').removeClass('active');
+    if (!wasActive)
+        $(this).addClass('active');
+});
+
+// KEY
+$('#m-item2, #key').click(function() {
+    toggleTransition($('#mode-text'), true)
+    // $("#video-streaming").css("margin-bottom", "10px");
+    setManualMode();
+});
+
+// P2P
+$('#m-item3, #p2p').click(function() {
+    toggleTransition($('#mode-text'), true);
+    // $("#video-streaming").css("margin-bottom", "10px");
+});
+
+// MODE (TEXT)
+$('#m-item1, #text').click(function() {
+    toggleTransition($('#mode-text'));
+    // $("#video-streaming").css("margin-bottom", "60px");
+    setAutoMode();
+});
+
+// CAMERA
+$('#m-item4').click(function() {
+    $('#video-streaming').toggle();
+});
+
 $(".clickable#menu").click(function() {
     var sbar = $(".side-bar");
     toggleTransition(sbar);
