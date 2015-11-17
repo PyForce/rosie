@@ -1,7 +1,7 @@
 try:
     from serial import Serial
 except:
-    print ("      Error importing Serial")
+    print ("      ERROR: Importing serial")
 from struct import *
 from math import pi
 from threading import Thread
@@ -13,7 +13,6 @@ COMMAND_GETSTATE_RESPONSE = b'\xA9'
 COMMAND_ENCODER_RESET = b'\xAA'
 COMMAND_START_SAMPLING_SPEEDS = b'\xAB'
 COMMAND_STOP_SAMPLING_SPEEDS = b'\xAC'
-
 
 class Arduino(Thread):
     def __init__(self, port='/dev/ttyACM0', baudrate=9600, revolutionSteps=270.9, sampleTime=0.05):        
@@ -125,3 +124,5 @@ class Arduino(Thread):
                     self.speed2.append(speed2)
                 except:
                     print ("      Error using the serial port")
+
+Board=Arduino
