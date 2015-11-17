@@ -228,6 +228,10 @@ class Controller:
         :type encoder2: float
         :return: differential of the encoders
         :type: tuple
+        
+        >>> controller=Controller()        
+        >>> controller.navigation(0.2,0.7)
+        (0.15, 0.09)
         """
         #XXX fix the send position
         global COUNTER_POS
