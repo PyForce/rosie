@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
+
+__all__=['Controller', '__version__']
+
+###### INFORMATION ######
+
+__version__ = '1.12'
+
+#### IMPORT ####
+
+#---- Python import ----
 import os, math, time, signal
 
+#---- rOSi import ----
 from robot.control import pid, track
 from robot import settings
 
@@ -13,6 +24,8 @@ if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
         print('    ROBOT: '+settings.MOBILE_ROBOT)
     except:
         board=None
+
+#### CLASS ####
 
 class Controller:
     def __init__(self):
