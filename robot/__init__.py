@@ -29,17 +29,17 @@ class Master:
         track['constant_k'] = 5
         track['cubic'] = True
         if self.motion.finished:
-            self.motion.experiment_init(None, False, track)
+            self.motion.move(track, False)
 
     #==== OTHER ====
     def process_points(self, track):
         if self.motion.finished:
-            self.motion.experiment_init(None, False, track)
+            self.motion.move(track, False)
 
     #==== LINEAL SMOOTH ====
     def process_reference(self, track):
         if self.motion.finished:
-            self.motion.experiment_init(None, True, track)
+            self.motion.move(track)
     
     ######### MASTER FUNCTIONS #########
     
@@ -59,7 +59,7 @@ class Master:
         return self.motion.finished
         
     def end_task(self):
-        self.motion.experiment_finish()
+        self.motion.end_move()
 
     def process_request(self, request):
         
@@ -83,11 +83,11 @@ class Master:
             
     def process_user_request(self, request):
         
-        right, left = self.motion.wasd_velocities(request[0], request[1])
+        right, left = self.motion.async_speed(request[0], request[1])
         if right or left:
-            encoder1, encoder2, _ = self.motion.robot.read_state()
-            self.motion.calculatePosition(encoder1, encoder2)
-            self.motion.robot_speed(right, left)
+            encoder1, encoder2, _ = self.motion.get_state()
+            self.motion.navigation(encoder1, encoder2)
+            self.motion.set_speed(right, left)
     
     
     
