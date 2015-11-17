@@ -4,30 +4,28 @@ import os, math, time, signal
 from robot.control import pid, track
 from robot import settings
 
-
-print('    '+str(settings.MOBILE_ROBOT))
-
-if settings.MOBILE_ROBOT=='ROBERT':
-    from robot.boards import robert as board
-else:
-    from robot.boards import ltl as board
+#==== import and load the robot control board ====
+board=None
+if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
+    try:
+        exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')
+        board=locals()['board']
+        print('    ROBOT: '+settings.MOBILE_ROBOT)
+    except:
+        board=None
 
 COUNTER_POS=0
 
 class Controller:
     def __init__(self):
-        
-        #---------------------------------
-        self.robot = None
+        try:
+            self.robot=board.Board()
+        except:
+            print("    ERROR: The control board wasn't loaded")
+            self.robot=None
+            
         self.action = ()
         self.SEND_POSITION = lambda x, y, theta: None
-        #==== ROVERT ====        
-        if settings.MOBILE_ROBOT == 'ROBERT':
-            self.robot = board.MD25(1, 0x58)
-        #==== LTL ====
-        else:
-            self.robot = board.Arduino()
-        #---------------------------------
       
         self.constant_b = 0.1  # 0.05
         self.constant_k1 = 1.0 # 3.0
