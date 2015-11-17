@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import math
-import signal
-import time
+import os, math, time, signal
+
 from robot.control import pid, track
 from robot import settings
 
@@ -175,13 +174,10 @@ class Controller:
 
     def timer_handler(self, signum, frame):
         
+        #---- check for end the movement unavoidably ----
         if self.finished:
-            self.execute_action()
-            #self.experiment_finish()
-            
+            self.action_exec()
             return
-
-		#---------------------------------
 		#==== ROVERT ====        
         if not settings.PID:
             elapsed = pid.process_time()
@@ -342,33 +338,17 @@ class Controller:
         except:
             print("    Error signal")
 
-#########################################################
-#########################################################
-###                      ACTIONS                      ###
-#########################################################
-#########################################################
-
-    def execute_action(self):
-        # TODO:
-        # Ready to go to heaven
-        # _action=self.action
-        # self.action=()
-        # print('      EXEC: '+_action[0])
-        # if _action:
-        #     #==== STOP ====
-        #     if _action[0]=='stop':
-        #         self.robot.set_speeds(0, 0)
-        #     #==== TURN ====
-        #     elif _action[0]=='turn':
-        #         pass
-        #     #==== MOVE ====
-        #     elif _action[0]=='move':
-        #         pass
-        #     #==== SPEED ====
-        #     elif _action[0]=='speed':
-        #         pass
-        #     #==== FOLLOW ====
-        #     elif _action[0]=='follow':
-        #         pass
-        self.robot.set_speeds(0, 0)
-        self.experiment_finish()
+    def action_exec(self):
+        """
+        Execute predefined actions for the robot.
+        
+        This function read and execute the actions defined in ``actions.py`` 
+        
+        >>> controller=Controller()
+        >>> controller.action_exec()
+        """
+        try:
+            actions=open(os.path.join(os.getcwd(),'robot','actions.py'),'rU').read()
+            exec(actions)
+        except OSError:
+            print("    ERROR: Actions")

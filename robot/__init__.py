@@ -79,7 +79,7 @@ class Master:
             else:
                 self.process_points(path)
         else:
-            self.motion.execute_action()
+            self.motion.action_exec()
             
     def process_user_request(self, request):
         
