@@ -2,7 +2,7 @@
 import math
 import signal
 import time
-from robot import pid, track
+from robot.control import pid, track
 from robot import settings
 
 
