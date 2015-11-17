@@ -23,55 +23,31 @@ class Controller:
         except:
             print("    ERROR: The control board wasn't loaded")
             self.robot=None
-            
-        self.action = ()
-        self.SEND_POSITION = lambda x, y, theta: None
       
-        self.constant_b = 0.1  # 0.05
-        self.constant_k1 = 1.0 # 3.0
-        self.constant_k2 = 1.0 # 3.0
-        self.sample_time = 0.05
-		
-        self.reference = track.Track()
-        
-        self.compass = None # HMC6352()
-        self.compass_angle = None # self.compass.read_state()*math.pi/180 
-        
-        self.time_vector = []
-        self.sample_time_vector = []
-        self.x_position_vector = []
-        self.x_position_dot_vector = []
-        self.y_position_vector = []
-        self.y_position_dot_vector = []
-        self.z_position_vector = []
-        self.z_position_dot_vector = []
-        self.smooth_flag = True
-        self.x_ref_vector = []
-        self.y_ref_vector = []
-        self.value1 = []
-        self.reference1 = []
-        self.value2 = []
-        self.reference2 = []
-        
+        #---- constants for the tracking process ----
+        self.constant_b = 0.1  #0.05
+        self.constant_k1 = 1.0 #3.0
+        self.constant_k2 = 1.0 #3.0
+        #---- position ----
         self.x_position = 0
         self.y_position = 0
         self.z_position = 0
-        self.globalPositionX = 0
-        self.globalPositionY = 0
-        self.globalPositionZ = 0
-
-        self.battery = 0
+        #---- encoders ----
         self.encoder1 = 0
         self.encoder2 = 0
         self.prev_encoder1 = 0
         self.prev_encoder2 = 0
         self.prev_delta_encoder_1 = 0
         self.prev_delta_encoder_2 = 0
-
+        #---- others ----
+        self.smooth = True
+        self.finished = True 
         self.count = 0        
-        self.finished = True
-        self.safe_count = False
-        self.safe_counter = 0
+        self.sample_time = 0.05
+        self.action = 'stop'
+        self.SEND_POSITION = lambda x, y, theta: None     
+        self.COUNTER_POS = 0
+        self.reference = track.Track()
 
         self.timer_init()
 
@@ -83,10 +59,9 @@ class Controller:
         # self.robot.reset_encoders()
         self.encoder1 = encoder1
         self.encoder2 = encoder2
-        self.battery = battery
 
     def movement_init(self, x, y, t):
-        self.smooth_flag = True
+        self.smooth = True
         self.experiment_reset()
 
         delta_x = x - self.globalPositionX
@@ -108,47 +83,17 @@ class Controller:
 
         self.reference.generate(**track_parameters)
 
-        self.time_vector = range(self.reference.n_points)
-        self.sample_time_vector = range(self.reference.n_points)
-        self.x_position_vector = range(self.reference.n_points)
-        self.x_position_dot_vector = range(self.reference.n_points)
-        self.y_position_vector = range(self.reference.n_points)
-        self.y_position_dot_vector = range(self.reference.n_points)
-        self.z_position_vector = range(self.reference.n_points)
-        self.z_position_dot_vector = range(self.reference.n_points)
-        self.x_ref_vector = range(self.reference.n_points)
-        self.y_ref_vector = range(self.reference.n_points)
-        self.value1 = range(self.reference.n_points)
-        self.reference1 = range(self.reference.n_points)
-        self.value2 = range(self.reference.n_points)
-        self.reference2 = range(self.reference.n_points)
         self.timer_start()
 
     def experiment_init(self, save_file, smooth, track_parameters):
         
-        self.smooth_flag = smooth
+        self.smooth = smooth
         self.experiment_reset()
 
         track_parameters['sample_time'] = self.sample_time
 
         self.reference.generate(**track_parameters)
-
-        self.time_vector = range(self.reference.n_points)
-        self.sample_time_vector = range(self.reference.n_points)
-        self.x_position_vector = range(self.reference.n_points)
-        self.x_position_dot_vector = range(self.reference.n_points)
-        self.y_position_vector = range(self.reference.n_points)
-        self.y_position_dot_vector = range(self.reference.n_points)
-        self.z_position_vector = range(self.reference.n_points)
-        self.z_position_dot_vector = range(self.reference.n_points)
-        self.x_ref_vector = range(self.reference.n_points)
-        self.y_ref_vector = range(self.reference.n_points)
-        self.value1 = range(self.reference.n_points)
-        self.reference1 = range(self.reference.n_points)
-        self.value2 = range(self.reference.n_points)
-        self.reference2 = range(self.reference.n_points)
         
-        # experiment.add_time('start experiment')
         self.timer_start()
 
     def experiment_finish(self):
@@ -162,9 +107,6 @@ class Controller:
     def experiment_reset(self):
         self.finished = False
         self.count = 0
-
-        self.safe_count = False
-        self.safe_counter = 0
 		
 		#==== ROVERT ====        
         if not settings.PID:
@@ -196,11 +138,6 @@ class Controller:
 		#---------------------------------
 
         self.count += 1
-
-        if self.safe_count:
-            self.safe_counter -= 1
-            if self.safe_counter <= 0:
-                self.finished = True
 
         if self.count >= self.reference.n_points:
             self.finished = True
@@ -247,10 +184,6 @@ class Controller:
         self.y_position += ds * math.sin(self.z_position + dz / 2)
         self.z_position += dz
 
-        self.globalPositionX += ds * math.cos(self.globalPositionZ + dz / 2)
-        self.globalPositionY += ds * math.sin(self.globalPositionZ + dz / 2)
-        self.globalPositionZ += dz
-
         # send position
         COUNTER_POS+=1
         if COUNTER_POS==3:
@@ -263,14 +196,12 @@ class Controller:
 
     def navigation(self, encoder1, encoder2):
         delta_encoder_1, delta_encoder_2 = self.calculatePosition(encoder1, encoder2)
-
-        self.x_position_vector[self.count] = self.x_position
-        self.y_position_vector[self.count] = self.y_position
-        self.z_position_vector[self.count] = self.z_position
-
         return delta_encoder_1, delta_encoder_2
 
-    def tracking(self):
+    def _tracking(self):
+        """
+        Calculate the speed of each wheel according to the track.
+        """
         xd = self.reference.xd_vector[self.count]
         xd_dot = self.reference.xd_dot_vector[self.count]
         yd = self.reference.yd_vector[self.count]
@@ -281,7 +212,7 @@ class Controller:
         y1 = self.x_position + self.constant_b * math.cos(self.z_position)
         y2 = self.y_position + self.constant_b * math.sin(self.z_position)
 
-        if self.smooth_flag:
+        if self.smooth:
             y1d = xd
             y2d = yd
             y2d_dot = yd_dot
@@ -296,12 +227,9 @@ class Controller:
         u2 = y2d_dot + self.constant_k2 * (y2d - y2)
         u1 = y1d_dot + self.constant_k1 * (y1d - y1)
 
-        self.x_ref_vector[self.count] = u1
-        self.y_ref_vector[self.count] = u2
-
         the_v = math.cos(self.z_position) * u1 + u2 * math.sin(self.z_position)
-        the_omega = u1 * (- math.sin(self.z_position) / self.constant_b) + \
-                u2 * math.cos(self.z_position) / self.constant_b
+        the_omega = u1 * (- math.sin(self.z_position) / self.constant_b) + u2 * math.cos(
+            self.z_position) / self.constant_b
 
         set_point2 = the_v / settings.RADIUS + the_omega * settings.DISTANCE / 2 / settings.RADIUS
         set_point1 = the_v / settings.RADIUS - the_omega * settings.DISTANCE / 2 / settings.RADIUS
