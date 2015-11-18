@@ -1,14 +1,10 @@
-######### IMPORT ##########
+#### IMPORT ####
 
-try: 
-    import queue
-except: 
-    import Queue as queue
-
+#---- rOSi import ----
 from robot import controller as Controller
 from robot.planner import planner
 
-########### GLOBAL VARIABLES ########### 
+#### GLOBAL VARIABLES ####
 PATH_METHOD="Lineal Smooth"
 #PATH_METHOD="Cubic"
 #PATH_METHOD=None
@@ -17,10 +13,6 @@ PATH_METHOD="Lineal Smooth"
 class Master:
     def __init__(self):
         self.controller = Controller.Controller()
-        self.queue = queue.Queue()
-        self.address = None
-        self.index = 0
-        self.ROBOT_POS = (0,0,0)
 
     #==== CUBIC ====
     def process_path(self, track):
@@ -44,10 +36,9 @@ class Master:
     ######### MASTER FUNCTIONS #########
     
     def get_robot_pos(self):
-        self.ROBOT_POS=(-self.controller.y_position,
+        return (-self.controller.y_position,
                         self.controller.x_position,
                         self.controller.z_position)
-        return self.ROBOT_POS
     
     def set_robot_pos(self,X,Y,theta):
         self.controller.y_position=-X
@@ -70,7 +61,7 @@ class Master:
         #---- go to (place) ----
         path={}
         if request[0]:
-            path=planner.path_xyt(self.ROBOT_POS,request[0])
+            path=planner.path_xyt(self.get_robot_pos(),request[0])
         if path:
             if PATH_METHOD == "Lineal Smooth":
                 self.process_reference(path)
