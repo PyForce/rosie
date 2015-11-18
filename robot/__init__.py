@@ -5,35 +5,40 @@ from robot import controller as Controller
 from robot.planner import planner
 
 #### GLOBAL VARIABLES ####
-PATH_METHOD="Lineal Smooth"
-#PATH_METHOD="Cubic"
-#PATH_METHOD=None
 
+PATH_METHOD="Lineal Smooth"
+            # "Cubic"
+            # None
+
+#### CLASS ####
 
 class Master:
     def __init__(self):
         self.controller = Controller.Controller()
-
-    #==== CUBIC ====
-    def process_path(self, track):
-        track['z_planning'] = track['t_planning']   
-        track['constant_t'] = 10
-        track['constant_k'] = 5
-        track['cubic'] = True
-        if self.controller.finished:
-            self.controller.move(track, False)
-
-    #==== OTHER ====
-    def process_points(self, track):
-        if self.controller.finished:
-            self.controller.move(track, False)
-
-    #==== LINEAL SMOOTH ====
-    def process_reference(self, track):
-        if self.controller.finished:
-            self.controller.move(track)
     
-    ######### MASTER FUNCTIONS #########
+    #==== PRIVATE FUNCTIONS ====
+
+    def _track_switcher(self, track):
+        """
+        Path controller switcher.
+        
+        :param track: trace to follow
+        :type track: dict
+        """
+        #---- Cubic ----
+        if PATH_METHOD == "Cubic":
+            track['z_planning'] = track['t_planning']   
+            track['constant_t'] = 10
+            track['constant_k'] = 5
+            track['cubic'] = True
+        #---- Lineal Smooth ----        
+        elif PATH_METHOD == "Lineal Smooth":
+            if self.controller.finished:
+                self.controller.move(track)
+            return
+        #---- None ----
+        if self.controller.finished:
+            self.controller.move(track, False)
     
     def get_robot_pos(self):
         return (-self.controller.y_position,
@@ -63,12 +68,7 @@ class Master:
         if request[0]:
             path=planner.path_xyt(self.get_robot_pos(),request[0])
         if path:
-            if PATH_METHOD == "Lineal Smooth":
-                self.process_reference(path)
-            elif PATH_METHOD == "Cubic":
-                self.process_path(path)
-            else:
-                self.process_points(path)
+            self._track_switcher(path)
         else:
             self.controller.action_exec()
             
