@@ -212,7 +212,7 @@ def _user():
         y=(y+dy)/2.0
         MASTER.process_user_request((x,y))
         time.sleep(0.1)
-    MASTER.end_task()
+    MASTER.end_current_task()
     KEYS=[]
     print('USER MODE: ENDED')
 
@@ -262,12 +262,12 @@ def _robot(cmd):
     MASTER.process_request(cmd[1:])
     #---- waiting for finishing (robot-process) ----
     #XXX cambiar la condicion de parada del master
-    while not MASTER.is_finished():
+    while not MASTER.is_ended():
         time.sleep(0.5)
         ################################################
         if not ROBOT_THREAD:                         ###
-            MASTER.end_task()                        ###
-            while not MASTER.is_finished():          ###
+            MASTER.end_current_task()                        ###
+            while not MASTER.is_ended():          ###
                 time.sleep(0.5)                      ###
             ROBOT_THREAD=False                       ### BREAK
             CURRENT_COMMAND=None                     ### CODE

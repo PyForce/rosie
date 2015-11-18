@@ -69,12 +69,27 @@ class Master:
         self.controller.y_position=-x
         self.controller.x_position=y
         self.controller.z_position=theta
-
-    def is_finished(self):
-        self.get_robot_pos()
+    
+    def is_ended(self):
+        """
+        Get task status of the robot.
+        
+        :return: current task status
+        :type: bool
+        
+        >>> master=Master()
+        >>> master.is_ended()
+        True
+        """
         return self.controller.finished
         
-    def end_task(self):
+    def end_current_task(self):
+        """
+        End current task of the robot.
+        
+        >>> master=Master()
+        >>> master.end_current_task()
+        """
         self.controller.end_move()
 
     def process_request(self, request):
