@@ -214,7 +214,7 @@ def _user():
             dx+=8
         x=(x+dx)/2.0
         y=(y+dy)/2.0
-        MASTER.process_user_request((x,y))
+        MASTER.async_request((x,y))
         time.sleep(0.1)
     MASTER.end_current_task()
     KEYS=[]
@@ -263,7 +263,7 @@ def _robot(cmd):
     print("\n   THREAD: " + str(cmd))
     #---- start master process ----
     #XXX add the master processing of the command 
-    MASTER.process_request(cmd)
+    MASTER.sync_request(cmd)
     #---- waiting for finishing (robot-process) ----
     #XXX cambiar la condicion de parada del master
     while not MASTER.is_ended():
