@@ -40,15 +40,35 @@ class Master:
         if self.controller.finished:
             self.controller.move(track, False)
     
-    def get_robot_pos(self):
-        return (-self.controller.y_position,
-                        self.controller.x_position,
-                        self.controller.z_position)
+    #==== PUBLIC FUNCTIONS ====
     
-    def set_robot_pos(self,X,Y,theta):
-        self.controller.y_position=-X
-        self.controller.x_position=Y
-        self.controller.z_position=theta 
+    def position(self,x=None,y=None,theta=None):
+        """
+        Get or set the position of the robot
+        
+        :param x: X value of (X,Y)
+        :type x: float
+        :param y: Y value of (X,Y)
+        :type y: float
+        :param theta: orientation
+        :type theta: float      
+        :return: current position (when ``x``, ``y`` and ``theta`` are None)
+        :type: tuple
+        
+        >>> master=Master()
+        >>> master.position(2,3,0.5)
+        >>> master.position()
+        (2, 3, 0.5)
+        """
+        #---- get position ----
+        if x==None and y==None and theta==None:
+            return (-self.controller.y_position,
+                    self.controller.x_position,
+                    self.controller.z_position)
+        #---- set position ----
+        self.controller.y_position=-x
+        self.controller.x_position=y
+        self.controller.z_position=theta
 
     def is_finished(self):
         self.get_robot_pos()
@@ -66,7 +86,7 @@ class Master:
         #---- go to (place) ----
         path={}
         if request[0]:
-            path=planner.path_xyt(self.get_robot_pos(),request[0])
+            path=planner.path_xyt(self.position(),request[0])
         if path:
             self._track_switcher(path)
         else:
