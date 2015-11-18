@@ -29,7 +29,16 @@ class Common_Commands():
     Event for process of common commands: go, move, speed, turn.
     """
     def __init__(self,cmd=[]):
-        self.CMD=cmd
+        self.CMD=[]
+        for item in cmd:
+            d={}
+            for key in item[0].keys():
+                d[key]=item[0][key]
+            for key in item[1].keys():
+                d[key]=item[1][key]
+            for key in item[2].keys():
+                d[key]=item[2][key]
+            self.CMD.append(d)
     
     def __str__(self):
         return str(self.CMD)

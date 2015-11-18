@@ -45,28 +45,32 @@ PREVIOUS_TIMER_NAME=None
 def link_robot(function):
     MASTER.motion.SEND_POSITION=function
 
-def execute(commands,mode=None):
+def execute(command,mode=None):
     """       
     Classification of the input commands.
     
-    :param commands: commands
-    :type commands: list(str,dict))
+    :param command: commands
+    :type command: list(str,dict))
     :param mode: work mode USER/KERNEL
     :type mode: str
     
-    >>> cmd=[{'start': None, 'end': None},
-    ...      {'place': 'table', 'pos': 'in'},
-    ...      {'command':'stop'}]
+    >>> cmd={'start': None, 'end': None,
+    ...      'place': 'table', 'pos': 'in',
+    ...      'action':'stop'}
     >>> execute(cmd)
     """
     global PROCESS, MODE, USER_THREAD
-    #---- classification of commands ----
-    if commands:
-        for cmd in commands:
-            if cmd[0]['start'] or cmd[0]['end']:
-                Q_TEMPORAL.put_nowait(cmd)
+    #---- commands classification ----
+    if command:
+        try:
+            #---- temporal command ----
+            if command['start'] or command['end']:
+                Q_TEMPORAL.put_nowait(command)
+            #---- non-temporal command ----
             else:
-                Q_NON_TEMPORAL.put_nowait(cmd)
+                Q_NON_TEMPORAL.put_nowait(command)
+        except KeyError:
+            Q_NON_TEMPORAL.put_nowait(command)
     #---- switch: mode ----    
     MODE=mode
     if MODE=='USER':
@@ -256,10 +260,10 @@ def _robot(cmd):
     :type cmd: list(str,dict))
     """
     global PROCESS, ROBOT_THREAD, CURRENT_COMMAND
-    print("\n   THREAD: " + str(cmd[1:]))    
+    print("\n   THREAD: " + str(cmd))
     #---- start master process ----
     #XXX add the master processing of the command 
-    MASTER.process_request(cmd[1:])
+    MASTER.process_request(cmd)
     #---- waiting for finishing (robot-process) ----
     #XXX cambiar la condicion de parada del master
     while not MASTER.is_ended():

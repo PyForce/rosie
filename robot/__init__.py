@@ -93,19 +93,19 @@ class Master:
         self.controller.end_move()
 
     def process_request(self, request):
-        
-        #---- set robot-action ----        
-        #self.controller.action=request[1]
-        self.controller.action='stop'
-        
-        #---- go to (place) ----
-        path={}
-        if request[0]:
-            path=planner.path_xyt(self.position(),request[0])
-        if path:
-            self._track_switcher(path)
-        else:
-            self.controller.action_exec()
+        if request:        
+            #---- set action ----
+            try:
+                self.controller.action=request['action']
+            except KeyError:
+                self.controller.action='stop'
+            #---- process path (place) ----
+            path=planner.path_xyt(self.position(),request)
+            if path:
+                self._track_switcher(path)
+            #---- execute action ----
+            else:
+                self.controller._action_exec()
             
     def process_user_request(self, request):
         

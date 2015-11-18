@@ -24,13 +24,8 @@ def process_text(text=""):
     print('Processing text: %s' % text)
     cmd = command.extraction(text)
     if isinstance(cmd, ordex.base.Common_Commands):
-        print(cmd.CMD)
-        kernel.execute(cmd.CMD)
-    elif isinstance(cmd, ordex.base.Urgent_Commands):
-        pass
-    else:
-        print("ERROR")
-
+        for item in cmd.CMD:
+            kernel.execute(item)
 
 def set_keys(keys=[]):
     kernel.KEYS = keys
@@ -38,15 +33,13 @@ def set_keys(keys=[]):
 
 def set_mode(mode=''):
     if mode == 'manual':
-        kernel.execute([], 'USER')
+        kernel.execute({}, 'USER')
     else:
-        kernel.execute([])
+        kernel.execute({})
 
 
 def set_path(path=[]):
-    cmd = [{'start': None, 'end': None},
-           {'path': path},
-           {'command': 'stop'}]
+    cmd = {'start': None, 'end': None, 'path': path, 'action': 'stop'}
     kernel.execute([cmd])
 
 
