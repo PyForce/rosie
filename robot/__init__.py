@@ -128,7 +128,7 @@ class Master:
                 self._track_switcher(path)
             #---- execute action ----
             else:
-                self.controller._action_exec()
+                self.controller.action_exec()
             
     def async_request(self, request):
         """
