@@ -110,9 +110,11 @@ def execute(command):
     if MODE=='KERNEL':
         PROCESS='EXEC_TEMPORAL'
 
+#### PRIVATE FUNCTIONS ####
+
 def _run():
     """
-    Main thread of the planner of execution.
+    Kernel main thread.
     """
     global PROCESS
     while True:
@@ -138,10 +140,10 @@ def _exec_non_temporal_command(cmd):
     Execution of a non-temporal command.
     
     :param cmd: non-temporal command
-    :type commands: list(str,dict))
+    :type cmd: dict
     """
+    global PROCESS    
     Q_NON_TEMPORAL.task_done()
-    global PROCESS
     PROCESS='SLEEP'
     _robot_thread(cmd,'NON_TEMPORAL')
 
@@ -152,20 +154,20 @@ def _exec_temporal_command(cmd):
     Launch a pair of thread (start and end) in new timers.
     
     :param cmd: temporal command
-    :type cmd: list(str,dict))
+    :type cmd: dict
     """
     Q_TEMPORAL.task_done()
     today=datetime.datetime.today()
     #---- start time ----
     try:
-        ts=(cmd[0]['start']-today).total_seconds()
+        ts=(cmd['start']-today).total_seconds()
         if ts<0:
             return
     except:
         ts=0
     #---- end time ----
     try:
-        te=(cmd[0]['end'] - today).total_seconds()
+        te=(cmd['end'] - today).total_seconds()
         if te<0:
             return
         elif ts and te<ts:
@@ -176,34 +178,20 @@ def _exec_temporal_command(cmd):
     if ts or te:
         t_ident=str(today.microsecond)
         #---- start thread ----
-        t_start=Timer(ts, _start_temporal_cmd, [cmd])
+        t_start=threading.Timer(ts, _start_temporal_cmd, [cmd])
         t_start.setName(t_ident)
         t_start.start()
         if te:
-            t_end=Timer(te, _end_temporal_cmd, [t_start])
+            t_end=threading.Timer(te, _end_temporal_cmd, [t_start])
             t_end.setName(t_ident)
             t_end.start()
-
-def _end_temporal_cmd(timer):
-    """
-    Kill the task of the corresponding pair.
-    
-    :param timer: timer of start of the corresponding pair  
-    :type timer: Timer
-    """
-    global ROBOT_THREAD, PREVIOUS_TIMER_NAME
-    timer.cancel()
-    if CURRENT_COMMAND[0]=='TEMPORAL' and \
-            PREVIOUS_TIMER_NAME==timer.name:
-        ROBOT_THREAD=False
-        PREVIOUS_TIMER_NAME=None
 
 def _start_temporal_cmd(cmd):
     """
     Start the task of the corresponding pair.
     
     :param cmd: temporal command
-    :type cmd: list(str,dict)) 
+    :type cmd: dict 
     """
     global PREVIOUS_TIMER_NAME
     #---- kill previous thread ----
@@ -212,22 +200,37 @@ def _start_temporal_cmd(cmd):
             if item.name==PREVIOUS_TIMER_NAME:
                 item.cancel()
     PREVIOUS_TIMER_NAME=threading.current_thread().name
-    #==== ROBOT USER-CODE ====
+    #---- call robot_thread ----
     _robot_thread(cmd, 'TEMPORAL')
+    
+def _end_temporal_cmd(timer):
+    """
+    Kill the task of the corresponding pair.
+    
+    :param timer: timer of start of the corresponding pair  
+    :type timer: threading.Timer
+    """
+    global ROBOT_THREAD, PREVIOUS_TIMER_NAME
+    timer.cancel()
+    if CURRENT_COMMAND[0]=='TEMPORAL' and \
+            PREVIOUS_TIMER_NAME==timer.name:
+        ROBOT_THREAD=False
+        PREVIOUS_TIMER_NAME=None
 
 def _user_thread():
     """
-    Start the thread of the user direct control.
+    Start the thread of the user direct control (asynchronous).
     """
     global USER_THREAD
     USER_THREAD=True
-    robot=Thread(target=_user, name='USER')
-    robot.start()
+    user_t=threading.Thread(target=_user, name='USER')
+    user_t.start()
 
 def _user():
     """
     Thread of the USER mode.
     """
+    #XXX find another way
     global KEYS
     x, y = 0, 0
     print('USER MODE: STARTED')
@@ -251,14 +254,14 @@ def _user():
 
 def _robot_thread(cmd, cmd_type):
     """
-    Start the thread of the robot.
+    Start the thread of the robot (synchronous).
     
     This function controls the access to the only thread of the robot.
     
     :param cmd: temporal or non-temporal command
-    :type cmd: list(str,dict))
-    :param cmd_type: type of command
-    :type cmd_type: str 
+    :type cmd: dict
+    :param cmd_type: TEMPORAL/NON_TEMPORAL
+    :type cmd_type: str
     """
     global CURRENT_COMMAND, ROBOT_THREAD
     #---- kill previous thread ----
@@ -271,49 +274,43 @@ def _robot_thread(cmd, cmd_type):
             pass
         #---- waiting for finishing (robot-thread) ----
         while CURRENT_COMMAND:
-            pass
-    #---- kill all thread in USER mode ----
+            time.sleep(0.1)
+    #---- kill all thread (when USER mode is set) ----
     if MODE=='USER':
         return
     #---- start robot thread ----
     ROBOT_THREAD=True
     CURRENT_COMMAND=(cmd_type,cmd)
-    robot=Thread(target=_robot, name='ROBOT', args=([cmd]))
-    robot.start()
+    robot_t=threading.Thread(target=_robot, name='KERNEL', args=([cmd]))
+    robot_t.start()
 
 def _robot(cmd):
     """
-    Thread of the robot.
+    Thread of the KERNEL mode.
     
     :param cmd: command
-    :type cmd: list(str,dict))
+    :type cmd: dict
     """
     global PROCESS, ROBOT_THREAD, CURRENT_COMMAND
     print("\n   THREAD: " + str(cmd))
-    #---- start master process ----
-    #XXX add the master processing of the command 
+    #---- master request process ----
     ROBOT.sync_request(cmd)
     #---- waiting for finishing (robot-process) ----
-    #XXX cambiar la condicion de parada del master
     while not ROBOT.is_ended():
         time.sleep(0.5)
-        ################################################
-        if not ROBOT_THREAD:                         ###
-            ROBOT.end_current_task()                        ###
-            while not ROBOT.is_ended():          ###
-                time.sleep(0.5)                      ###
-            ROBOT_THREAD=False                       ### BREAK
-            CURRENT_COMMAND=None                     ### CODE
-            print('   THREAD STATUS: BREAK')           #
-            # experiment.add_time('break robot thread')#
-            return                                   ###
-        ################################################
+        #==== BREAK CODE ====
+        if not ROBOT_THREAD:
+            ROBOT.end_current_task()
+            while not ROBOT.is_ended():
+                time.sleep(0.1)
+            ROBOT_THREAD=False
+            CURRENT_COMMAND=None
+            print('   THREAD STATUS: BREAK')
+            return
     ROBOT_THREAD=False
     CURRENT_COMMAND=None
     PROCESS='EXEC_TEMPORAL'
     print('   THREAD STATUS: END')
-    # experiment.add_time('end robot thread')
-    # experiment.print_time()
 
 #==== RUN PROCESS ====
 _thread.start_new_thread(_run,())
