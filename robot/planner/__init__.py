@@ -32,8 +32,12 @@ def set_map(file_name=''):
     """
     Set map.
     
+    The map should be defined in the folder robot.planner.maps
+    
     :param file_name: name of the map 
     :type file_name: str
+    
+    >>> set_map("Gustavo's house")
     """
     global MAP
     #---- fix the name ----
@@ -48,31 +52,43 @@ def set_map(file_name=''):
             MAP=locals()['CURRENT_MAP']
         except:
             MAP=None
+            print("    WARNING: Map information wasn't loaded")
     else:
+        print("    WARNING: Map file not exist")
         MAP=None
 
-def path_xyt(start,target,show=False):
+def path_xyt(start,target,show=True):
     """
     Generation of path.
     
     :param start: current position of the robot 
-    :type start: tuple(float,float), str, list(tuple(float,float))
+    :type start: tuple, str, list
     :param target: destination place
-    :type target: tuple(float,float), str, list(tuple(float,float))
+    :type target: tuple, str, list, dict
+    :param show: show the found place
+    :type show: bool
     :return: x, y and t values
-    :type: dict(str:list(float))
+    :type: dict
     
-    >>> path_xyt((0,0),'hall')
+    >>> path_xyt((0,0,0),'hall')
     {'x_planning': [0, 0.9],
      'y_planning': [0, -0.9],
      't_planning': [0, 6.4]}
     """
     x,y,t=[],[],[]
+    path_list=[]
+    #---- path based in list of points ----
     try:
         path_list=target['path']
-        path_list.insert(0,start)
-    except:
-        path_list=_get_path(start,target,show)
+        if type(start) is tuple:
+            path_list.insert(0,start[:2])       
+    #---- path based in tuple or text ----
+    except KeyError:
+        path_list=_get_path(start,target)
+    #---- show the generated path ----
+    if show:
+        for item in path_list:
+            print(str(item))
     #---- generate the vector of time ----
     if len(path_list)>1:
         prev_point=path_list[0]
@@ -89,34 +105,27 @@ def path_xyt(start,target,show=False):
         return path_dict
     return {}
 
-def _get_path(start,target,show=False):
+#### PRIVATE FUNCTIONS ####
+
+def _get_path(start,target):
     path_list=[]
     #---- with map ----
     if MAP:
         #---- start ----
-        if type(start) is dict:
-            START_POINT=MAP.pos_of(start)
-        elif type(start) is str:
-            START_POINT=MAP.pos_of(start)
-        elif type(start) is tuple:
-            start=start[:2]
-            START_POINT=MAP.pos_of(_pos_approach(start))
-        elif type(start) is graph.Node:
-            START_POINT=start
-        else:
-            START_POINT=None
+        if type(start) is tuple:
+            START_POINT=MAP.pos_of(_pos_approach(start[:2]))
         #---- target ----    
         if type(target) is dict:
             TARGET_POINT=MAP.pos_of(target)
         elif type(target) is str:
             TARGET_POINT=MAP.pos_of(target)
         elif type(target) is tuple:
-            TARGET_POINT=MAP.pos_of(_pos_approach(target))
+            TARGET_POINT=MAP.pos_of(_pos_approach(target[:2]))
         elif type(target) is graph.Node:
             TARGET_POINT=target
         else:
             TARGET_POINT=None
-        #---- path ----
+        #---- generate path with any search algoritm ----
         try:
             if type(TARGET_POINT) is list:
                 path=astar.search(MAP, START_POINT, TARGET_POINT[0])
@@ -124,13 +133,14 @@ def _get_path(start,target,show=False):
                 path=astar.search(MAP, START_POINT, TARGET_POINT)
             path_list=[item.pos for item in path]
         except: return []
+        #---- try to complete the path ----
         if path_list:
             if type(start) is tuple:
-                if path_list[0]!=start:
-                    path_list.insert(0,start)
+                if path_list[0]!=start[:2]:
+                    path_list.insert(0,start[:2])
             if type(target) is tuple:
-                if path_list[-1]!=target:
-                    path_list.append(target)
+                if path_list[-1]!=target[:2]:
+                    path_list.append(target[:2])
             try:
                 if type(TARGET_POINT) is list:
                     for item in TARGET_POINT[1:]:
@@ -139,9 +149,6 @@ def _get_path(start,target,show=False):
     #---- without map ----
     else:
         pass
-    if show:
-        for item in path_list:
-            print(str(item))
     return path_list
     
 def _pos_approach(p):
