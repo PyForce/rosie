@@ -136,12 +136,12 @@
 
 .leaflet-control-zoom-out{
 	border-bottom: 0px !important;
-	background-image: url("/static/icons/zoom-out.png") !important;
+	background-image: url("/static/icons/zoom-out.svg") !important;
 }
 
 .leaflet-control-zoom-in{
 	border-bottom: 1px solid white !important;
-	background-image: url("/static/icons/zoom-in.png") !important;
+	background-image: url("/static/icons/zoom-in.svg") !important;
 }
 
 /**************************/
