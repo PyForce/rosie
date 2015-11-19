@@ -5,22 +5,27 @@ Created on Mon Apr 13 21:12:48 2015
 @author: Toni
 """
 
-__all__=['execute']
+__all__=['mode', 'sync_exec', 'async_exec', '__version__']
 
-#### import ####
+###### INFORMATION ######
+
+__version__ = '1.12'
+
+#### IMPORT ####
+
+#---- Pyhton import ----
 try:
     import queue
-except:
+except ImportError:
     import Queue as queue
 try:
     import _thread
-except:
+except ImportError:
     import thread as _thread
-
+    
 import time, datetime, threading
-from threading import Timer, Thread
 
-#XXX editar
+#---- rOSi import ----
 import robot
 
 #### GLOBAL VARIABLES ####
@@ -60,11 +65,18 @@ def mode(mode=None):
     >>> mode()
     'KERNEL'
     """
-    global PROCESS, MODE, USER_THREAD
+    global PROCESS, MODE, USER_THREAD, ROBOT_THREAD
     #---- set USER mode ----
     if mode=='USER':
         MODE=mode
         PROCESS='SLEEP'
+        #---- kill kernel thread ----
+        if ROBOT_THREAD:
+            ROBOT_THREAD=False
+            #---- waiting for finishing (robot-thread) ----
+            while CURRENT_COMMAND:
+                time.sleep(0.1)
+        #---- start user thread ----
         if not USER_THREAD:
             _user_thread()
     #---- set KERNEL mode ----
@@ -76,11 +88,10 @@ def mode(mode=None):
     else:
         return MODE
 
-#### functions ####
-def link_robot(function):
-    ROBOT.motion.SEND_POSITION=function
+def async_exec():
+    pass
 
-def execute(command):
+def sync_exec(command={}):
     """
     Input commands classification.  
     
@@ -90,9 +101,9 @@ def execute(command):
     >>> cmd={'start': None, 'end': None,
     ...      'place': 'table', 'pos': 'in',
     ...      'command':'stop'}
-    >>> execute(cmd)
+    >>> sync_exec(cmd)
     >>> cmd={'path': [(0,0),(1,1)]}
-    >>> execute(cmd)
+    >>> sync_exec(cmd)
     """
     global PROCESS
     #---- commands classification ----

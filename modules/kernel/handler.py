@@ -5,7 +5,7 @@ command = ordex.Command()
 
 
 def get_odometry():
-    return kernel.MASTER.get_robot_pos()
+    return kernel.ROBOT.position()
 
 
 def get_metadata():
@@ -17,7 +17,7 @@ def get_sensor(name=''):
 
 
 def set_position(X=0, Y=0, theta=0):
-    kernel.MASTER.set_robot_pos(X, Y, theta)
+    kernel.ROBOT.position(X, Y, theta)
 
 
 def process_text(text=""):
@@ -25,7 +25,7 @@ def process_text(text=""):
     cmd = command.extraction(text)
     if isinstance(cmd, ordex.base.Common_Commands):
         for item in cmd.CMD:
-            kernel.execute(item)
+            kernel.sync_exec(item)
 
 def set_keys(keys=[]):
     kernel.KEYS = keys
@@ -40,7 +40,7 @@ def set_mode(mode=''):
 
 def set_path(path=[]):
     cmd = {'start': None, 'end': None, 'path': path, 'action': 'stop'}
-    kernel.execute([cmd])
+    kernel.sync_exec(cmd)
 
 
 def send_updated_position(pos):
