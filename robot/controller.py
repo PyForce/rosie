@@ -56,7 +56,7 @@ class Controller:
         self.count = 0        
         self.sample_time = 0.05
         self.action = 'stop'
-        self.SEND_POSITION = lambda x, y, theta: None     
+        self.SEND_POSITION = lambda x, y, theta: None
         self.COUNTER_POS = 0
         self.reference = track.Track()
 

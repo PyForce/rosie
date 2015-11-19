@@ -33,9 +33,9 @@ def set_keys(keys=[]):
 
 def set_mode(mode=''):
     if mode == 'manual':
-        kernel.execute({}, 'USER')
+        kernel.mode('USER')
     else:
-        kernel.execute({})
+        kernel.mode('KERNEL')
 
 
 def set_path(path=[]):

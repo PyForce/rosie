@@ -27,8 +27,8 @@ import robot
 Q_TEMPORAL=queue.Queue()
 Q_NON_TEMPORAL=queue.LifoQueue()
 
-MODE='USER'
-     # KERNEL
+MODE='KERNEL'
+     # USER
 PROCESS='SLEEP'    
         # EXEC_TEMPORAL
         # EXEC_NON_TEMPORAL
@@ -41,25 +41,57 @@ ROBOT_THREAD=False
 CURRENT_COMMAND=None
 PREVIOUS_TIMER_NAME=None
 
+#### PUBLIC FUNCTIONS ####
+
+def mode(mode=None):
+    """
+    Work mode switcher.
+    
+    :param mode: work mode KERNEL/USER
+    :type mode: str
+    :return: current mode (when ``mode`` isn't set)
+    :type: str
+    
+    >>> mode('USER')
+    >>> mode('KERNEL')
+    >>> mode()
+    'KERNEL'
+    """
+    global PROCESS, MODE, USER_THREAD
+    #---- set USER mode ----
+    if mode=='USER':
+        MODE=mode
+        PROCESS='SLEEP'
+        if not USER_THREAD:
+            _user_thread()
+    #---- set KERNEL mode ----
+    elif mode=='KERNEL':
+        MODE=mode
+        USER_THREAD=False
+        PROCESS='EXEC_TEMPORAL'
+    #---- get mode ----
+    else:
+        return MODE
+
 #### functions ####
 def link_robot(function):
     MASTER.motion.SEND_POSITION=function
 
-def execute(command,mode=None):
-    """       
-    Classification of the input commands.
+def execute(command):
+    """
+    Input commands classification.  
     
     :param command: commands
-    :type command: list(str,dict))
-    :param mode: work mode USER/KERNEL
-    :type mode: str
+    :type command: dict
     
     >>> cmd={'start': None, 'end': None,
     ...      'place': 'table', 'pos': 'in',
-    ...      'action':'stop'}
+    ...      'command':'stop'}
+    >>> execute(cmd)
+    >>> cmd={'path': [(0,0),(1,1)]}
     >>> execute(cmd)
     """
-    global PROCESS, MODE, USER_THREAD
+    global PROCESS
     #---- commands classification ----
     if command:
         try:
@@ -71,14 +103,8 @@ def execute(command,mode=None):
                 Q_NON_TEMPORAL.put_nowait(command)
         except KeyError:
             Q_NON_TEMPORAL.put_nowait(command)
-    #---- switch: mode ----    
-    MODE=mode
-    if MODE=='USER':
-        PROCESS='SLEEP'
-        if not USER_THREAD:
-            _user_thread()
-    else:
-        USER_THREAD=False
+    #---- mode ----
+    if MODE=='KERNEL':
         PROCESS='EXEC_TEMPORAL'
 
 def _run():
