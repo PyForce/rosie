@@ -23,7 +23,8 @@ from threading import Timer, Thread
 #XXX editar
 import robot
 
-#### global variables ####
+#### GLOBAL VARIABLES ####
+
 Q_TEMPORAL=queue.Queue()
 Q_NON_TEMPORAL=queue.LifoQueue()
 
@@ -33,13 +34,15 @@ PROCESS='SLEEP'
         # EXEC_TEMPORAL
         # EXEC_NON_TEMPORAL
 
-KEYS=[]
-MASTER=robot.Master()
-
 USER_THREAD=False
 ROBOT_THREAD=False
 CURRENT_COMMAND=None
 PREVIOUS_TIMER_NAME=None
+
+ROBOT=robot.Master()
+
+#XXX find another way
+KEYS=[]
 
 #### PUBLIC FUNCTIONS ####
 
@@ -75,7 +78,7 @@ def mode(mode=None):
 
 #### functions ####
 def link_robot(function):
-    MASTER.motion.SEND_POSITION=function
+    ROBOT.motion.SEND_POSITION=function
 
 def execute(command):
     """
@@ -240,9 +243,9 @@ def _user():
             dx+=8
         x=(x+dx)/2.0
         y=(y+dy)/2.0
-        MASTER.async_request((x,y))
+        ROBOT.async_request((x,y))
         time.sleep(0.1)
-    MASTER.end_current_task()
+    ROBOT.end_current_task()
     KEYS=[]
     print('USER MODE: ENDED')
 
@@ -289,15 +292,15 @@ def _robot(cmd):
     print("\n   THREAD: " + str(cmd))
     #---- start master process ----
     #XXX add the master processing of the command 
-    MASTER.sync_request(cmd)
+    ROBOT.sync_request(cmd)
     #---- waiting for finishing (robot-process) ----
     #XXX cambiar la condicion de parada del master
-    while not MASTER.is_ended():
+    while not ROBOT.is_ended():
         time.sleep(0.5)
         ################################################
         if not ROBOT_THREAD:                         ###
-            MASTER.end_current_task()                        ###
-            while not MASTER.is_ended():          ###
+            ROBOT.end_current_task()                        ###
+            while not ROBOT.is_ended():          ###
                 time.sleep(0.5)                      ###
             ROBOT_THREAD=False                       ### BREAK
             CURRENT_COMMAND=None                     ### CODE
