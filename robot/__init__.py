@@ -15,7 +15,7 @@ __version__ = '1.12'
 
 #---- rOSi import ----
 from robot import controller as Controller
-from robot.planner import planner
+from robot import planner
 
 #### GLOBAL VARIABLES ####
 
