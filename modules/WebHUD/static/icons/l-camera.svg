@@ -8,12 +8,17 @@ viewBox="0 0 40 40"
  <defs>
   <style type="text/css">
    <![CDATA[
-    .fil0 {fill:white;fill-rule:nonzero}
+    .str0 {stroke:white;stroke-width:1.99965}
+    .fil0 {fill:none}
+    .fil1 {fill:white}
    ]]>
   </style>
  </defs>
  <g id="Layer_x0020_1">
   <metadata id="CorelCorpID_0Corel-Layer"/>
-  <polygon id="minus" class="fil0" points="11,23 11,17 29,17 29,23 "/>
+  <g id="_107671248">
+   <circle class="fil0 str0" cx="20" cy="20" r="13"/>
+   <path class="fil1" d="M29 20c0,-5 -4,-9 -9,-9 -1,0 -1,0 -2,0 1,1 2,3 2,4 0,3 -2,5 -5,5 -1,0 -3,-1 -4,-2 0,1 0,1 0,2 0,5 4,9 9,9 5,0 9,-4 9,-9z"/>
+  </g>
  </g>
 </svg>

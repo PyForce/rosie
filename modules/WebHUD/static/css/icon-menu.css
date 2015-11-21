@@ -97,7 +97,7 @@
 }
 
 #btn-order{
-	background-image: url("/static/icons/text-send.png");
+	background-image: url("/static/icons/text-send.svg");
 	background-repeat: no-repeat;
     background-position: center;
 	height: 31px;
@@ -184,19 +184,19 @@
 	}
 
 	#m-item1{
-	  background-image: url("/static/icons/l-text.png");
+	  background-image: url("/static/icons/l-text.svg");	  
 	}
 
 	#m-item2{
-	  background-image: url("/static/icons/l-key.png");
+	  background-image: url("/static/icons/l-key.svg");
 	}
 
 	#m-item3{
-	  background-image: url("/static/icons/l-p2p.png");
+	  background-image: url("/static/icons/l-p2p.svg");
 	}
 
 	#m-item4{
-	  background-image: url("/static/icons/l-camera.png");
+	  background-image: url("/static/icons/l-camera.svg");
 	}
 
 	/**** MIN ****/
