@@ -8,10 +8,10 @@ Appearance
 """
 
 # Name of the mobile robot
-MOBILE_ROBOT = 'LTL'
+MOBILE_ROBOT = 'LTL2.0'
 
 # Distance between the wheels (in meters)
-DISTANCE = 0.38
+DISTANCE = 0.30
 
 # Radius of the wheels (in meters)
 RADIUS = 0.04911

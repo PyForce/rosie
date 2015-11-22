@@ -8,13 +8,13 @@ Appearance
 """
 
 # Name of the mobile robot
-MOBILE_ROBOT = 'SIMUBOT'
+MOBILE_ROBOT = 'LTL2.0'
 
 # Distance between the wheels (in meters)
-DISTANCE = 0.2995
+DISTANCE = 0.30
 
 # Radius of the wheels (in meters)
-RADIUS = 0.05
+RADIUS = 0.04911
 
 
 """
@@ -22,7 +22,7 @@ Motor Controller
 """
 
 # Filename of the controller board (this file is located in the folder: robot/board)
-FILENAME = 'VirtualMD.py'
+FILENAME = 'ArduinoMD.py'
 
 # PID settings (Set it True if your hardware support speed control)
 PID = True
@@ -33,10 +33,10 @@ Motors
 """
 
 # Resolution of encoders (In steps per turn)
-ENCODER_STEPS = 360
+ENCODER_STEPS = 270.9
 
 # Max speed (in radians by seconds)
-MAX_SPEED = 20.0
+MAX_SPEED = 8.0
 
 
 
