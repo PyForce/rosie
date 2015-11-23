@@ -137,7 +137,7 @@ class Controller:
         """
         #---- check for end the movement unavoidably ----
         if self.finished:
-            self._action_exec()
+            self.action_exec()
             return
         #---- calculate the speed for each wheel ----
         encoder1, encoder2, _ = self.get_state()
