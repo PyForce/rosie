@@ -2,7 +2,7 @@ from flask import request, jsonify, json
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
 from modules.kernel import handler as robot_handler
-from modules.kernel.kernel import link_robot as set_position_notifier
+# from modules.kernel.kernel import link_robot as set_position_notifier
 
 from threading import Thread
 from time import sleep
