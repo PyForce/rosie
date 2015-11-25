@@ -10,7 +10,7 @@ __all__=['__author__','__credits__','__version__','Command']
 ###### INFORMATION ######
 __author__ = 'Antonio Serrano Muñoz <asm.holguin@gmail.com, toni.sm@nauta.cu>'
 __credits__ = ('Silvia María Rodríguez-Ojea Picos <ojeasm@gmail.com>')
-__version__ = '1.1'
+__version__ = '1.12'
 
 ###### IMPORT ######
 from . import base
@@ -37,11 +37,11 @@ class Command(object):
         
         :param text: orders
         :type text: str
-        :return: list of commands
-        :type: list(list(dict))
+        :return: commands
+        :type: list
         
         >>> Command.extraction("go to the door")
-        [[{'start': None, 'end': None}, {'pos': 'to', 'place': 'door'}, {}]]
+        [{'start': None, 'end': None, 'pos': 'to', 'place': 'door', 'action'='stop'}]
         """
         base.log(' ','NLP')
         cmd=[]

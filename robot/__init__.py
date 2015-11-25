@@ -1,93 +1,150 @@
-######### IMPORT ##########
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 13 21:32:24 2015
 
-try: 
-    import queue
-except: 
-    import Queue as queue
+@author: Toni
+"""
 
-from robot import controller
-from robot.planner import planner
+__all__=['Master', '__version__']
 
-########### GLOBAL VARIABLES ########### 
+###### INFORMATION ######
+
+__version__ = '1.12'
+
+#### IMPORT ####
+
+#---- rOSi import ----
+from robot import controller as Controller
+from robot import planner
+
+#### GLOBAL VARIABLES ####
+
 PATH_METHOD="Lineal Smooth"
-#PATH_METHOD="Cubic"
-#PATH_METHOD=None
+            # "Cubic"
+            # None
 
+#### CLASS ####
 
 class Master:
     def __init__(self):
-        self.motion = controller.Controller()
-        self.queue = queue.Queue()
-        self.address = None
-        self.index = 0
-        self.ROBOT_POS = (0,0,0)
-
-    #==== CUBIC ====
-    def process_path(self, track):
-        track['z_planning'] = track['t_planning']   
-        track['constant_t'] = 10
-        track['constant_k'] = 5
-        track['cubic'] = True
-        if self.motion.finished:
-            self.motion.experiment_init(None, False, track)
-
-    #==== OTHER ====
-    def process_points(self, track):
-        if self.motion.finished:
-            self.motion.experiment_init(None, False, track)
-
-    #==== LINEAL SMOOTH ====
-    def process_reference(self, track):
-        if self.motion.finished:
-            self.motion.experiment_init(None, True, track)
+        self.controller = Controller.Controller()
     
-    ######### MASTER FUNCTIONS #########
-    
-    def get_robot_pos(self):
-        self.ROBOT_POS=(-self.motion.y_position,
-                        self.motion.x_position,
-                        self.motion.z_position)
-        return self.ROBOT_POS
-    
-    def set_robot_pos(self,X,Y,theta):
-        self.motion.y_position=-X
-        self.motion.x_position=Y
-        self.motion.z_position=theta 
+    #==== PRIVATE FUNCTIONS ====
 
-    def is_finished(self):
-        self.get_robot_pos()
-        return self.motion.finished
+    def _track_switcher(self, track):
+        """
+        Path controller switcher.
         
-    def end_task(self):
-        self.motion.experiment_finish()
+        :param track: trace to follow
+        :type track: dict
+        """
+        #---- Cubic ----
+        if PATH_METHOD == "Cubic":
+            track['z_planning'] = track['t_planning']   
+            track['constant_t'] = 10
+            track['constant_k'] = 5
+            track['cubic'] = True
+        #---- Lineal Smooth ----        
+        elif PATH_METHOD == "Lineal Smooth":
+            if self.controller.finished:
+                self.controller.move(track)
+            return
+        #---- None ----
+        if self.controller.finished:
+            self.controller.move(track, False)
+    
+    #==== PUBLIC FUNCTIONS ====
+    
+    def position(self,x=None,y=None,theta=None):
+        """
+        Get or set the position of the robot
+        
+        :param x: X value of (X,Y)
+        :type x: float
+        :param y: Y value of (X,Y)
+        :type y: float
+        :param theta: orientation
+        :type theta: float      
+        :return: current position (when ``x``, ``y`` and ``theta`` are None)
+        :type: tuple
+        
+        >>> master=Master()
+        >>> master.position(2,3,0.5)
+        >>> master.position()
+        (2, 3, 0.5)
+        """
+        #---- get position ----
+        if x==None and y==None and theta==None:
+            return (-self.controller.y_position,
+                    self.controller.x_position,
+                    self.controller.z_position)
+        #---- set position ----
+        self.controller.y_position=-x
+        self.controller.x_position=y
+        self.controller.z_position=theta
+    
+    def is_ended(self):
+        """
+        Get task status of the robot.
+        
+        :return: current task status
+        :type: bool
+        
+        >>> master=Master()
+        >>> master.is_ended()
+        True
+        """
+        return self.controller.finished
+        
+    def end_current_task(self):
+        """
+        End current task of the robot.
+        
+        >>> master=Master()
+        >>> master.end_current_task()
+        """
+        self.controller.end_move()
 
-    def process_request(self, request):
+    def sync_request(self, request):
+        """
+        Process the request of the synchronous handler.
+
+        :param request: synchronous request
+        :type request: dict
         
-        #---- set robot-action ----        
-        #self.motion.action=request[1]
-        self.motion.action='stop'
-        
-        #---- go to (place) ----
-        path={}
-        if request[0]:
-            path=planner.path_xyt(self.ROBOT_POS,request[0])
-        if path:
-            if PATH_METHOD == "Lineal Smooth":
-                self.process_reference(path)
-            elif PATH_METHOD == "Cubic":
-                self.process_path(path)
+        >>> cmd={'place': [(0,0),(1,1)]}
+        >>> master=Master()
+        >>> master.sync_request(cmd)
+        """
+        if request:        
+            #---- set action ----
+            try:
+                self.controller.action=request['action']
+            except KeyError:
+                self.controller.action='stop'
+            #---- process path (place) ----
+            path=planner.path_xyt(self.position(),request)
+            if path:
+                self._track_switcher(path)
+            #---- execute action ----
             else:
-                self.process_points(path)
-        else:
-            self.motion.execute_action()
+                self.controller.action_exec()
             
-    def process_user_request(self, request):
+    def async_request(self, request):
+        """
+        Process the request of the asynchronous handler.
+
+        :param request: asynchronous request
+        :type request: tuple       
         
-        right, left = self.motion.wasd_velocities(request[0], request[1])
+        >>> cmd=(2.0,5.0)
+        >>> master=Master()
+        >>> master.async_request(cmd)
+        """
+        #XXX check for generic request
+        right, left = self.controller.async_speed(request[0], request[1])
         if right or left:
-            encoder1, encoder2, _ = self.motion.robot.read_state()
-            self.motion.calculatePosition(encoder1, encoder2)
-            self.motion.robot_speed(right, left)
-    
-    
+            encoder1, encoder2, _ = self.controller.get_state()
+            self.controller.navigation(encoder1, encoder2)
+            self.controller.set_speed(right, left)
     
