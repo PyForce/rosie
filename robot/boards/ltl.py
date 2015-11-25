@@ -5,6 +5,7 @@ except:
 from struct import *
 from math import pi
 from threading import Thread
+from time import sleep
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7
@@ -101,11 +102,12 @@ class Arduino(Thread):
 
 
     def run(self):
+        sleepLapse = 0.01
         while True:
             if self.sampling == True:
                 try:                    
                     while self.serialPort.inWaiting() < 4:
-                        pass
+                        sleep(sleepLapse)
                     speed1 = self.serialPort.read()
                     speed1 += self.serialPort.read()
                     speed1 += self.serialPort.read()
@@ -113,7 +115,7 @@ class Arduino(Thread):
                     speed1, = unpack("f", speed1)
 
                     while self.serialPort.inWaiting() < 4:
-                        pass
+                        sleep(sleepLapse)
                     speed2 = self.serialPort.read()
                     speed2 += self.serialPort.read()
                     speed2 += self.serialPort.read()
@@ -124,5 +126,5 @@ class Arduino(Thread):
                     self.speed2.append(speed2)
                 except:
                     print ("      Error using the serial port")
-
+            sleep(sleepLapse)
 Board=Arduino
