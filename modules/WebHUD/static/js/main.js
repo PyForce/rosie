@@ -29,6 +29,7 @@ $(document).ready(function() {
 
     $("#form-text").submit(function(event) {
         event.preventDefault();
+        setText(undefined, $("#text-order").val());
     });
 
     // // KEY
