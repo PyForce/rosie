@@ -71,7 +71,7 @@ $(car._image).click(function(){
 
 map.on('click', function(e) {
     if($('#m-item3, #p2p').hasClass('active')) {
-        setPath(undefined, [[e.latlng.lat, e.latlng.lng]], car.getAngle());
+        setPath(undefined, [[e.latlng.lat, e.latlng.lng]]);
         // console.log(e.latlng);
     }
 });
