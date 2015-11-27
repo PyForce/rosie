@@ -34,6 +34,7 @@ div.top-bar {
 	width: 200px;
 	right: 0px;
 	top: 8%;
+	z-index: 580;
 	margin-right: 10px;
 }
 
@@ -80,7 +81,7 @@ div.top-bar {
 	top: 50px;
 	bottom: 0;
 	background: black;
-	z-index: 12;
+	z-index: 980;
 	opacity: 0.4;
 	visibility: hidden;
 }
