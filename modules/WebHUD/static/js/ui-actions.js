@@ -7,9 +7,13 @@ $('.icon').click(function() {
 
 // KEY
 $('#m-item2, #key').click(function() {
-    toggleTransition($('#mode-text'), true)
-    // $("#video-streaming").css("margin-bottom", "10px");
-    setManualMode();
+    if ($(this).hasClass('active')) {
+        toggleTransition($('#mode-text'), true)
+        // $("#video-streaming").css("margin-bottom", "10px");
+        setManualMode();
+    }
+    else
+        setAutoMode();
 });
 
 // P2P
