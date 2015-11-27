@@ -63,6 +63,19 @@ $('.cancel-btn, .close, .ok-btn').click(function() {
     toggleOverlay(false, true);
 });
 
+
+$(car._image).click(function(){
+    $('#video-streaming').attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
+    return false;
+});
+
+map.on('click', function(e) {
+    if($('#m-item3, #p2p').hasClass('active')) {
+        setPosition(undefined, e.latlng.lat, e.latlng.lng, car.getAngle());
+        // console.log(e.latlng);
+    }
+});
+
 /*
 L.DomEvent.on(imageOverlay._image, 'click', function(e) {
     $("#robot-logo").css("visibility", "visible");
