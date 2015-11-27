@@ -23,9 +23,11 @@ function setPosition(host, x, y, theta, callback) {
 
 function setPath(host, callback) {
 
-	path = trajectory.getLatLngs().map(
-			function(elem){return [elem.lat, elem.lng]}
-			);
+    path = trajectory.getLatLngs().map(
+        function(elem) {
+            return [elem.lat, elem.lng]
+        }
+    );
 
     setRequest(host, 'path', callback, {
         'path': path
@@ -33,7 +35,9 @@ function setPath(host, callback) {
 }
 
 function setText(host, text, callback) {
-    setRequest(host, 'text', callback, {'text': text});
+    setRequest(host, 'text', callback, {
+        'text': text
+    });
 }
 
 function setManualMode(host, callback) {
