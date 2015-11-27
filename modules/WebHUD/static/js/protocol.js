@@ -21,13 +21,15 @@ function setPosition(host, x, y, theta, callback) {
     });
 }
 
-function setPath(host, callback) {
+function setPath(host, path, callback) {
 
-    path = trajectory.getLatLngs().map(
-        function(elem) {
-            return [elem.lat, elem.lng]
-        }
-    );
+    if (path === undefined) {
+        path = trajectory.getLatLngs().map(
+            function(elem) {
+                return [elem.lat, elem.lng]
+            }
+        );
+    }
 
     setRequest(host, 'path', callback, {
         'path': path
