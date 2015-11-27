@@ -92,7 +92,7 @@ div.top-bar {
 #overlay.dim {
     opacity: .9;
     top: 0;
-    z-index: 1000;
+    z-index: 1001;
 }
 
 body > .container{
