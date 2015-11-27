@@ -91,7 +91,8 @@ def text():
     }
     """
     text = str(request.values['text'])
-    print('text: %s' % repr(text))
+    print('In text request')
+    print(' text: %s' % repr(text))
     robot_handler.process_text(text)
 
 
