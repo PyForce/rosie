@@ -9,8 +9,10 @@ $(document).ready(function() {
         console.log(msg['text']);
     });
 
-	sio.on('position', function(data) {
-		console.log('position', data);
+	sio.on('position', function(pos) {
+		console.log('position', pos);
+        car.setLatLng([pos.x, pos.y]);
+        car.setAngle(pos.theta);
 	});
 
     sio.emit('echo', {
