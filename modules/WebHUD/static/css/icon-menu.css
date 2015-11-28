@@ -177,6 +177,10 @@
 	#settings{
 		width: 300px;
 	}
+
+	#video-streaming, #robot-info-wrapper {
+		display: block;
+	}
 }
 
 /**************************/
@@ -185,7 +189,7 @@
 @media (max-width: 600px) {
 
 	/**** MAX ****/
-	#video-streaming, #robot-logo, #i-text, #i-key, #i-p2p{
+	#video-streaming, #robot-info-wrapper, #i-text, #i-key, #i-p2p{
 		display: none;
 	}
 
