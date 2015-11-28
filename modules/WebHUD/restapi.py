@@ -79,6 +79,7 @@ def path():
     }
     """
     path = request.values['path']
+    path = json.loads(path)
     robot_handler.set_path(path)
 
 
