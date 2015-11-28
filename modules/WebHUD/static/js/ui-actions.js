@@ -65,11 +65,18 @@ $('.cancel-btn, .close, .ok-btn').click(function() {
 
 
 $(car._image).click(function(){
-    $('#video-streaming').attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
+    var streaming = $('#video-streaming');
+    streaming.addClass('visible');
+    streaming.attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
     return false;
 });
 
 map.on('click', function(e) {
+    // hide streaming
+    var streaming = $('#video-streaming');
+    streaming.attr('src', '');
+    streaming.removeClass('visible');
+
     if($('#m-item3, #p2p').hasClass('active')) {
         setPath(undefined, [[e.latlng.lat, e.latlng.lng]]);
         // console.log(e.latlng);
