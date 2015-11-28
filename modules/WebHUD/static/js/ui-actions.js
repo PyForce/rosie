@@ -68,6 +68,8 @@ $(car._image).click(function(){
     var streaming = $('#video-streaming');
     streaming.addClass('visible');
     streaming.attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
+    // show info
+    $('#robot-info-wrapper').addClass('visible');
     return false;
 });
 
@@ -76,6 +78,8 @@ map.on('click', function(e) {
     var streaming = $('#video-streaming');
     streaming.attr('src', '');
     streaming.removeClass('visible');
+    // hide info
+    $('#robot-info-wrapper').removeClass('visible');
 
     if($('#m-item3, #p2p').hasClass('active')) {
         setPath(undefined, [[e.latlng.lat, e.latlng.lng]]);
