@@ -2,15 +2,9 @@ from flask import request, jsonify, json
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
 from modules.kernel import handler as robot_handler
-# from modules.kernel.kernel import link_robot as set_position_notifier
 
 from threading import Thread
 from time import sleep
-
-#@sio.on('echo')
-#def echo(message):
-#    print(message)
-#    emit('echo reply', message)
 
 
 @app.route('/odometry', methods=['GET'])
@@ -173,7 +167,8 @@ count = 0
 #
 #    #emit('position', [1,2,3])
 
-#def send_position(x, y, theta):
-#    sio.emit('position', {"x": x, "y": y, 'theta': theta})
+def send_position(x, y, theta):
+    print('emiting pos')
+    sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
-#set_position_notifier(send_position)
+robot_handler.set_position_notifier(send_position)
