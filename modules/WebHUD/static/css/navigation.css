@@ -10,15 +10,19 @@ div.top-bar {
 
 #video-streaming {
 	width: 250px;
-	padding: 10px;
 	position: absolute;
-	background-color: rgba(0, 0, 0, 0.8);
 	bottom: 0;
 	left: 0;
 	margin-bottom: 10px;
 	margin-left: 10px;
-	z-index: 0;
-	/*visibility: hidden;*/
+	z-index: 580;
+	border-radius: 7px;
+	box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.50);
+	visibility: hidden;
+}
+
+#video-streaming.visible {
+	visibility: visible;
 }
 
 .robot-info-wrapper{
