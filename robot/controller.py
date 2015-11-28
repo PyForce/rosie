@@ -279,7 +279,8 @@ class Controller:
         self.COUNTER_POS+=1
         if self.COUNTER_POS==3:
             try:
-                self.SEND_POSITION((-self.y_position, self.x_position, self.z_position))
+                print('sending')
+                self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
             except: pass
             self.COUNTER_POS=0;
 		
