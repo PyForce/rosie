@@ -38,6 +38,7 @@ div.top-bar {
 	margin-right: 10px;
 	border-radius: 10px;
 	transition: all .4s;
+	visibility: visible;
 }
 
 #robot-logo ul{
