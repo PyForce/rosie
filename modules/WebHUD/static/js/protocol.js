@@ -1,3 +1,6 @@
+// Helpers
+var debug = false;
+
 // GET
 
 function getSensor(host, name, callback) {
@@ -32,7 +35,7 @@ function setPath(host, path, callback) {
     }
 
     setRequest(host, 'path', callback, {
-        'path': path
+        'path': JSON.stringify(path)
     });
 }
 
@@ -50,8 +53,6 @@ function setAutoMode(host, callback) {
     setRequest(host, 'auto_mode', callback);
 }
 
-// Helpers
-var debug = true;
 
 // Uses HTTP GET verb to query status
 function getRequest(host, route, callback, param) {
