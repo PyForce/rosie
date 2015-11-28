@@ -25,14 +25,10 @@ div.top-bar {
 	visibility: visible;
 }
 
-.robot-info-wrapper{
-	/*visibility: hidden;*/
-}
-
-#robot-logo {
+#robot-info-wrapper{
 	padding: 10px;
-	background-color: rgba(0, 0, 0, 0.8);
-	color: lightgray;
+	background-color: rgba(255, 255, 255, 0.28);
+	color: #042C56;
 	margin-top: 10px;
 	position: fixed;
 	width: 200px;
@@ -40,6 +36,8 @@ div.top-bar {
 	top: 8%;
 	z-index: 580;
 	margin-right: 10px;
+	border-radius: 10px;
+	transition: all .4s;
 }
 
 #robot-logo ul{
