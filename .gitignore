@@ -18,6 +18,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!modules/WebHUD/static/lib/
 lib64/
 parts/
 sdist/
