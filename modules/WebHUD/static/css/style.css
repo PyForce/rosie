@@ -165,3 +165,9 @@
 .transition.out-top {
     margin-top: -100%;
 }
+.transition.out-right {
+    margin-right: -100% !important;
+}
+.transition.out-bottom {
+    margin-bottom: -100% !important;
+}
