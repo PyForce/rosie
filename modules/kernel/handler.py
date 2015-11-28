@@ -43,6 +43,11 @@ def set_path(path=[]):
     cmd = {'start': None, 'end': None, 'path': path, 'action': 'stop'}
     kernel.sync_exec(cmd)
 
+def set_position_notifier(notifier):
+    print("connecting robot with server notifier")
+    print(kernel.ROBOT.controller.SEND_POSITION)
+    kernel.ROBOT.controller.SEND_POSITION = notifier
+    print(kernel.ROBOT.controller.SEND_POSITION)
 
 def send_updated_position(pos):
     # send position
