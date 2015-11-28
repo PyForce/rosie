@@ -37,11 +37,7 @@ div.top-bar {
 	z-index: 580;
 	margin-right: 10px;
 	border-radius: 10px;
-	visibility: hidden;
-}
-
-#robot-info-wrapper.visible {
-	visibility: visible;
+	transition: all .4s;
 }
 
 #robot-logo ul{
