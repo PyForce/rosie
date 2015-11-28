@@ -119,6 +119,19 @@ function openDialog (dialog) {
     toggleOverlay(true, true);
 }
 
+function toggleInfo(val) { // val is required
+    var streaming = $('#video-streaming');
+    if (val) {
+        if (streaming.hasClass('visible')) {
+            streaming.attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
+        }
+    }
+    else {
+        // streaming.removeClass('visible');
+        streaming.attr('src', '');
+    }
+}
+
 /*
 imageOverlay.on("mouseover", function() {
     $("#robot-logo").css("visibility", "visible");
@@ -132,3 +145,10 @@ imageOverlay.on("mouseout", function() {
     $("#video-streaming").attr("src", null);
 });
 */
+
+$(window).resize(function() {
+    if (Modernizr.mq('(max-width: 600px)'))
+        toggleInfo(false);
+    else if (Modernizr.mq('(max-width: 3000px)'))
+        toggleInfo(true);
+});
