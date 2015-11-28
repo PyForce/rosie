@@ -19,6 +19,7 @@ $('#m-item2, #key').click(function() {
 // P2P
 $('#m-item3, #p2p').click(function() {
     toggleTransition($('#mode-text'), true);
+    setAutoMode();
     // $("#video-streaming").css("margin-bottom", "10px");
 });
 
