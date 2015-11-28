@@ -27,9 +27,7 @@ class VirtualMotorDriver:
     def read_state(self):
         self.history.append([self.current_speed1, self.current_speed2, time.time()])
         self.__update_encoders_status__() 
-        print(self.encoder1)
-        print(self.encoder2)
-        print()
+        # print(self.encoder1, self.encoder2)
         return self.encoder1, self.encoder2, self.battery_voltage
 
     def reset_encoders(self):
@@ -46,8 +44,6 @@ class VirtualMotorDriver:
         for x in range(len(self.history) - 1):
             self.history[x][2] = self.history[x + 1][2] - self.history[x][2]
         self.history.__delitem__(-1)
-
-        print(self.history)
 
         for x in range(len(self.history)):
             delta_angle1 += self.history[x][0] * self.history[x][2]
