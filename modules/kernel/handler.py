@@ -21,8 +21,7 @@ def set_position(X=0, Y=0, theta=0):
 
 
 def process_text(text=""):
-    print('In process text')
-    print(' text: %s' % repr(text))
+    print(' Processing text: %s' % repr(text))
     cmd = command.extraction(text)
     if isinstance(cmd, ordex.base.Common_Commands):
         for item in cmd.CMD:
@@ -46,5 +45,5 @@ def set_path(path=[]):
 
 def send_updated_position(pos):
     # send position
-    print(pos)
+    # print(pos)
     pass

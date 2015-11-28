@@ -47,8 +47,7 @@ class Command(object):
         cmd=[]
         if text:
             if base.LANGUAGE=='EN':
-                print('In extraction')
-                print(' text: %s' % repr(text))
+                print(' Extracting order from: %s' % repr(text))
                 cmd=self.english.extraction(text)
             if cmd:
                 base.log(cmd,'NLP')
