@@ -3,14 +3,16 @@
 
 import math
 import time
+from robot import settings
 
-# Constants
-ENCODER_STEP = 360
-MAX_SPEED = 20 # rad/sec
+# # Constants
+# ENCODER_STEPS = 360
+# MAX_SPEED = 20 # rad/sec
+
 
 
 class VirtualMotorDriver:    
-    def __init__(self, ENCODER_STEP = 360, MAX_SPEED = 20):
+    def __init__(self):
         # Private variables (You should not access it directly, use methods instead)
         self.encoder1 = 0
         self.encoder2 = 0
@@ -18,7 +20,8 @@ class VirtualMotorDriver:
         self.history = []
         self.current_speed1 = 0
         self.current_speed2 = 0
-
+        self.ENCODER_STEPS = settings.ENCODER_STEPS
+        self.MAX_SPEED = settings.MAX_SPEED
 
     def set_speeds(self, motor1, motor2):
         self.current_speed1, self.current_speed2 = self.__check_max_speed__(motor1, motor2)
@@ -49,11 +52,11 @@ class VirtualMotorDriver:
             delta_angle1 += self.history[x][0] * self.history[x][2]
             delta_angle2 += self.history[x][1] * self.history[x][2]
 
-        delta_steps1 = delta_angle1 / 2 / math.pi * ENCODER_STEP
-        delta_steps2 = delta_angle2 / 2 / math.pi * ENCODER_STEP
+        delta_steps1 = delta_angle1 / 2. / math.pi * self.ENCODER_STEPS
+        delta_steps2 = delta_angle2 / 2. / math.pi * self.ENCODER_STEPS
 
-        self.encoder1 += delta_steps1
-        self.encoder2 += delta_steps2
+        self.encoder1 += int(delta_steps1)
+        self.encoder2 += int(delta_steps2)
 
         self.__reset_history__()
 
@@ -64,15 +67,14 @@ class VirtualMotorDriver:
     def __check_max_speed__(self, motor1, motor2):
         speed1 = motor1
         speed2 = motor2
-        if motor1 >= MAX_SPEED:
-            speed1 = MAX_SPEED 
-        if motor2 >= MAX_SPEED:
-            speed2 = MAX_SPEED
-        if motor1 <= -MAX_SPEED:
-            speed1 = -MAX_SPEED 
-        if motor2 <= -MAX_SPEED:
-            speed2 = -MAX_SPEED
-
+        if motor1 >= self.MAX_SPEED:
+            speed1 = self.MAX_SPEED 
+        if motor2 >= self.MAX_SPEED:
+            speed2 = self.MAX_SPEED
+        if motor1 <= -self.MAX_SPEED:
+            speed1 = -self.MAX_SPEED 
+        if motor2 <= -self.MAX_SPEED:
+            speed2 = -self.MAX_SPEED
         return speed1, speed2
 
 Board = VirtualMotorDriver

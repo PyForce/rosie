@@ -13,7 +13,7 @@ PID = False
 
 
 
-ENCODER_STEPS = 360
+ENCODER_STEPS = 36
 
 # Distance between the wheels (in meters)
 DISTANCE = 0.2995
