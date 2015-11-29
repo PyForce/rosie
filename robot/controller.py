@@ -14,10 +14,10 @@ import os, math, time, signal
 #---- rOSi import ----
 from robot.control import pid, track
 from robot import settings
-
 #==== import and load the robot control board ====
 board=None
 if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
+    # TODO: Change this crab to something less painfull for debugging
     try:
         exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')
         board=locals()['board']
