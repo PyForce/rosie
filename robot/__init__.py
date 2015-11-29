@@ -28,6 +28,7 @@ PATH_METHOD="Lineal Smooth"
 class Master:
     def __init__(self):
         self.controller = Controller.Controller()
+        self.position(0.3,0.3,0)
     
     #==== PRIVATE FUNCTIONS ====
 
