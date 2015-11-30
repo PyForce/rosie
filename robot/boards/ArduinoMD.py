@@ -6,6 +6,7 @@ from struct import *
 from math import pi
 from threading import Thread
 from time import sleep
+from robot import settings
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7
@@ -16,7 +17,7 @@ COMMAND_START_SAMPLING_SPEEDS = b'\xAB'
 COMMAND_STOP_SAMPLING_SPEEDS = b'\xAC'
 
 class Arduino(Thread):
-    def __init__(self, port='/dev/ttyACM0', baudrate=9600, revolutionSteps=270.9, sampleTime=0.05):        
+    def __init__(self, port='/dev/ttyACM0', baudrate=9600, revolutionSteps=settings.ENCODER_STEPS, sampleTime=0.05):        
         Thread.__init__(self)
         try:
             self.serialPort = Serial(port, baudrate)
