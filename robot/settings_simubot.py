@@ -22,7 +22,7 @@ Motor Controller
 """
 
 # Filename of the controller board (this file is located in the folder: robot/board)
-FILENAME = 'VMD.py'
+FILENAME = 'VirtualMD.py'
 
 # PID settings (Set it True if your hardware support speed control)
 PID = True

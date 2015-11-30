@@ -1,14 +1,10 @@
+# Virtual Motor Driver 1.0
 # Script just for simulations. It allows to use rOSi platform without a robot.
 # Author: Gustavo Viera Lopez
 
 import math
 import time
 from robot import settings
-
-# # Constants
-# ENCODER_STEPS = 360
-# MAX_SPEED = 20 # rad/sec
-
 
 
 class VirtualMotorDriver:    
