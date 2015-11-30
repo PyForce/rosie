@@ -1,19 +1,14 @@
 """
-rOSi settings for app.
+Settings
+"""
+# Configure the way rOSi handles your robot.
+
+"""
+Appearance
 """
 
 # Name of the mobile robot
 MOBILE_ROBOT = 'LTL'
-
-# Filename of board (this file is located in the folder: robot/board)
-FILENAME = 'ltl.py'
-
-# Hardware PID settings for control of motors
-PID = True
-
-
-
-ENCODER_STEPS = 270.9
 
 # Distance between the wheels (in meters)
 DISTANCE = 0.38
@@ -21,9 +16,33 @@ DISTANCE = 0.38
 # Radius of the wheels (in meters)
 RADIUS = 0.04911
 
+
+"""
+Motor Controller
+"""
+
+# Filename of the controller board (this file is located in the folder: robot/board)
+FILENAME = 'ltl.py'
+
+# PID settings (Set it True if your hardware support speed control)
+PID = True
+
+
+"""
+Motors
+"""
+
+# Resolution of encoders (In steps per turn)
+ENCODER_STEPS = 270.9
+
 # Max speed (in radians by seconds)
 MAX_SPEED = 8.0
 
+
+
+"""
+Future
+"""
 
 #
 #        "processor" : "RaspberryPi",
