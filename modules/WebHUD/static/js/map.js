@@ -111,112 +111,234 @@ L.myImageOverlay = function(imageUrl, coords, width, height, options) {
     return new L.MyImageOverlay(imageUrl, coords, width, height, options);
 }
 
-var geodata = {
-    "type": "FeatureCollection",
-    "features": [
+var themap={
+    "name" : "Gustavo's House",
+    "version" : 0.95,
+    "rooms" : {
 
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "MultiLineString",
-                "coordinates": [
-                    [
-                        [0.0, 1.28],
-                        [0.0, 0.0],
-                        [1.98, 0.0]
-                    ],
-                    [
-                        [0.0, 2.16],
-                        [0.0, 2.38],
-                        [2.63, 2.38],
-                        [2.63, 0.96]
+        "Living Room" : {
+            "borders" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [0.0, 0.0],
+                            [0.0, 2.38],
+                            [2.63, 2.38],
+                            [2.63, 0.0]
+                        ]
                     ]
-                ]
+                }
             },
-            "properties": {
-                "name": "Living Room"
+            "walls" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [0.0, 1.28],
+                            [0.0, 0.0],
+                            [1.98, 0.0]
+                        ],
+                        [
+                            [0.0, 2.16],
+                            [0.0, 2.38],
+                            [2.63, 2.38],
+                            [2.63, 0.96]
+                        ]
+                    ]
+                }                
+            },
+            "doors" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }
+            },
+            "items" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                } 
             }
         },
 
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "MultiLineString",
-                "coordinates": [
-                    [
-                        [2.63, 0.96],
-                        [3.34, 0.96]
-                    ],
-                    [
-                        [2.78, 0.0],
-                        [3.10, 0.0],
-                        [3.10, 0.23],
-                        [3.43, 0.23]
-                    ]
-                ]
+        "Hall" : {
+            "borders" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }
             },
-            "properties": {
-                "name": "Hall"
+            "walls" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [2.63, 0.96],
+                            [3.34, 0.96]
+                        ],
+                        [
+                            [2.78, 0.0],
+                            [3.10, 0.0],
+                            [3.10, 0.23],
+                            [3.43, 0.23]
+                        ]
+                    ]
+                }            
+            },
+            "doors" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }                
+            },
+            "items" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }                
             }
         },
 
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "MultiLineString",
-                "coordinates": [
-                    [
-                        [3.34, 0.96],
-                        [3.34, 2.38],
-                        [5.47, 2.38],
-                        [5.47, 2.28],
-                        [5.82, 2.28],
-                        [5.82, 2.38],
+        "Dinning Room" : {
+            "borders" : {
+
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }
+            },
+            "walls" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [3.34, 0.96],
+                            [3.34, 2.38],
+                            [5.47, 2.38],
+                            [5.47, 2.28],
+                            [5.82, 2.28],
+                            [5.82, 2.38],
+                            [7.16, 2.38]
+                        ],
+                        [
+                            [3.43, 0.23],
+                            [3.43, 0.0],
+                            [5.86, 0.0],
+                            [6.25, 0.16]
+                        ],
+                        [
+                            [6.85, 0.22],
+                            [7.16, 0.22],
+                            [7.16, 1.49]
+                        ]
+                    ]
+                } 
+            },
+            "doors" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }                
+            },
+            "items" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }                
+            }
+        },
+
+        "Kitchen" : {
+            "borders" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }
+            },
+            "walls" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [7.16, 1.49],
+                        [7.22, 1.49],
+                        [7.22, 0.22],
+                        [8.24, 0.22],
+                        [8.24, 2.38],
                         [7.16, 2.38]
-                    ],
-                    [
-                        [3.43, 0.23],
-                        [3.43, 0.0],
-                        [5.86, 0.0],
-                        [6.25, 0.16]
-                    ],
-                    [
-                        [6.85, 0.22],
-                        [7.16, 0.22],
-                        [7.16, 1.49]
                     ]
-                ]
+                }
             },
-            "properties": {
-                "name": "Dinner Room"
-            }
-        },
-
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [
-                    [7.16, 1.49],
-                    [7.22, 1.49],
-                    [7.22, 0.22],
-                    [8.24, 0.22],
-                    [8.24, 2.38],
-                    [7.16, 2.38]
-                ]
+            "doors" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }                
             },
-            "properties": {
-                "name": "Kitchen"
+            "items" : {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": []
+                }                
             }
         }
-    ]
+    }
 }
 
-var mapLayer = L.geoJson().addTo(map);
-mapLayer.addData(geodata);
+var map_style = {
+    'borders' : {
+        "color": "#ff0000",
+        "weight": 5,
+        "opacity": 0.5
+    },
+    'walls' : {
+        "color": "#00ff00",
+        "weight": 2,
+        "opacity": 1.0
+    },
+    'doors' : {
+        "color": "#0000ff",
+        "weight": 5,
+        "opacity": 0.65
+    },
+    'items' : {
+        "color": "#ff7800",
+        "weight": 5,
+        "opacity": 0.65
+    }
+}
+
+
+// Here goes the function
+// var mapLayer = L.geoJson().addTo(map);
+
+for (var rkey in themap["rooms"]){
+    for (ikey in themap["rooms"][rkey]){
+        L.geoJson(themap["rooms"][rkey][ikey],{style: map_style[ikey]}).addTo(map);;
+    }
+}
+// Here ends the function
+
+
+
 
 car = L.myImageOverlay(imageUrl, coords, width, height).addTo(map);
-
 trajectory = L.Polyline.Plotter([
     [0, 6]
 ], {
