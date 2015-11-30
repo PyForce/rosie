@@ -9,11 +9,11 @@ MOBILE_ROBOT = 'SIMUBOT'
 FILENAME = 'VMD.py'
 
 # PID settings for control of motors
-PID = False
+PID = True
 
 
 
-ENCODER_STEPS = 36
+ENCODER_STEPS = 360
 
 # Distance between the wheels (in meters)
 DISTANCE = 0.2995

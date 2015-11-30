@@ -4,6 +4,7 @@ __all__=['config','reset','speeds_regulation','process_time']
 
 import time
 import math
+from robot import settings
 
 #### constants ####
 constant_kc = 2.0
@@ -66,10 +67,10 @@ def speeds_regulation(set_point1, set_point2, delta_encoder_1, delta_encoder_2, 
     global u1k1, u1k1, u2k1, e1k1, e1k2, e2k1, e2k2
 
     steps_per_sec1 = delta_encoder_1 / elapsed
-    angular_speed1 = steps_per_sec1 * 2 * math.pi / 360
+    angular_speed1 = steps_per_sec1 * 2 * math.pi / settings.ENCODER_STEPS
 
     steps_per_sec2 = delta_encoder_2 / elapsed
-    angular_speed2 = steps_per_sec2 * 2 * math.pi / 360
+    angular_speed2 = steps_per_sec2 * 2 * math.pi / settings.ENCODER_STEPS
 
     e1k = set_point1 - angular_speed1
 

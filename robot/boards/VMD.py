@@ -22,7 +22,6 @@ class VirtualMotorDriver:
         self.current_speed2 = 0
         self.ENCODER_STEPS = settings.ENCODER_STEPS
         self.MAX_SPEED = settings.MAX_SPEED
-
     def set_speeds(self, motor1, motor2):
         self.current_speed1, self.current_speed2 = self.__check_max_speed__(motor1, motor2)
         self.history.append([self.current_speed1, self.current_speed2, time.time()])
