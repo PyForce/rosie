@@ -264,7 +264,6 @@ class Controller:
 
         self.prev_delta_encoder_1 = delta_encoder_1
         self.prev_delta_encoder_2 = delta_encoder_2
-
         dfr = delta_encoder_2 * 2 * math.pi / settings.ENCODER_STEPS
         dfl = delta_encoder_1 * 2 * math.pi / settings.ENCODER_STEPS
 

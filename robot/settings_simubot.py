@@ -9,7 +9,7 @@ MOBILE_ROBOT = 'SIMUBOT'
 FILENAME = 'VMD.py'
 
 # PID settings for control of motors
-PID = False
+PID = True
 
 
 
