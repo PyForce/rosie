@@ -13,17 +13,9 @@ __version__ = '1.12'
 
 #### IMPORT ####
 
-#---- Python import ----
-import sys
-
 #---- rOSi import ----
 from robot import planner
-# import on Windows
-if sys.platform.startswith('win'):
-    from robot import wincontroller as Controller
-#import on UNIX & OS X
-else:
-    from robot import controller as Controller
+from robot import controller as Controller
 
 #### GLOBAL VARIABLES ####
 
