@@ -75,7 +75,11 @@ class Controller:
             self._start_move=self._win_timer_start
         # On UNIX & OS X
         else:
-            self._timer_init()
+            try:
+                signal.signal(signal.SIGALRM, self._unix_handler)
+                signal.setitimer(signal.ITIMER_REAL, 0, 0)
+            except:
+                print("    ERROR: Signal initializing")
             self._start_move=self._unix_timer_start
 
     def set_speed(self,set1=0, set2=0):
@@ -194,16 +198,6 @@ class Controller:
         self.count += 1
         if self.count >= self.reference.n_points:
             self.finished = True
-    
-    def _timer_init(self):
-        """
-        Settings the timer.
-        """
-        try:
-            signal.signal(signal.SIGALRM, self._unix_handler)
-            signal.setitimer(signal.ITIMER_REAL, 0, 0)
-        except:
-            print("    ERROR: Signal initializing")
     
     def _unix_timer_start(self):
         """
