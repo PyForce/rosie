@@ -123,6 +123,19 @@
 .leaflet-marker-icon{
 	display: none !important;
 }
+
+.leaflet-interactive{
+	z-index: 0 !important;
+}
+
+.leaflet-interactive[stroke="#0f0f0f"]{
+	z-index: 250 !important;
+}
+
+.leaflet-image-layer{
+	z-index: 200 !important;
+}
+
 /*.leaflet-control {
 	margin: 12px !important;
 }
