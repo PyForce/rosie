@@ -255,7 +255,7 @@
             "walls" : {
                 "type": "Feature",
                 "geometry": {
-                    "type": "LineString",
+                    "type": "MultiLineString",
                     "coordinates": [
                         [
                             [7.16, 1.49],
