@@ -26,6 +26,7 @@ except Exception as e:
     print(e)
     print('modules... Fail')
 
+print('Starting rOSi...') #TODO: remove at least a `print`
 print('Importing module: WebHUD')
 from modules.WebHUD.manage import run_server
 
