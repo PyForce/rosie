@@ -1,7 +1,7 @@
 var map = L.map('map', {
     crs: L.CRS.Simple,
     zoomAnimation: false
-}).setView([0, 0], 9);
+}).setView([1, 2], 7.5);
 
 var imageUrl = "static/images/LTL.svg";
 
