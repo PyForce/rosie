@@ -71,7 +71,6 @@ class Controller:
 
         self.updates = 0
         self.update_period = 1
-        self._timer_init()
         self._start_move = None
 
         # On Windows
