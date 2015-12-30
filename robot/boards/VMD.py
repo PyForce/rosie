@@ -11,7 +11,7 @@ from robot import settings
 
 
 
-class VirtualMotorDriver:    
+class VirtualMotorDriver:
     def __init__(self):
         # Private variables (You should not access it directly, use methods instead)
         self.encoder1 = 0
@@ -29,7 +29,7 @@ class VirtualMotorDriver:
 
     def read_state(self):
         self.history.append([self.current_speed1, self.current_speed2, time.time()])
-        self.__update_encoders_status__() 
+        self.__update_encoders_status__()
         # print(self.encoder1, self.encoder2)
         return self.encoder1, self.encoder2, self.battery_voltage
 
@@ -68,11 +68,11 @@ class VirtualMotorDriver:
         speed1 = motor1
         speed2 = motor2
         if motor1 >= self.MAX_SPEED:
-            speed1 = self.MAX_SPEED 
+            speed1 = self.MAX_SPEED
         if motor2 >= self.MAX_SPEED:
             speed2 = self.MAX_SPEED
         if motor1 <= -self.MAX_SPEED:
-            speed1 = -self.MAX_SPEED 
+            speed1 = -self.MAX_SPEED
         if motor2 <= -self.MAX_SPEED:
             speed2 = -self.MAX_SPEED
         return speed1, speed2
