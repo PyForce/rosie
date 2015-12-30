@@ -39,6 +39,11 @@ class Controller:
     def __init__(self):
         try:
             self.robot=board.Board()
+            try:
+                self.robot.set_constants(settings.CONST_KC,
+                                         settings.CONST_KI,
+                                         settings.CONST_KD)
+            except: pass
         except:
             print("    ERROR: The control board wasn't loaded")
             self.robot=None
