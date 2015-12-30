@@ -1,31 +1,31 @@
 from robot.planner.maps.graph import AdjacencyMatrixGraph as Graph
 from robot.planner.maps.graph import Node
 
-pORG=Node((0.0,0.0))
-p0=Node((1.4,0.0))
-p1=Node((0.9,0.9))
-p2=Node((0.3,2.0))
-p3=Node((0.3,2.8))
-p4=Node((0.3,3.4))
-p5=Node((1.3,3.4))
-p6=Node((0.4,3.6))
-p7=Node((0.2,3.9))
-p8=Node((0.2,4.3))
-p9=Node((0.2,4.8))
-p10=Node((0.4,5.4))
-p11=Node((1.4,5.4))
-p12=Node((1.6,4.8))
-p13=Node((1.6,3.9))
-p14=Node((1.4,3.6))
-p15=Node((0.8,5.3))#
-p16=Node((0.8,5.9))#
-p17=Node((0.4,6.4))#
-p18=Node((0.8,6.5))#
-p19=Node((1.7,6.7))#
-p20=Node((1.6,7.4))#
-p21=Node((1.6,7.6))
-p22=Node((1.1,7.8))
-p23=Node((0.6,7.6))
+pORG=Node((0.3,0.3))
+p0=Node((1.7,0.3))
+p1=Node((1.2,1.2))
+p2=Node((0.6,2.3))
+p3=Node((0.6,3.1))
+p4=Node((0.6,3.7))
+p5=Node((1.6,3.7))
+p6=Node((0.7,3.9))
+p7=Node((0.5,4.2))
+p8=Node((0.5,4.6))
+p9=Node((0.5,5.1))
+p10=Node((0.7,5.7))
+p11=Node((1.7,5.7))
+p12=Node((1.9,5.1))
+p13=Node((1.9,4.2))
+p14=Node((1.7,3.9))
+p15=Node((1.1,5.6))
+p16=Node((1.1,6.2))
+p17=Node((0.7,6.7))
+p18=Node((1.1,6.8))
+p19=Node((2.0,7.0))
+p20=Node((1.9,7.7))
+p21=Node((1.9,7.9))
+p22=Node((1.4,8.1))
+p23=Node((0.9,7.9))
 
 Lk=[]
 Lk.append((('door'),

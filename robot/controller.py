@@ -9,7 +9,15 @@ __version__ = '1.12'
 #### IMPORT ####
 
 #---- Python import ----
-import os, math, time, signal
+import os, sys, math, time
+# On Windows
+if sys.platform.startswith('win'):
+    print('    PLATFORM: Windows')
+    import threading
+# On UNIX & OS X
+else:
+    print('    PLATFORM: UNIX or OS X')
+    import signal
 
 #---- rOSi import ----
 from robot.control import pid, track
@@ -32,14 +40,15 @@ class Controller:
     def __init__(self):
         try:
             self.robot = board.Board()
+            try:
+                self.robot.set_constants(settings.CONST_KC,
+                                         settings.CONST_KI,
+                                         settings.CONST_KD)
+            except: pass
         except:
             print("    ERROR: The control board wasn't loaded")
             self.robot = None
 
-        #---- constants for the tracking process ----
-        self.constant_b = 0.1  #0.05
-        self.constant_k1 = 1.0 #3.0
-        self.constant_k2 = 1.0 #3.0
         #---- position ----
         self.x_position = 0
         self.y_position = 0
@@ -59,11 +68,26 @@ class Controller:
         self.action = 'stop'
         self.SEND_POSITION = lambda x, y, theta: None
         self.reference = track.Track()
+
         self.updates = 0
         self.update_period = 1
         self._timer_init()
+        self._start_move = None
 
-    def set_speed(self,set1=0, set2=0):
+        # On Windows
+        if sys.platform.startswith('win'):
+            self.next_call = 0
+            self._start_move = self._win_timer_start
+        # On UNIX & OS X
+        else:
+            try:
+                signal.signal(signal.SIGALRM, self._unix_handler)
+                signal.setitimer(signal.ITIMER_REAL, 0, 0)
+            except:
+                print("    ERROR: Signal initializing")
+            self._start_move = self._unix_timer_start
+
+    def set_speed(self, set1=0, set2=0):
         """
         Set speed of the wheels.
 
@@ -116,7 +140,7 @@ class Controller:
         trace['sample_time'] = self.sample_time
         self.reference.generate(**trace)
         self.finished = False
-        self._timer_start()
+        self._start_move()
 
     def end_move(self):
         """
@@ -125,21 +149,41 @@ class Controller:
         >>> controller=Controller()
         >>> controller.end_move()
         """
-        try:
-            signal.setitimer(signal.ITIMER_REAL, 0, 0)
-        except:
-            print ("    ERROR: Signal finishing")
+        # On UNIX or OS X
+        if not sys.platform.startswith('win'):
+            try:
+                signal.setitimer(signal.ITIMER_REAL, 0, 0)
+            except:
+                print ("    ERROR: Signal finishing")
         self.set_speed()
         self.finished = True
 
-    def _timer_handler(self, signum, frame):
+    def _win_handler(self):
         """
-        Timer handler that generate movement.
+        Timer handler for Windows platform.
+        """
+        self.next_call+=self.sample_time
+        #---- check for end the movement unavoidably ----
+        if self.finished:
+            self.action_exec()
+            return
+        threading.Timer(self.next_call - time.time(), self._win_handler).start()
+        self._timer_handler()
+
+    def _unix_handler(self, signum, frame):
+        """
+        Timer handler for UNIX or OS X platform.
         """
         #---- check for end the movement unavoidably ----
         if self.finished:
             self.action_exec()
             return
+        self._timer_handler()
+
+    def _timer_handler(self):
+        """
+        Timer handler that generate movement.
+        """
         #---- calculate the speed for each wheel ----
         encoder1, encoder2, _ = self.get_state()
         delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
@@ -160,26 +204,23 @@ class Controller:
         if self.count >= self.reference.n_points:
             self.finished = True
 
-    def _timer_init(self):
+    def _unix_timer_start(self):
         """
-        Settings the timer.
-        """
-        try:
-            signal.signal(signal.SIGALRM, self._timer_handler)
-            signal.setitimer(signal.ITIMER_REAL, 0, 0)
-        except:
-            print("    ERROR: Signal initializing")
-
-    def _timer_start(self):
-        """
-        Start the timer.
+        Start the timer in UNIX or OS X platform.
         """
         if not settings.PID:
-            pid.config(time.time(),self.sample_time)
+            pid.config(time.time(), self.sample_time)
         try:
             signal.setitimer(signal.ITIMER_REAL, self.sample_time, self.sample_time)
         except:
             print("    ERROR: Signal starting")
+
+    def _win_timer_start(self):
+        """
+        Start the timer in Windows platform.
+        """
+        self.next_call = time.time()
+        self._win_handler()
 
     def _tracking(self):
         """
@@ -192,8 +233,8 @@ class Controller:
         zd = self.reference.zd_vector[self.count]
         zd_dot = self.reference.zd_dot_vector[self.count]
 
-        y1 = self.x_position + self.constant_b * math.cos(self.z_position)
-        y2 = self.y_position + self.constant_b * math.sin(self.z_position)
+        y1 = self.x_position + settings.CONST_B * math.cos(self.z_position)
+        y2 = self.y_position + settings.CONST_B * math.sin(self.z_position)
 
         if self.smooth:
             y1d = xd
@@ -201,18 +242,18 @@ class Controller:
             y2d_dot = yd_dot
             y1d_dot = xd_dot
         else:
-            y1d = xd + self.constant_b * math.cos(zd)
-            y2d = yd + self.constant_b * math.sin(zd)
+            y1d = xd + settings.CONST_B * math.cos(zd)
+            y2d = yd + settings.CONST_B * math.sin(zd)
 
-            y2d_dot = yd_dot + self.constant_b * math.cos(zd) * zd_dot
-            y1d_dot = xd_dot - self.constant_b * math.sin(zd) * zd_dot
+            y2d_dot = yd_dot + settings.CONST_B * math.cos(zd) * zd_dot
+            y1d_dot = xd_dot - settings.CONST_B * math.sin(zd) * zd_dot
 
-        u2 = y2d_dot + self.constant_k2 * (y2d - y2)
-        u1 = y1d_dot + self.constant_k1 * (y1d - y1)
+        u2 = y2d_dot + settings.CONST_K2 * (y2d - y2)
+        u1 = y1d_dot + settings.CONST_K1 * (y1d - y1)
 
         the_v = math.cos(self.z_position) * u1 + u2 * math.sin(self.z_position)
-        the_omega = u1 * (- math.sin(self.z_position) / self.constant_b) + u2 * math.cos(
-            self.z_position) / self.constant_b
+        the_omega = u1 * (- math.sin(self.z_position) / settings.CONST_B) + u2 * math.cos(
+            self.z_position) / settings.CONST_B
 
         set_point2 = the_v / settings.RADIUS + the_omega * settings.DISTANCE / 2 / settings.RADIUS
         set_point1 = the_v / settings.RADIUS - the_omega * settings.DISTANCE / 2 / settings.RADIUS
@@ -263,7 +304,6 @@ class Controller:
 
         self.prev_delta_encoder_1 = delta_encoder_1
         self.prev_delta_encoder_2 = delta_encoder_2
-
         dfr = delta_encoder_2 * 2 * math.pi / settings.ENCODER_STEPS
         dfl = delta_encoder_1 * 2 * math.pi / settings.ENCODER_STEPS
 
@@ -297,7 +337,7 @@ class Controller:
         except OSError:
             print("    ERROR: Actions")
 
-    def async_speed(self,x,y):
+    def async_speed(self, x, y):
         """
         calculate the wheel speeds for a asynchronous event.
 
@@ -319,3 +359,4 @@ class Controller:
         elif x < 0:
             left *= 1 - ratio
         return right, left
+
