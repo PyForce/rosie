@@ -10,7 +10,6 @@ $(document).ready(function() {
     });
 
 	sio.on('position', function(pos) {
-		console.log('position', pos);
         car.setLatLng([pos.x, pos.y]);
         car.setAngle(pos.theta);
 	});
