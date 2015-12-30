@@ -58,8 +58,9 @@ class Controller:
         self.sample_time = 0.05
         self.action = 'stop'
         self.SEND_POSITION = lambda x, y, theta: None
-        self.COUNTER_POS = 0
         self.reference = track.Track()
+        self.updates = 0
+        self.update_period = 1
         self._timer_init()
 
     def set_speed(self,set1=0, set2=0):
@@ -274,13 +275,11 @@ class Controller:
         self.z_position += dz
 
         # send position
-        self.COUNTER_POS += 1
-        if self.COUNTER_POS == 3:
-            try:
-                self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
-            except: pass
-            self.COUNTER_POS = 0;
+        if self.updates == self.update_period:
+            self.updates = 0
+            self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
 
+        self.updates += 1
         return delta_encoder_1, delta_encoder_2
 
     def action_exec(self):
@@ -320,4 +319,3 @@ class Controller:
         elif x < 0:
             left *= 1 - ratio
         return right, left
-
