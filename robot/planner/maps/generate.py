@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 H = 3
 Point = namedtuple('Point', ['x', 'y', 'room'])
+Vector = namedtuple('Vector', ['x', 'y'])
 Rect = namedtuple('Rect', ['v', 'p0'])
 
 def vector(A, B):
