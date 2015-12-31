@@ -12,16 +12,16 @@ Vector = namedtuple('Vector', ['x', 'y'])
 Rect = namedtuple('Rect', ['v', 'p0'])
 
 def vector(A, B):
-    return B[0] - A[0], B[1] - A[1]
+    return Vector(B.x - A.x, B.y - A.y)
 
 
 def length(v):
-    return (v[0] ** 2 + v[1] ** 2) ** 0.5
+    return (v.x ** 2 + v.y ** 2) ** 0.5
 
 
 def norm(v):
     l = length(v)
-    return v[0] / l, v[1] / l
+    return Vector(v.x / l, v.y / l)
 
 
 def calculate_suport_points(points):
@@ -32,19 +32,21 @@ def calculate_suport_points(points):
             xa, ya, r = ps[i]
             xb, yb, r = ps[(i + 1) % n]
             xc, yc, r = ps[(i + 2) % n]
-            A = xa, ya
-            B = xb, yb
-            C = xc, yc
+
+            # Convert to real points
+            A = Point(xa, ya)
+            B = Point(xb, yb)
+            C = Point(xc, yc)
 
             v = norm(vector(A, B))
             w = norm(vector(B, C))
 
             # Rotate 90 grades
-            _v = v[1], v[0]
-            _w = w[1], w[0]
+            _v = Vector(v.y, v.x)
+            _w = Vector(w.y, w.x)
 
-            _A = xa + _v[0], ya + _v[1]
-            _B = xb + _w[0], yb + _w[1]
+            _A = Point(xa + _v.x, ya + _v.y)
+            _B = Point(xb + _w.x, yb + _w.y)
 
             r1 = Rect(vector(_A, _B), _A)
 
