@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 
 H = 3
-Point = namedtuple('Point', ['x', 'y', 'room'])
+RoomPoint = namedtuple('RoomPoint', ['x', 'y', 'room'])
+Point = namedtuple('Point', ['x', 'y'])
 Vector = namedtuple('Vector', ['x', 'y'])
 Rect = namedtuple('Rect', ['v', 'p0'])
 
@@ -52,7 +53,7 @@ def get_all_points(rooms):
     points = [[]]
     for r in rooms.items():
         for ps in r[1]['borders']['geometry']['coordinates']:
-            points[-1] += [Point(p[0], p[1], r[0]) for p in ps]
+            points[-1] += [RoomPoint(p[0], p[1], r[0]) for p in ps]
         points.append([])
     return points
 
