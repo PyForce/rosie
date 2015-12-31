@@ -5,11 +5,36 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 
 
+H = 3
 Point = namedtuple('Point', ['x', 'y', 'room'])
+
+def vector(A, B):
+    return B[0] - A[0], B[1] - A[1]
+
+
+def length(v):
+    return (v[0] ** 2 + v[1] ** 2) ** 0.5
+
+
+def norm(v):
+    l = length(v)
+    return v[0] / l, v[1] / l
+
 
 def calculate_suport_points(points):
     for ps in points:
-        pass
+        n = len(ps)
+        for i in range(n):
+            # Three points for every step (two segments)
+            xa, ya, r = ps[i]
+            xb, yb, r = ps[(i + 1) % n]
+            xc, yc, r = ps[(i + 2) % n]
+            A = xa, ya
+            B = xb, yb
+            C = xc, yc
+
+            v = norm(vector(A, B))
+            w = norm(vector(B, C))
 
 
 def get_all_points(rooms):
@@ -38,6 +63,7 @@ def generate(jsonfile):
         # Obtain a list which has for every room
         # the points of it's bounds
         allps = get_all_points(rooms_map['rooms'])
+        sallps = calculate_suport_points(allps)
 
         paint(allps)
 
