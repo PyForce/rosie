@@ -38,7 +38,9 @@ def calculate_suport_points(points):
             B = Point(xb, yb)
             C = Point(xc, yc)
 
+            # Director vector of first rect
             v = norm(vector(A, B))
+            # Director vector of second rect
             w = norm(vector(B, C))
 
             # Rotate 90 grades
@@ -48,7 +50,8 @@ def calculate_suport_points(points):
             _A = Point(xa + _v.x, ya + _v.y)
             _B = Point(xb + _w.x, yb + _w.y)
 
-            r1 = Rect(vector(_A, _B), _A)
+            r1 = Rect(v, _A)
+            r2 = Rect(w, _B)
 
 
 def get_all_points(rooms):
