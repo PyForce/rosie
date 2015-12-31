@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 H = 3
 Point = namedtuple('Point', ['x', 'y', 'room'])
+Rect = namedtuple('Rect', ['v', 'p0'])
 
 def vector(A, B):
     return B[0] - A[0], B[1] - A[1]
@@ -35,6 +36,15 @@ def calculate_suport_points(points):
 
             v = norm(vector(A, B))
             w = norm(vector(B, C))
+
+            # Rotate 90 grades
+            _v = v[1], v[0]
+            _w = w[1], w[0]
+
+            _A = xa + _v[0], ya + _v[1]
+            _B = xb + _w[0], yb + _w[1]
+
+            r1 = Rect(vector(_A, _B), _A)
 
 
 def get_all_points(rooms):
@@ -65,7 +75,7 @@ def generate(jsonfile):
         allps = get_all_points(rooms_map['rooms'])
         sallps = calculate_suport_points(allps)
 
-        paint(allps)
+        #paint(allps)
 
 
 generate('map.json')
