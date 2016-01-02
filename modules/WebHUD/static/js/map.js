@@ -3,7 +3,7 @@ var map = L.map('map', {
     zoomAnimation: false
 }).setView([1, 2], 7.5);
 
-var imageUrl = "static/images/LTL.svg";
+var imageUrl = "static/images/LTL2.svg";
 
 var width = 0.43;
 var height = 0.25;
