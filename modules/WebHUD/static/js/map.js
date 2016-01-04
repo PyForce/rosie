@@ -467,6 +467,11 @@ trajectory = L.Polyline.Plotter([
     readOnly: true,
 }).addTo(map);
 
+getOdometry(undefined, function(pos){
+    car.setLatLng([pos.x, pos.y]);
+    car.setAngle(pos.theta);
+});
+
 var readOnly = true;
 
 $("#i-p2p").click(function() {
