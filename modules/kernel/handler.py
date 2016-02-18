@@ -5,8 +5,8 @@ command = ordex.Command()
 
 
 def get_odometry():
-    return kernel.ROBOT.position()
-
+    p=kernel.ROBOT.position()
+    return (-p[0],p[1],p[2])
 
 def get_metadata():
     return ''
