@@ -28,8 +28,9 @@ PATH_METHOD="Lineal Smooth"
 class Master:
     def __init__(self):
         self.controller = Controller.Controller()
-        self.position(0.3,0.3,0)
-    
+        self.position(-0.3,0.3,0)
+
+
     #==== PRIVATE FUNCTIONS ====
 
     def _track_switcher(self, track):
@@ -75,15 +76,15 @@ class Master:
         (2, 3, 0.5)
         """
         #---- get position ----
-        if x==None and y==None and theta==None:
-            return (-self.controller.y_position,
+        if x == None and y == None and theta == None:
+            return (self.controller.y_position,
                     self.controller.x_position,
                     self.controller.z_position)
         #---- set position ----
-        self.controller.y_position=-x
-        self.controller.x_position=y
-        self.controller.z_position=theta
-    
+        self.controller.y_position = x
+        self.controller.x_position = y
+        self.controller.z_position = theta
+
     def is_ended(self):
         """
         Get task status of the robot.
