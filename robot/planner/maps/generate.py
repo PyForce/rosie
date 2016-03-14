@@ -44,8 +44,8 @@ def point_in_poly(point, polygon):
         # Considering the y's order. Put inf down and sup up.
         if polygon[inf][1] > polygon[sup][1]:
             inf, sup = sup, inf
-        x_inf, y_inf = polygon[inf]
-        x_sup, y_sup = polygon[sup]
+        x_inf, y_inf, r = polygon[inf]
+        x_sup, y_sup, r = polygon[sup]
         # The y in inf must be less or equal than the y of the point and.
         # the y in sup must be greate than the y of the point.
         # Considering the y order, the point must be in the midle of
@@ -84,15 +84,52 @@ def intersection(r1, r2):
     return Point(x01 + x[0,0] * a1, y01 + x[0,0] * b1)
 
 
+def compute_direction(ps):
+    xa, ya, r = ps[0]
+    xb, yb, r = ps[1]
+    xc, yc, r = ps[2]
+
+    # Convert to real points
+    A = Point(xa, ya)
+    B = Point(xb, yb)
+    C = Point(xc, yc)
+
+    # Director vector of first rect
+    v = norm(vector(A, B))
+    # Director vector of second rect
+    w = norm(vector(B, C))
+
+    # Rotate -90 grades
+    _v = Vector(v.y, -v.x)
+    _w = Vector(w.y, -w.x)
+
+    _A = Point(xa + H * _v.x, ya + H * _v.y)
+    _B = Point(xb + H * _w.x, yb + H * _w.y)
+
+    r1 = Rect(v, _A)
+    r2 = Rect(w, _B)
+
+    if point_in_poly(intersection(r1, r2), ps):
+        return 1
+    return -1
+
+
 def calculate_suport_points(points):
-    sps = [[]]
+    sps = []
     for ps in points:
+        try:
+            direction = compute_direction(ps)
+        except:
+            continue
+
+        sps.append([])
         n = len(ps)
+
         for i in range(n):
             # Three points for every step (two segments)
-            xa, ya, r = ps[i]
-            xb, yb, r = ps[(i + 1) % n]
-            xc, yc, r = ps[(i + 2) % n]
+            xa, ya, r = ps[direction * i]
+            xb, yb, r = ps[(direction * (i + 1)) % (direction * n)]
+            xc, yc, r = ps[(direction * (i + 2)) % (direction * n)]
 
             # Convert to real points
             A = Point(xa, ya)
@@ -115,7 +152,6 @@ def calculate_suport_points(points):
             r2 = Rect(w, _B)
 
             sps[-1].append(intersection(r1, r2))
-        sps.append([])
     return sps
 
 
