@@ -5,8 +5,8 @@ command = ordex.Command()
 
 
 def get_odometry():
-    return kernel.ROBOT.position()
-
+    p=kernel.ROBOT.position()
+    return (-p[0],p[1],p[2])
 
 def get_metadata():
     return ''
@@ -18,7 +18,6 @@ def get_sensor(name=''):
 
 def set_position(X=0, Y=0, theta=0):
     kernel.ROBOT.position(X, Y, theta)
-
 
 def process_text(text=""):
     print(' Processing text: %s' % repr(text))
@@ -42,8 +41,11 @@ def set_path(path=[]):
     cmd = {'start': None, 'end': None, 'path': path, 'action': 'stop'}
     kernel.sync_exec(cmd)
 
+def set_position_notifier(notifier):
+    kernel.ROBOT.controller.SEND_POSITION = notifier
 
 def send_updated_position(pos):
     # send position
     # print(pos)
     pass
+
