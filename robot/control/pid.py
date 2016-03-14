@@ -6,11 +6,6 @@ import time
 import math
 from robot import settings
 
-#### constants ####
-constant_kc = 2.0
-constant_ki = 1.0
-constant_kd = 1.0
-
 #### variables ####
 u1k1=0			
 u1k1 = 0
@@ -63,7 +58,6 @@ def process_time():
 	
 def speeds_regulation(set_point1, set_point2, delta_encoder_1, delta_encoder_2, elapsed, current1, current2, battery):
     
-    global constant_kc, constant_ki, constant_kd
     global u1k1, u1k1, u2k1, e1k1, e1k2, e2k1, e2k2
 
     steps_per_sec1 = delta_encoder_1 / elapsed
@@ -74,13 +68,13 @@ def speeds_regulation(set_point1, set_point2, delta_encoder_1, delta_encoder_2, 
 
     e1k = set_point1 - angular_speed1
 
-    if constant_ki == 0:
-        uuu1 = e1k * constant_kc
+    if settings.CONST_KI == 0:
+        uuu1 = e1k * settings.CONST_KC
     else:
-        uuu1 = e1k * constant_kc + (constant_ki - constant_kc) * e1k1 + u1k1
+        uuu1 = e1k * settings.CONST_KC + (settings.CONST_KI - settings.CONST_KC) * e1k1 + u1k1
 
-    if constant_kd != 0:
-        uuu1 = constant_kc * (e1k - e1k1) + constant_ki * e1k + u1k1 + constant_kd * (e1k - 2 * e1k1 + e1k2)
+    if settings.CONST_KD != 0:
+        uuu1 = settings.CONST_KC * (e1k - e1k1) + settings.CONST_KI * e1k + u1k1 + settings.CONST_KD * (e1k - 2 * e1k1 + e1k2)
 
     if uuu1 > 127.0:
         uuu1 = 127.0
@@ -95,13 +89,13 @@ def speeds_regulation(set_point1, set_point2, delta_encoder_1, delta_encoder_2, 
 
     e2k = (set_point2 - angular_speed2)
 
-    if constant_ki == 0:
-        uuu2 = e2k * constant_kc
+    if settings.CONST_KI == 0:
+        uuu2 = e2k * settings.CONST_KC
     else:
-        uuu2 = e2k * constant_kc + (constant_ki - constant_kc) * e2k1 + u2k1
+        uuu2 = e2k * settings.CONST_KC + (settings.CONST_KI - settings.CONST_KC) * e2k1 + u2k1
 
-    if constant_kd != 0:
-        uuu2 = constant_kc * (e2k - e2k1) + constant_ki * e2k + u2k1 + constant_kd * (e2k - 2 * e2k1 + e2k2)
+    if settings.CONST_KD != 0:
+        uuu2 = settings.CONST_KC * (e2k - e2k1) + settings.CONST_KI * e2k + u2k1 + settings.CONST_KD * (e2k - 2 * e2k1 + e2k2)
 
     if uuu2 > 127.0:
         uuu2 = 127.0
