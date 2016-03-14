@@ -27,6 +27,15 @@ FILENAME = 'MD25.py'
 # PID settings (Set it True if your hardware support speed control)
 PID = False
 
+# PID constants
+CONST_KC = 2.0
+CONST_KI = 1.0
+CONST_KD = 1.0
+
+# Tracking Process constants
+CONST_B = 0.1
+CONST_K1 = 1.0
+CONST_K2 = 1.0
 
 """
 Motors

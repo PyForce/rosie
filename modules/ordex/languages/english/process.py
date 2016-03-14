@@ -33,14 +33,14 @@ PRAGMATIC_SUBJECT=''
 def process(sentences):
     """
     Order extraction system processing.
-    
+
     Syntactic analysis, semantic analysis and pragmatic analysis
-    
+
     :param text: list of syntactic trees
     :type text: list(nltk.Tree(list(tuple(str, str))))
     :return: list of commands
     :type: list(list(tuple(str, dict(str))))
-    
+
     >>> process([nltk.Tree('S', [nltk.Tree('IMP_A', [('stop', 'VB')])])])
     """
     for sent in sentences:
@@ -92,7 +92,7 @@ def _sentence_process(sentence):
     elif sentence.label()=='INT_FC':
         future_continuous(sentence)
     elif sentence.label()=='INT_FP':
-        future_perfect(sentence)    
+        future_perfect(sentence)
     #==== interrogative ====
     elif sentence.label()=='INT_WTH':
         interrogative_there(sentence)
@@ -105,34 +105,34 @@ def _sentence_process(sentence):
         modal_auxiliary_verb(sentence)
     elif sentence.label()=='COND-1':
         conditional_minus1(sentence)
-        
+
 def _chunk_imperative_complement(sent, draw=False):
     grammar = r"""
     CTO: {<TO><DT|PRP\$>?<JJ.*>*<NN.*>+}
     CNR: {<DT>?<CD>+<NN.*>}
-    
+
     #phrasal verb (multi-word verb)
-    MWV: {<VB.*><EX|JJ.*|LS|NN.*|P.*|R.*|VB.*>}    
+    MWV: {<VB.*><EX|JJ.*|LS|NN.*|P.*|R.*|VB.*>}
     """
     cp = nltk.RegexpParser(grammar)
     result = cp.parse(sent)
     if draw:
         result.draw()
     return result
-    
+
 def _chunk_extractor(sent, draw=False):
     grammar = r"""
     # prepositions of place
     INF: {<IN><NN><OF>}
     INT: {<IN><TO>}
-    
+
     #complement
     COMP: {<VB.*><CD|DT|EX|JJ.*|LS|NN.*|P.*|R.*|TO|VB.*>+}
-    
+
     ###############################
     #         TIME PHRASES        #
     ###############################
-    
+
     # time (minutes past hour)
     #DESIGN modificar para -after-
     TP_PS: {<DT>?<CD><NNS>?<JJ><CD><NN>?}
@@ -140,14 +140,14 @@ def _chunk_extractor(sent, draw=False):
     TP_TO: {<DT>?<CD><NNS>?<TO|OF><CD><NN>?}
     # time (hour minutes)
     TP_HM: {<CD><CD><NN>?}
-    
+
     # time clock (hour.minutes)
     TPCLK: {<CDT.*><NN|JJ>?}
-    
+
     ###############################
     #         DATE PHRASES        #
     ###############################
-    
+
     # day and part of day
     DP_DP: {<NNP><NN>}
     DP_POD: {<DT><NN><OF><DT><OD>}

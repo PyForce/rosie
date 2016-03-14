@@ -1,9 +1,9 @@
 var map = L.map('map', {
     crs: L.CRS.Simple,
     zoomAnimation: false
-}).setView([0, 0], 9);
+}).setView([1, 2], 7.5);
 
-var imageUrl = "static/images/LTL.svg";
+var imageUrl = "static/images/LTL2.svg";
 
 var width = 0.43;
 var height = 0.25;
@@ -466,6 +466,11 @@ trajectory = L.Polyline.Plotter([
     weight: 5,
     readOnly: true,
 }).addTo(map);
+
+getOdometry(undefined, function(pos){
+    car.setLatLng([pos.x, pos.y]);
+    car.setAngle(pos.theta);
+});
 
 var readOnly = true;
 
