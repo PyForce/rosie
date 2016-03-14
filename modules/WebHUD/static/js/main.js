@@ -30,6 +30,7 @@ $(document).ready(function() {
     $("#form-text").submit(function(event) {
         setText(undefined, $("#text-order").val());
         event.preventDefault();
+        toggleTransition($('#mode-text'), true);
     });
 
     // // KEY
