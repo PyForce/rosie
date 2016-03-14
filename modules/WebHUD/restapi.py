@@ -2,16 +2,11 @@ from flask import request, jsonify, json
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
 from modules.kernel import handler as robot_handler
-# from modules.kernel.kernel import link_robot as set_position_notifier
 
 from threading import Thread
 from time import sleep
 
-#@sio.on('echo')
-#def echo(message):
-#    print(message)
-#    emit('echo reply', message)
-
+client_count = 0
 
 @app.route('/odometry', methods=['GET'])
 @allow_origin
@@ -139,41 +134,42 @@ def maps():
     map = request.values['map']
 
 
-count = 0
+def send_position(x, y, theta):
+    #print('emiting pos')
+    sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
-#@sio.on("send_position_to_client")
-#def send_position_to_client():
-#
-#    emit('position', [1,2,3])
-#    print('got into send_position_to_client')
-#
-#    if count < 20:
-#        emit('send_position_to_client')
-#        count += 1
+def do_nothing(*args, **kwargs):
+    pass
 
+# TODO: FIX THIS
+# `connect` and `disconnect` event handlers are NOT WORKING
 
-#def background_pos():
-#    while True:
-#        print('test!')
-#        sleep(100./1000)
-#
-#        
-#
-#        sio.emit('position', )
+sio.on('connect')
+def connect():
+    global client_count
+    if client_count == 0:
+        robot_handler.set_position_notifier(send_position)
+
+    client_count += 1
+    print('websocket connected')
 
 
-#@sio.on("get_positions")
-#def io_send_position():
-#    
-#    print('"get_positions" received')
-#
-#    t = Thread(target=background_pos)
-#    t.setDaemon(True)
-#    t.start()
-#
-#    #emit('position', [1,2,3])
+sio.on('disconnect')
+def disconnect():
+    global client_count
+    client_count -= 1
 
-#def send_position(x, y, theta):
-#    sio.emit('position', {"x": x, "y": y, 'theta': theta})
+    if client_count == 0:
+        robot_handler.set_position_notifier(do_nothing)
+    print('websocket disconnected')
 
-#set_position_notifier(send_position)
+
+sio.on('echo')
+def echo_reply(data):
+    print('client echo:', data)
+    emit('echo reply', 'hello at server side')
+
+
+# TODO: REMOVE THIS
+# only when `connect` and `disconnect` are working
+robot_handler.set_position_notifier(send_position)

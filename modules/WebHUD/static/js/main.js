@@ -50,6 +50,7 @@ $(document).ready(function() {
     //     $('#video-streaming').toggle();
     // });
 
+/*
     setInterval(function(){
 		getOdometry(undefined, function(pos){
 			car.setLatLng([pos.x, pos.y]);
@@ -57,4 +58,5 @@ $(document).ready(function() {
 			car.setAngle(pos.theta);
 		});
 	}, 100);
+*/
 });
