@@ -28,6 +28,38 @@ def point(r, p):
     pnt = Point(r.p0.x + r.v.x * p, r.p0.y + r.v.y * p)
     return Point(r.p0.x + r.v.x * p, r.p0.y + r.v.y * p)
 
+
+def point_in_poly(point, polygon):
+    """
+    point = (x, y)
+    polygon = [(x1, y1), ..., (xn, yn)]
+    Asume the next segment is (xn, yn), (x0, y0)
+    """
+    x, y = point
+    n = len(polygon)
+    c = 0
+    for i in range(n):
+        inf = i
+        sup = (i + 1) % n
+        # Considering the y's order. Put inf down and sup up.
+        if polygon[inf][1] > polygon[sup][1]:
+            inf, sup = sup, inf
+        x_inf, y_inf = polygon[inf]
+        x_sup, y_sup = polygon[sup]
+        # The y in inf must be less or equal than the y of the point and.
+        # the y in sup must be greate than the y of the point.
+        # Considering the y order, the point must be in the midle of
+        # inf and sup.
+        if y_inf <= y < y_sup:
+            # A is the vector Inf - P
+            A_x, A_y = x - x_inf, y - y_inf
+            # B is the vector Inf - Sup
+            B_x, B_y = x_sup - x_inf, y_sup - y_inf
+            # The movement must antihorary
+            if A_x * B_y > A_y * B_x:
+                c += 1
+    return c % 2 == 1
+
 def intersection(r1, r2):
     """
     (x01, y01) = r1.p0
@@ -127,6 +159,5 @@ def generate(jsonfile):
         plt.xlim([-1, 9.2])
         plt.ylim([-1, 3.2])
         plt.show()
-
 
 generate('map.json')
