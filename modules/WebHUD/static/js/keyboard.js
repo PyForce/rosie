@@ -10,16 +10,18 @@ $(document).ready(function(){
 
     if ([87, 65, 83, 68].some(function(element, index, array) { return element === e.which })) {
       pressed.add(e.which);
+      sio.emit('manual', {'keys': [...pressed]})
     }
     
   }, true);
 
   document.body.addEventListener('keyup', function(e) {
     pressed.delete(e.which);
+    sio.emit('manual', {'keys': [...pressed]})
   }, true);
-
+/*
   setInterval(function(){
     var l = [...pressed];
     sio.emit('manual', {'keys': l});
-  }, 100);
+  }, 100);*/
 });
