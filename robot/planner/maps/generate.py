@@ -184,6 +184,7 @@ def generate(jsonfile):
         sallps = calculate_suport_points(allps)
 
         for wps in allps:
+            if wps: wps.append(wps[0])
             x = [p.x for p in wps]
             y = [p.y for p in wps]
             plt.plot(x, y)
@@ -192,6 +193,11 @@ def generate(jsonfile):
             x = [p.x for p in wps]
             y = [p.y for p in wps]
             plt.scatter(x, y)
+            if wps: wps.append(wps[0])
+            plt.plot(x, y)
+
+        plt.gca().axis('off')
+        plt.gca().set_aspect(1)
         plt.xlim([-1, 9.2])
         plt.ylim([-1, 3.2])
         plt.show()
