@@ -173,6 +173,12 @@ def paint(allps):
     plt.ylim([-1, 3.2])
     plt.show()
 
+def get_walls(room):
+    walls = []
+    for coors in room['walls']['geometry']['coordinates']:
+        walls.append(coors)
+    return walls
+
 def generate(jsonfile):
     rooms_map = None
     with open(jsonfile) as f:
@@ -183,17 +189,26 @@ def generate(jsonfile):
         allps = get_all_points(rooms_map['rooms'])
         sallps = calculate_suport_points(allps)
 
-        for wps in allps:
-            if wps: wps.append(wps[0])
-            x = [p.x for p in wps]
-            y = [p.y for p in wps]
+        # for wps in allps:
+        #     # if wps: wps.append(wps[0])
+        #     x = [p.x for p in wps]
+        #     y = [p.y for p in wps]
+        #     plt.plot(x, y)
+
+        walls = []
+        for room in rooms_map['rooms']:
+            walls.extend(get_walls(rooms_map['rooms'][room]))
+
+        for wall in walls:
+            x = [w[0] for w in wall]
+            y = [w[1] for w in wall]
             plt.plot(x, y)
 
         for wps in sallps:
+            if wps: wps.append(wps[0])
             x = [p.x for p in wps]
             y = [p.y for p in wps]
             plt.scatter(x, y)
-            if wps: wps.append(wps[0])
             plt.plot(x, y)
 
         plt.gca().axis('off')
