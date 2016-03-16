@@ -16,5 +16,5 @@ def run_server():
     #app.run(host=myhost, port=myport, debug=debug, use_reloader=use_reloader)
 
 
-# if __name__ == '__main__':
-#     run_server()
+if __name__ == '__main__':
+    run_server()
