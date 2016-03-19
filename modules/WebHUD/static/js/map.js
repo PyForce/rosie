@@ -111,6 +111,109 @@ L.myImageOverlay = function(imageUrl, coords, width, height, options) {
     return new L.MyImageOverlay(imageUrl, coords, width, height, options);
 }
 
+var geodata = {
+    "type": "FeatureCollection",
+    "features": [
+
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [0.0, 1.28],
+                        [0.0, 0.0],
+                        [1.98, 0.0]
+                    ],
+                    [
+                        [0.0, 2.16],
+                        [0.0, 2.38],
+                        [2.63, 2.38],
+                        [2.63, 0.96]
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Living Room"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [2.63, 0.96],
+                        [3.34, 0.96]
+                    ],
+                    [
+                        [2.78, 0.0],
+                        [3.10, 0.0],
+                        [3.10, 0.23],
+                        [3.43, 0.23]
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Hall"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [3.34, 0.96],
+                        [3.34, 2.38],
+                        [5.47, 2.38],
+                        [5.47, 2.28],
+                        [5.82, 2.28],
+                        [5.82, 2.38],
+                        [7.16, 2.38]
+                    ],
+                    [
+                        [3.43, 0.23],
+                        [3.43, 0.0],
+                        [5.86, 0.0],
+                        [6.25, 0.16]
+                    ],
+                    [
+                        [6.85, 0.22],
+                        [7.16, 0.22],
+                        [7.16, 1.49]
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Dinner Room"
+            }
+        },
+
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [7.16, 1.49],
+                    [7.22, 1.49],
+                    [7.22, 0.22],
+                    [8.24, 0.22],
+                    [8.24, 2.38],
+                    [7.16, 2.38]
+                ]
+            },
+            "properties": {
+                "name": "Kitchen"
+            }
+        }
+    ]
+}
+
+var mapLayer = L.geoJson().addTo(map);
+mapLayer.addData(geodata);
 
 car = L.myImageOverlay(imageUrl, coords, width, height).addTo(map);
 
