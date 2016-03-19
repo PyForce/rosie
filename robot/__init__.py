@@ -14,8 +14,8 @@ __version__ = '1.12'
 #### IMPORT ####
 
 #---- rOSi import ----
-from robot import controller as Controller
 from robot import planner
+from robot import controller as Controller
 
 #### GLOBAL VARIABLES ####
 
@@ -28,6 +28,7 @@ PATH_METHOD="Lineal Smooth"
 class Master:
     def __init__(self):
         self.controller = Controller.Controller()
+        self.position(0.3,0.3,0)
     
     #==== PRIVATE FUNCTIONS ====
 

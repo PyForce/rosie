@@ -9,7 +9,15 @@ __version__ = '1.12'
 #### IMPORT ####
 
 #---- Python import ----
-import os, math, time, signal
+import os, sys, math, time
+# On Windows
+if sys.platform.startswith('win'):
+    print('    PLATFORM: Windows')
+    import threading
+# On UNIX & OS X
+else:
+    print('    PLATFORM: UNIX or OS X')
+    import signal
 
 #---- rOSi import ----
 from robot.control import pid, track
@@ -59,8 +67,20 @@ class Controller:
         self.SEND_POSITION = lambda x, y, theta: None
         self.COUNTER_POS = 0
         self.reference = track.Track()
-
-        self._timer_init()
+        self._start_move=None     
+        
+        # On Windows
+        if sys.platform.startswith('win'):
+            self.next_call=0
+            self._start_move=self._win_timer_start
+        # On UNIX & OS X
+        else:
+            try:
+                signal.signal(signal.SIGALRM, self._unix_handler)
+                signal.setitimer(signal.ITIMER_REAL, 0, 0)
+            except:
+                print("    ERROR: Signal initializing")
+            self._start_move=self._unix_timer_start
 
     def set_speed(self,set1=0, set2=0):
         """
@@ -115,7 +135,7 @@ class Controller:
         trace['sample_time']= self.sample_time    
         self.reference.generate(**trace)
         self.finished = False
-        self._timer_start()
+        self._start_move()
 
     def end_move(self):
         """
@@ -124,21 +144,41 @@ class Controller:
         >>> controller=Controller()        
         >>> controller.end_move()
         """
-        try:
-            signal.setitimer(signal.ITIMER_REAL, 0, 0)
-        except:
-            print ("    ERROR: Signal finishing")
+        # On UNIX or OS X
+        if not sys.platform.startswith('win'):
+            try:
+                signal.setitimer(signal.ITIMER_REAL, 0, 0)
+            except:
+                print ("    ERROR: Signal finishing")
         self.set_speed()
         self.finished = True
 
-    def _timer_handler(self, signum, frame):
+    def _win_handler(self):
         """
-        Timer handler that generate movement.
+        Timer handler for Windows platform.
+        """
+        self.next_call+=self.sample_time
+        #---- check for end the movement unavoidably ----
+        if self.finished:
+            self.action_exec()
+            return
+        threading.Timer(self.next_call - time.time(), self._win_handler).start()
+        self._timer_handler()
+    
+    def _unix_handler(self, signum, frame):
+        """
+        Timer handler for UNIX or OS X platform.
         """
         #---- check for end the movement unavoidably ----
         if self.finished:
             self.action_exec()
             return
+        self._timer_handler()
+
+    def _timer_handler(self):
+        """
+        Timer handler that generate movement.
+        """
         #---- calculate the speed for each wheel ----
         encoder1, encoder2, _ = self.get_state()
         delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
@@ -159,19 +199,9 @@ class Controller:
         if self.count >= self.reference.n_points:
             self.finished = True
     
-    def _timer_init(self):
+    def _unix_timer_start(self):
         """
-        Settings the timer.
-        """
-        try:
-            signal.signal(signal.SIGALRM, self._timer_handler)
-            signal.setitimer(signal.ITIMER_REAL, 0, 0)
-        except:
-            print("    ERROR: Signal initializing")
-    
-    def _timer_start(self):
-        """
-        Start the timer.
+        Start the timer in UNIX or OS X platform.
         """
         if not settings.PID:
             pid.config(time.time(),self.sample_time)
@@ -179,6 +209,13 @@ class Controller:
             signal.setitimer(signal.ITIMER_REAL, self.sample_time, self.sample_time)
         except:
             print("    ERROR: Signal starting")
+
+    def _win_timer_start(self):
+        """
+        Start the timer in Windows platform.
+        """
+        self.next_call=time.time()
+        self._win_handler()
 
     def _tracking(self):
         """
@@ -264,7 +301,6 @@ class Controller:
 
         self.prev_delta_encoder_1 = delta_encoder_1
         self.prev_delta_encoder_2 = delta_encoder_2
-
         dfr = delta_encoder_2 * 2 * math.pi / settings.ENCODER_STEPS
         dfl = delta_encoder_1 * 2 * math.pi / settings.ENCODER_STEPS
 
