@@ -39,14 +39,15 @@ class Controller:
     def __init__(self):
         try:
             self.robot=board.Board()
+            try:
+                self.robot.set_constants(settings.CONST_KC,
+                                         settings.CONST_KI,
+                                         settings.CONST_KD)
+            except: pass
         except:
             print("    ERROR: The control board wasn't loaded")
             self.robot=None
-      
-        #---- constants for the tracking process ----
-        self.constant_b = 0.1  #0.05
-        self.constant_k1 = 1.0 #3.0
-        self.constant_k2 = 1.0 #3.0
+            
         #---- position ----
         self.x_position = 0
         self.y_position = 0
@@ -228,8 +229,8 @@ class Controller:
         zd = self.reference.zd_vector[self.count]
         zd_dot = self.reference.zd_dot_vector[self.count]
 
-        y1 = self.x_position + self.constant_b * math.cos(self.z_position)
-        y2 = self.y_position + self.constant_b * math.sin(self.z_position)
+        y1 = self.x_position + settings.CONST_B * math.cos(self.z_position)
+        y2 = self.y_position + settings.CONST_B * math.sin(self.z_position)
 
         if self.smooth:
             y1d = xd
@@ -237,18 +238,18 @@ class Controller:
             y2d_dot = yd_dot
             y1d_dot = xd_dot
         else:
-            y1d = xd + self.constant_b * math.cos(zd)
-            y2d = yd + self.constant_b * math.sin(zd)
+            y1d = xd + settings.CONST_B * math.cos(zd)
+            y2d = yd + settings.CONST_B * math.sin(zd)
 
-            y2d_dot = yd_dot + self.constant_b * math.cos(zd) * zd_dot
-            y1d_dot = xd_dot - self.constant_b * math.sin(zd) * zd_dot
+            y2d_dot = yd_dot + settings.CONST_B * math.cos(zd) * zd_dot
+            y1d_dot = xd_dot - settings.CONST_B * math.sin(zd) * zd_dot
 
-        u2 = y2d_dot + self.constant_k2 * (y2d - y2)
-        u1 = y1d_dot + self.constant_k1 * (y1d - y1)
+        u2 = y2d_dot + settings.CONST_K2 * (y2d - y2)
+        u1 = y1d_dot + settings.CONST_K1 * (y1d - y1)
 
         the_v = math.cos(self.z_position) * u1 + u2 * math.sin(self.z_position)
-        the_omega = u1 * (- math.sin(self.z_position) / self.constant_b) + u2 * math.cos(
-            self.z_position) / self.constant_b
+        the_omega = u1 * (- math.sin(self.z_position) / settings.CONST_B) + u2 * math.cos(
+            self.z_position) / settings.CONST_B
 
         set_point2 = the_v / settings.RADIUS + the_omega * settings.DISTANCE / 2 / settings.RADIUS
         set_point1 = the_v / settings.RADIUS - the_omega * settings.DISTANCE / 2 / settings.RADIUS
