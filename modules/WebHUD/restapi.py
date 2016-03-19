@@ -7,6 +7,9 @@ from threading import Thread
 from time import sleep
 
 
+client_count = 0
+
+
 @app.route('/odometry', methods=['GET'])
 @allow_origin
 def odometry():
@@ -62,6 +65,7 @@ def position():
     y = request.values['y']
     theta = request.values['theta']
     robot_handler.set_position(x, y, theta)
+    return 'OK'
 
 
 @app.route('/path', methods=['PUT'])
@@ -75,6 +79,7 @@ def path():
     path = request.values['path']
     path = json.loads(path)
     robot_handler.set_path(path)
+    return 'OK'
 
 
 @app.route('/text', methods=['PUT'])
@@ -86,9 +91,8 @@ def text():
     }
     """
     text = str(request.values['text'])
-    # print('In text request')
-    # print(' text: %s' % repr(text))
     robot_handler.process_text(text)
+    return 'OK'
 
 
 @sio.on('manual')  # key press
@@ -131,49 +135,40 @@ def maps():
     }
     """
     map = request.values['map']
+    return 'OK'
 
 
-count = 0
-
-#@sio.on("send_position_to_client")
-#def send_position_to_client():
-#
-#    emit('position', [1,2,3])
-#    print('got into send_position_to_client')
-#
-#    if count < 20:
-#        emit('send_position_to_client')
-#        count += 1
+def send_position(x, y, theta):
+    sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
 
-#def background_pos():
-#    while True:
-#        print('test!')
-#        sleep(100./1000)
-#
-#        
-#
-#        sio.emit('position', )
+def do_nothing(*args, **kwargs):
+    pass
 
 
-#@sio.on("get_positions")
-#def io_send_position():
-#    
-#    print('"get_positions" received')
-#
-#    t = Thread(target=background_pos)
-#    t.setDaemon(True)
-#    t.start()
-#
-#    #emit('position', [1,2,3])
+@sio.on('connect')
+def connect():
+    global client_count
+    if client_count == 0:
+        robot_handler.set_position_notifier(send_position)
 
-sio.on('echo')
+    client_count += 1
+
+
+@sio.on('disconnect')
+def disconnect():
+    global client_count
+    client_count -= 1
+
+    if client_count == 0:
+        robot_handler.set_position_notifier(do_nothing)
+
+
+@sio.on('echo')
 def echo_reply(data):
     print('client echo:', data)
     sio.emit('echo reply', 'hello at server side')
 
-def send_position(x, y, theta):
-    print('emiting pos')
-    sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
-robot_handler.set_position_notifier(send_position)
+def send_position(x, y, theta):
+    sio.emit('position', {"x": x, "y": y, 'theta': theta})

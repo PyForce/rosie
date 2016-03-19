@@ -14,9 +14,4 @@ $(document).ready(function() {
         car.setLatLng([pos.x, pos.y]);
         car.setAngle(pos.theta);
 	});
-
-    sio.emit('echo', {
-        'text': 'hello socket.io world!'
-    });
-
 });
