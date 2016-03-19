@@ -30,18 +30,19 @@ class Master:
         self.controller = Controller.Controller()
         self.position(-0.3,0.3,0)
 
+
     #==== PRIVATE FUNCTIONS ====
 
     def _track_switcher(self, track):
         """
         Path controller switcher.
-
+        
         :param track: trace to follow
         :type track: dict
         """
         #---- Cubic ----
         if PATH_METHOD == "Cubic":
-            track['z_planning'] = track['t_planning']
+            track['z_planning'] = track['t_planning']   
             track['constant_t'] = 10
             track['constant_k'] = 5
             track['cubic'] = True
@@ -53,22 +54,22 @@ class Master:
         #---- None ----
         if self.controller.finished:
             self.controller.move(track, False)
-
+    
     #==== PUBLIC FUNCTIONS ====
-
-    def position(self, x=None, y=None, theta=None):
+    
+    def position(self,x=None,y=None,theta=None):
         """
         Get or set the position of the robot
-
+        
         :param x: X value of (X,Y)
         :type x: float
         :param y: Y value of (X,Y)
         :type y: float
         :param theta: orientation
-        :type theta: float
+        :type theta: float      
         :return: current position (when ``x``, ``y`` and ``theta`` are None)
         :type: tuple
-
+        
         >>> master=Master()
         >>> master.position(2,3,0.5)
         >>> master.position()
@@ -87,20 +88,20 @@ class Master:
     def is_ended(self):
         """
         Get task status of the robot.
-
+        
         :return: current task status
         :type: bool
-
+        
         >>> master=Master()
         >>> master.is_ended()
         True
         """
         return self.controller.finished
-
+        
     def end_current_task(self):
         """
         End current task of the robot.
-
+        
         >>> master=Master()
         >>> master.end_current_task()
         """
@@ -112,32 +113,32 @@ class Master:
 
         :param request: synchronous request
         :type request: dict
-
+        
         >>> cmd={'place': [(0,0),(1,1)]}
         >>> master=Master()
         >>> master.sync_request(cmd)
         """
-        if request:
+        if request:        
             #---- set action ----
             try:
-                self.controller.action = request['action']
+                self.controller.action=request['action']
             except KeyError:
-                self.controller.action = 'stop'
+                self.controller.action='stop'
             #---- process path (place) ----
-            path = planner.path_xyt(self.position(), request)
+            path=planner.path_xyt(self.position(),request)
             if path:
                 self._track_switcher(path)
             #---- execute action ----
             else:
                 self.controller.action_exec()
-
+            
     def async_request(self, request):
         """
         Process the request of the asynchronous handler.
 
         :param request: asynchronous request
-        :type request: tuple
-
+        :type request: tuple       
+        
         >>> cmd=(2.0,5.0)
         >>> master=Master()
         >>> master.async_request(cmd)
@@ -148,4 +149,4 @@ class Master:
             encoder1, encoder2, _ = self.controller.get_state()
             self.controller.navigation(encoder1, encoder2)
             self.controller.set_speed(right, left)
-
+    

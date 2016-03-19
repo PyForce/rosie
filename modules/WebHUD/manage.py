@@ -13,6 +13,7 @@ use_reloader = False
 
 def run_server():
     sio.run(app, host=host, port=port, debug=debug, use_reloader=use_reloader)
+    #app.run(host=myhost, port=myport, debug=debug, use_reloader=use_reloader)
 
 
 if __name__ == '__main__':
