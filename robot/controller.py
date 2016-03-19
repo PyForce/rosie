@@ -315,10 +315,7 @@ class Controller:
         #send position
         self.COUNTER_POS+=1
         if self.COUNTER_POS==3:
-            try:
-                print('sending')
-                self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
-            except: pass
+            self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
             self.COUNTER_POS=0;
 		
         return delta_encoder_1, delta_encoder_2
