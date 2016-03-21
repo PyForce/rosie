@@ -21,7 +21,8 @@ else:
 
 #---- rOSi import ----
 from robot.control import pid, track
-from robot import settings
+from robot.load import SETTINGS as settings
+
 #==== import and load the robot control board ====
 board=None
 if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):

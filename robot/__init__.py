@@ -14,6 +14,9 @@ __version__ = '1.12'
 #### IMPORT ####
 
 #---- rOSi import ----
+from robot import load
+load.load_global_settings()
+
 from robot import planner
 from robot import controller as Controller
 

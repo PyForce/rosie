@@ -4,8 +4,18 @@
 
 import math
 import time
-from robot import settings
+import os
 
+import settings as global_settings
+
+settings=None
+
+if os.path.exists(os.path.join(os.getcwd(),'profiles',global_settings.PROFILE)):
+    try:
+        exec("from profiles."+global_settings.PROFILE+" import settings")
+        settings=locals()['settings']
+    except:
+        settings=None
 
 class VirtualMotorDriver:    
     def __init__(self):
