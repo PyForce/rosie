@@ -4,7 +4,7 @@ __all__=['config','reset','speeds_regulation','process_time']
 
 import time
 import math
-from robot import settings
+from robot.load import SETTINGS as settings
 
 #### variables ####
 u1k1=0			
