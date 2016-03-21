@@ -39,6 +39,11 @@ def set_mode(mode=''):
 
 
 def set_path(path=[]):
+    tmp=[]
+    for item in path:
+        tmp.append(tuple(item))
+    path=tmp    
+    
     cmd = {'start': None, 'end': None, 'path': path, 'action': 'stop'}
     kernel.sync_exec(cmd)
 
