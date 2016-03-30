@@ -6,7 +6,9 @@ from modules.kernel import handler as robot_handler
 from threading import Thread
 from time import sleep
 
+
 client_count = 0
+
 
 @app.route('/odometry', methods=['GET'])
 @allow_origin
@@ -21,6 +23,18 @@ def odometry():
     x, y, theta = robot_handler.get_odometry()
     return jsonify(x=x, y=y, theta=theta)
 
+@app.route('/profile', methods=['GET'])
+@allow_origin
+def profile():
+    """
+    {
+        "x": 2.1,
+        "y": 1.3,
+        "theta": 3.21
+    }
+    """
+    prof = robot_handler.get_profile()
+    return jsonify(prof=prof)
 
 @app.route('/metadata', methods=['GET'])
 @allow_origin
@@ -63,6 +77,7 @@ def position():
     y = request.values['y']
     theta = request.values['theta']
     robot_handler.set_position(x, y, theta)
+    return 'OK'
 
 
 @app.route('/path', methods=['PUT'])
@@ -76,6 +91,7 @@ def path():
     path = request.values['path']
     path = json.loads(path)
     robot_handler.set_path(path)
+    return 'OK'
 
 
 @app.route('/text', methods=['PUT'])
@@ -87,9 +103,8 @@ def text():
     }
     """
     text = str(request.values['text'])
-    # print('In text request')
-    # print(' text: %s' % repr(text))
     robot_handler.process_text(text)
+    return 'OK'
 
 
 @sio.on('manual')  # key press
@@ -132,44 +147,40 @@ def maps():
     }
     """
     map = request.values['map']
+    return 'OK'
 
 
 def send_position(x, y, theta):
-    #print('emiting pos')
     sio.emit('position', {"x": x, "y": y, 'theta': theta})
+
 
 def do_nothing(*args, **kwargs):
     pass
 
-# TODO: FIX THIS
-# `connect` and `disconnect` event handlers are NOT WORKING
 
-sio.on('connect')
+@sio.on('connect')
 def connect():
     global client_count
     if client_count == 0:
         robot_handler.set_position_notifier(send_position)
 
     client_count += 1
-    print('websocket connected')
 
 
-sio.on('disconnect')
+@sio.on('disconnect')
 def disconnect():
     global client_count
     client_count -= 1
 
     if client_count == 0:
         robot_handler.set_position_notifier(do_nothing)
-    print('websocket disconnected')
 
 
-sio.on('echo')
+@sio.on('echo')
 def echo_reply(data):
     print('client echo:', data)
-    emit('echo reply', 'hello at server side')
+    sio.emit('echo reply', 'hello at server side')
 
 
-# TODO: REMOVE THIS
-# only when `connect` and `disconnect` are working
-robot_handler.set_position_notifier(send_position)
+def send_position(x, y, theta):
+    sio.emit('position', {"x": x, "y": y, 'theta': theta})
