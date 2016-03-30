@@ -1,16 +1,21 @@
 # from robot.planner.maps.graph import AdjacencyMatrixGraph as Graph
 import json
 from collections import namedtuple
+
 import numpy as np
 
 import matplotlib.pyplot as plt
 
 
 H = 0.2
-RoomPoint = namedtuple('RoomPoint', ['x', 'y', 'room'])
-Point = namedtuple('Point', ['x', 'y'])
+# RoomPoint = namedtuple('RoomPoint', ['x', 'y', 'room'])
+# Point = namedtuple('Point', ['x', 'y'])
+
 Vector = namedtuple('Vector', ['x', 'y'])
 Rect = namedtuple('Rect', ['v', 'p0'])
+
+Point = lambda x, y: np.array([x, y])
+RoomPoint = lambda x, y, room: (np.array([x, y]), room)
 
 def vector(A, B):
     return Vector(B.x - A.x, B.y - A.y)
@@ -44,8 +49,8 @@ def point_in_poly(point, polygon):
         # Considering the y's order. Put inf down and sup up.
         if polygon[inf][1] > polygon[sup][1]:
             inf, sup = sup, inf
-        x_inf, y_inf, r = polygon[inf]
-        x_sup, y_sup, r = polygon[sup]
+        (x_inf, y_inf), r = polygon[inf]
+        (x_sup, y_sup), r = polygon[sup]
         # The y in inf must be less or equal than the y of the point and.
         # the y in sup must be greate than the y of the point.
         # Considering the y order, the point must be in the midle of
@@ -69,115 +74,105 @@ def intersection(r1, r2):
     (a2, b2)   = r2.v
     """
 
-    x01, y01 = r1.p0
-    a1, b1   = r1.v
+    v1, p1 = r1
 
-    x02, y02 = r2.p0
-    a2, b2   = r2.v
+    v2, p2 = r2
 
-    c1, c2 = x02 - x01, y02 - y01
+    c1, c2 = p2 - p1
 
-    A = np.matrix([[a1, a2], [b1, b2]])
+    A = np.matrix([v1, -v2]).T
     b = np.matrix([[c1, c2]]).T
     x = np.linalg.solve(A, b)
 
-    return Point(x01 + x[0,0] * a1, y01 + x[0,0] * b1)
+    return p1 + x[0,0] * v1
 
 
-def compute_direction(ps):
-    xa, ya, r = ps[0]
-    xb, yb, r = ps[1]
-    xc, yc, r = ps[2]
-
-    # Convert to real points
-    A = Point(xa, ya)
-    B = Point(xb, yb)
-    C = Point(xc, yc)
+def compute_direction(poly):
+    A, _ = poly[0]
+    B, _ = poly[1]
+    C, _ = poly[2]
 
     # Director vector of first rect
-    v = norm(vector(A, B))
+    v = B - A
+    v /= np.linalg.norm(v)
+
     # Director vector of second rect
-    w = norm(vector(B, C))
+    w = C - A
+    w /= np.linalg.norm(w)
 
-    # Rotate -90 grades
-    _v = Vector(v.y, -v.x)
-    _w = Vector(w.y, -w.x)
+    # Rotate 90 grades
+    _v = Point(v[1], -v[0])
+    _w = Point(w[1], -w[0])
 
-    _A = Point(xa + H * _v.x, ya + H * _v.y)
-    _B = Point(xb + H * _w.x, yb + H * _w.y)
+    _A = A + H * _v
+    _B = B + H * _w
 
     r1 = Rect(v, _A)
     r2 = Rect(w, _B)
 
-    if point_in_poly(intersection(r1, r2), ps):
+    if point_in_poly(intersection(r1, r2), poly):
         return 1
     return -1
 
 
-def calculate_suport_points(points):
-    sps = []
+def get_suport_points(points):
+    support_points = []
     for ps in points:
         try:
             direction = compute_direction(ps)
-        except:
+        except Exception as e:
+            print(e)
             continue
 
-        sps.append([])
+        support_points.append([])
         n = len(ps)
 
         for i in range(n):
             # Three points for every step (two segments)
-            xa, ya, r = ps[direction * i]
-            xb, yb, r = ps[(direction * (i + 1)) % (direction * n)]
-            xc, yc, r = ps[(direction * (i + 2)) % (direction * n)]
-
-            # Convert to real points
-            A = Point(xa, ya)
-            B = Point(xb, yb)
-            C = Point(xc, yc)
+            A, _ = ps[direction * i]
+            B, _ = ps[(direction * (i + 1)) % (direction * n)]
+            C, _ = ps[(direction * (i + 2)) % (direction * n)]
 
             # Director vector of first rect
-            v = norm(vector(A, B))
+            v = B - A
+            v /= np.linalg.norm(v)
+
             # Director vector of second rect
-            w = norm(vector(B, C))
+            w = C - B
+            w /= np.linalg.norm(w)
 
-            # Rotate -90 grades
-            _v = Vector(v.y, -v.x)
-            _w = Vector(w.y, -w.x)
+            # Rotate 90 grades
+            _v = Point(v[1], -v[0])
+            _w = Point(w[1], -w[0])
 
-            _A = Point(xa + H * _v.x, ya + H * _v.y)
-            _B = Point(xb + H * _w.x, yb + H * _w.y)
+            _A = A + H * _v
+            _B = B + H * _w
+
+            # plt.scatter(*_A)
 
             r1 = Rect(v, _A)
             r2 = Rect(w, _B)
 
-            sps[-1].append(intersection(r1, r2))
-    return sps
+            support_points[-1].append(intersection(r1, r2))
+    return support_points
 
 
 def get_all_points(rooms):
-    points = [[]]
-    for r in rooms.items():
-        for ps in r[1]['borders']['geometry']['coordinates']:
-            points[-1] += [RoomPoint(p[0], p[1], r[0]) for p in ps]
+    points = []
+    for room in rooms.items():
         points.append([])
+        for _points in room[1]['borders']['geometry']['coordinates']:
+            points[-1] += [RoomPoint(point[0], point[1], room[0])
+                            for point in _points]
     return points
 
-
-def paint(allps):
-    for wps in allps:
-        x = [p.x for p in wps]
-        y = [p.y for p in wps]
-        plt.plot(x, y)
-    plt.xlim([-1, 9.2])
-    plt.ylim([-1, 3.2])
-    plt.show()
 
 def get_walls(room):
     walls = []
     for coors in room['walls']['geometry']['coordinates']:
         walls.append(coors)
     return walls
+
 
 def generate(jsonfile):
     rooms_map = None
@@ -186,30 +181,35 @@ def generate(jsonfile):
     if rooms_map:
         # Obtain a list which has for every room
         # the points of it's bounds
-        allps = get_all_points(rooms_map['rooms'])
-        sallps = calculate_suport_points(allps)
+        all_points = get_all_points(rooms_map['rooms'])
 
-        # for wps in allps:
-        #     # if wps: wps.append(wps[0])
-        #     x = [p.x for p in wps]
-        #     y = [p.y for p in wps]
+        # print(all_points)
+
+        suport_points = get_suport_points(all_points)
+
+        print(suport_points)
+
+        for wps in all_points:
+            if wps: wps.append(wps[0])
+            x = [p[0][0] for p in wps]
+            y = [p[0][1] for p in wps]
+            plt.plot(x, y)
+
+        # walls = []
+        # for room in rooms_map['rooms']:
+        #     walls.extend(get_walls(rooms_map['rooms'][room]))
+
+        # for wall in walls:
+        #     x = [w[0] for w in wall]
+        #     y = [w[1] for w in wall]
         #     plt.plot(x, y)
 
-        walls = []
-        for room in rooms_map['rooms']:
-            walls.extend(get_walls(rooms_map['rooms'][room]))
-
-        for wall in walls:
-            x = [w[0] for w in wall]
-            y = [w[1] for w in wall]
-            plt.plot(x, y)
-
-        for wps in sallps:
+        for wps in suport_points:
             if wps: wps.append(wps[0])
-            x = [p.x for p in wps]
-            y = [p.y for p in wps]
+            x = [p[0] for p in wps]
+            y = [p[1] for p in wps]
             plt.scatter(x, y)
-            plt.plot(x, y)
+            # plt.plot(x, y)
 
         plt.gca().axis('off')
         plt.gca().set_aspect(1)
@@ -217,4 +217,6 @@ def generate(jsonfile):
         plt.ylim([-1, 3.2])
         plt.show()
 
-generate('map.json')
+
+if __name__ == '__main__':
+    generate('map.json')
