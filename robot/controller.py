@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['Controller', '__version__']
+__all__=['Controller', '__version__']
 
 ###### INFORMATION ######
 
@@ -21,25 +21,25 @@ else:
 
 #---- rOSi import ----
 from robot.control import pid, track
-from robot import settings
+from robot.load import SETTINGS as settings
 
 #==== import and load the robot control board ====
-board = None
-if os.path.exists(os.path.join(os.getcwd(), 'robot', 'boards', settings.FILENAME)):
+board=None
+if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
     # TODO: Change this crab to something less painfull for debugging
     try:
         exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')
-        board = locals()['board']
+        board=locals()['board']
         print('    ROBOT: '+settings.MOBILE_ROBOT)
     except:
-        board = None
+        board=None
 
 #### CLASS ####
 
 class Controller:
     def __init__(self):
         try:
-            self.robot = board.Board()
+            self.robot=board.Board()
             try:
                 self.robot.set_constants(settings.CONST_KC,
                                          settings.CONST_KI,
@@ -47,8 +47,8 @@ class Controller:
             except: pass
         except:
             print("    ERROR: The control board wasn't loaded")
-            self.robot = None
-
+            self.robot=None
+            
         #---- position ----
         self.x_position = 0
         self.y_position = 0
@@ -62,21 +62,19 @@ class Controller:
         self.prev_delta_encoder_2 = 0
         #---- others ----
         self.smooth = True
-        self.finished = True
-        self.count = 0
+        self.finished = True 
+        self.count = 0        
         self.sample_time = 0.05
         self.action = 'stop'
         self.SEND_POSITION = lambda x, y, theta: None
+        self.COUNTER_POS = 0
         self.reference = track.Track()
-
-        self.updates = 0
-        self.update_period = 1
-        self._start_move = None
-
+        self._start_move=None     
+        
         # On Windows
         if sys.platform.startswith('win'):
-            self.next_call = 0
-            self._start_move = self._win_timer_start
+            self.next_call=0
+            self._start_move=self._win_timer_start
         # On UNIX & OS X
         else:
             try:
@@ -84,33 +82,33 @@ class Controller:
                 signal.setitimer(signal.ITIMER_REAL, 0, 0)
             except:
                 print("    ERROR: Signal initializing")
-            self._start_move = self._unix_timer_start
+            self._start_move=self._unix_timer_start
 
-    def set_speed(self, set1=0, set2=0):
+    def set_speed(self,set1=0, set2=0):
         """
         Set speed of the wheels.
-
-        :param set1: set point of the right wheel
+        
+        :param set1: set point of the right wheel  
         :type set1: float
-        :param set2: set point of the left wheel
+        :param set2: set point of the left wheel  
         :type set2: float
 
-        >>> controller=Controller()
+        >>> controller=Controller()        
         >>> controller.set_speed(2.0,1.5)
         """
         if self.robot:
             self.robot.set_speeds(set1, set2)
-
+    
     def get_state(self):
         """
         Return the state of the encoders and the battery level.
-
-        :return: encoders an battery state
+        
+        :return: encoders an battery state  
         :type: tuple
 
-        >>> controller=Controller()
+        >>> controller=Controller()        
         >>> controller.get_state()
-        (0.0, 0.0, 0.9)
+        (0.0, 0.0, 0.9)        
         """
         if self.robot:
             return self.robot.read_state()
@@ -118,10 +116,10 @@ class Controller:
     def move(self, trace, smooth=True):
         """
         Start the movement of the robot.
-
+        
         :param trace: track parameters
         :type trace: dict
-        :param smooth: flag for smooth movement
+        :param smooth: flag for smooth movement  
         :type smooth: bool
 
         >>> track={'x_planning': [0, 0.9],
@@ -132,11 +130,11 @@ class Controller:
         """
         self.smooth = smooth
         #---- reset counter and PID (software) ----
-        self.count = 0
+        self.count = 0      
         if not settings.PID:
             pid.reset()
         #---- start the movement ----
-        trace['sample_time'] = self.sample_time
+        trace['sample_time']= self.sample_time    
         self.reference.generate(**trace)
         self.finished = False
         self._start_move()
@@ -144,8 +142,8 @@ class Controller:
     def end_move(self):
         """
         Finishes the movement unavoidably.
-
-        >>> controller=Controller()
+        
+        >>> controller=Controller()        
         >>> controller.end_move()
         """
         # On UNIX or OS X
@@ -168,7 +166,7 @@ class Controller:
             return
         threading.Timer(self.next_call - time.time(), self._win_handler).start()
         self._timer_handler()
-
+    
     def _unix_handler(self, signum, frame):
         """
         Timer handler for UNIX or OS X platform.
@@ -188,7 +186,7 @@ class Controller:
         delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
         #---- PID by software ----
         if not settings.PID:
-            elapsed = pid.process_time()
+            elapsed = pid.process_time()                        
             set_point1, set_point2 = self._tracking()
             set_point1, set_point2 = pid.speeds_regulation(set_point1, set_point2,
                                                            delta_encoder_1, delta_encoder_2,
@@ -202,13 +200,13 @@ class Controller:
         self.count += 1
         if self.count >= self.reference.n_points:
             self.finished = True
-
+    
     def _unix_timer_start(self):
         """
         Start the timer in UNIX or OS X platform.
         """
         if not settings.PID:
-            pid.config(time.time(), self.sample_time)
+            pid.config(time.time(),self.sample_time)
         try:
             signal.setitimer(signal.ITIMER_REAL, self.sample_time, self.sample_time)
         except:
@@ -218,7 +216,7 @@ class Controller:
         """
         Start the timer in Windows platform.
         """
-        self.next_call = time.time()
+        self.next_call=time.time()
         self._win_handler()
 
     def _tracking(self):
@@ -262,19 +260,21 @@ class Controller:
     def navigation(self, encoder1, encoder2):
         """
         Calculate the current position of the robot.
-
+        
         :param encoder1: value of encoder of the right wheel
         :type encoder1: float
-        :param encoder2: value of encoder of the left wheel
+        :param encoder2: value of encoder of the left wheel 
         :type encoder2: float
         :return: differential of the encoders
         :type: tuple
-
-        >>> controller=Controller()
+        
+        >>> controller=Controller()        
         >>> controller.navigation(0.2,0.7)
         (0.15, 0.09)
         """
-
+        #XXX fix the send position
+        global COUNTER_POS
+    
         delta_encoder_1 = encoder1 - self.prev_encoder1
         delta_encoder_2 = encoder2 - self.prev_encoder2
 
@@ -313,49 +313,48 @@ class Controller:
         self.y_position += ds * math.sin(self.z_position + dz / 2)
         self.z_position += dz
 
-        # send position
-        if self.updates == self.update_period:
-            self.updates = 0
+        #send position
+        self.COUNTER_POS+=1
+        if self.COUNTER_POS==3:
             self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
-
-        self.updates += 1
+            self.COUNTER_POS=0;
+		
         return delta_encoder_1, delta_encoder_2
 
     def action_exec(self):
         """
         Execute predefined actions for the robot.
-
-        This function read and execute the actions defined in ``actions.py``
-
+        
+        This function read and execute the actions defined in ``actions.py`` 
+        
         >>> controller=Controller()
         >>> controller.action_exec()
         """
-        try: # SO BAD: that file could be just imported
-            actions = open(os.path.join(os.getcwd(),'robot','actions.py'),'rU').read()
+        try:
+            actions=open(os.path.join(os.getcwd(),'robot','actions.py'),'rU').read()
             exec(actions)
         except OSError:
             print("    ERROR: Actions")
-
-    def async_speed(self, x, y):
+            
+    def async_speed(self,x,y):
         """
         calculate the wheel speeds for a asynchronous event.
 
         :param x: value of displacement in X axis
         :type x: float
         :param y: value of displacement in Y axis
-        :type y: float
+        :type y: float        
         :return: wheel speeds
         :type: tuple
-
-        >>> controller=Controller()
+        
+        >>> controller=Controller()        
         >>> controller.async_speed(0.5,0.8)
         (0.46, 0.8)
         """
-        left = right = y
-        ratio = abs(x/settings.MAX_SPEED)
-        if x > 0:
-            right *= 1 - ratio
-        elif x < 0:
-            left *= 1 - ratio
+        left=right=y
+        ratio=abs(x/settings.MAX_SPEED)
+        if x>0:
+            right*=(1-ratio)
+        elif x<0:
+            left*=(1-ratio)
         return right, left
-

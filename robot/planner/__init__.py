@@ -82,6 +82,11 @@ def path_xyt(start,target,show=True):
         path_list=target['path']
         if type(start) is tuple:
             path_list.insert(0,start[:2])       
+        if len(path_list)>1:
+            new_list=[]
+            for i in range(len(path_list)-1):
+                new_list.extend(_get_path(path_list[i],path_list[i+1]))
+            path_list=new_list        
     #---- path based in tuple or text ----
     except KeyError:
         path_list=_get_path(start,target)

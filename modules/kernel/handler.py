@@ -19,6 +19,7 @@ def get_sensor(name=''):
 def set_position(X=0, Y=0, theta=0):
     kernel.ROBOT.position(X, Y, theta)
 
+
 def process_text(text=""):
     print(' Processing text: %s' % repr(text))
     cmd = command.extraction(text)
@@ -38,14 +39,24 @@ def set_mode(mode=''):
 
 
 def set_path(path=[]):
+    tmp=[]
+    for item in path:
+        tmp.append(tuple(item))
+    path=tmp    
+    
     cmd = {'start': None, 'end': None, 'path': path, 'action': 'stop'}
     kernel.sync_exec(cmd)
 
 def set_position_notifier(notifier):
+    print("connecting robot with server notifier")
+    print(kernel.ROBOT.controller.SEND_POSITION)
     kernel.ROBOT.controller.SEND_POSITION = notifier
+    print(kernel.ROBOT.controller.SEND_POSITION)
 
 def send_updated_position(pos):
     # send position
     # print(pos)
     pass
 
+def get_profile():
+    return kernel.ROBOT.profile()
