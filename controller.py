@@ -1,6 +1,5 @@
 import math
 import signal
-from werkzeug.security import safe_str_cmp
 import board
 import time
 import track
@@ -453,6 +452,33 @@ class Controller:
         zd = self.reference.zd_vector[self.count]
         zd_dot = self.reference.zd_dot_vector[self.count]
 
+        # vd = math.sqrt(xd_dot ** 2 + yd_dot ** 2)
+        # wd = zd_dot
+        #
+        # constant_chi = 1
+        # constant_a = 1
+        #
+        # k1 = 2 * constant_chi * constant_a
+        # if vd:
+        #     k2 = (constant_a ** 2 - wd ** 2) / vd
+        # else:
+        #     k2 = 0.0
+        # k3 = k1
+        #
+        # e1 = math.cos(self.z_position) * (xd - self.x_position) + math.sin(self.z_position) * (yd - self.y_position)
+        # e2 = -math.sin(self.z_position) * (xd - self.x_position) + math.cos(self.z_position) * (yd - self.y_position)
+        # e3 = zd - self.z_position
+        #
+        # u1 = -k1 * e1
+        # # u2 = -k2 * e2 - k3 * e3
+        # if e3:
+        #     u2 = -k2 * vd * math.sin(e3) / e3 * e2 - k3 * e3
+        # else:
+        #     u2 = -k2 * vd * e2 - k3 * e3
+        #
+        # the_v = vd * math.cos(e3) - u1
+        # the_omega = wd - u2
+
         y1 = self.x_position + self.constant_b * math.cos(self.z_position)
         y2 = self.y_position + self.constant_b * math.sin(self.z_position)
 
@@ -533,14 +559,14 @@ class Controller:
             uuu1 = self.constant_kc * (e1k - self.e1k1) + self.constant_ki * e1k + self.u1k1 + self.constant_kd * (
                 e1k - 2 * self.e1k1 + self.e1k2)
 
+        if uuu1 > 127.0:
+            uuu1 = 127.0
+        if uuu1 < - 128.0:
+            uuu1 = - 128.0
+
         self.u1k1 = uuu1
         self.e1k2 = self.e1k1
         self.e1k1 = e1k
-
-        if uuu1 > 127:
-            uuu1 = 127
-        if uuu1 < - 128:
-            uuu1 = - 128
 
         um1 = int(uuu1)
 
@@ -555,14 +581,14 @@ class Controller:
             uuu2 = self.constant_kc * (e2k - self.e2k1) + self.constant_ki * e2k + self.u2k1 + self.constant_kd * (
                 e2k - 2 * self.e2k1 + self.e2k2)
 
+        if uuu2 > 127.0:
+            uuu2 = 127.0
+        if uuu2 < - 128.0:
+            uuu2 = - 128.0
+
         self.u2k1 = uuu2
         self.e2k2 = self.e2k1
         self.e2k1 = e2k
-
-        if uuu2 > 127:
-            uuu2 = 127
-        if uuu2 < - 128:
-            uuu2 = - 128
 
         um2 = int(uuu2)
 
@@ -582,7 +608,84 @@ class Controller:
                                     't_planning': [0, 100.0],
                                     'sample_time': self.sample_time}
 
-                self.reference.generate(**track_parameters)
+                self.reference.generate_backward(**track_parameters)
+
+                self.time_vector = range(self.reference.n_points)
+                self.sample_time_vector = range(self.reference.n_points)
+                self.x_position_vector = range(self.reference.n_points)
+                self.x_position_dot_vector = range(self.reference.n_points)
+                self.y_position_vector = range(self.reference.n_points)
+                self.y_position_dot_vector = range(self.reference.n_points)
+                self.z_position_vector = range(self.reference.n_points)
+                self.z_position_dot_vector = range(self.reference.n_points)
+                self.x_ref_vector = range(self.reference.n_points)
+                self.y_ref_vector = range(self.reference.n_points)
+                self.value1 = range(self.reference.n_points)
+                self.current1_vector = range(self.reference.n_points)
+                self.reference1 = range(self.reference.n_points)
+                self.value2 = range(self.reference.n_points)
+                self.current2_vector = range(self.reference.n_points)
+                self.reference2 = range(self.reference.n_points)
+                self.timer_start()
+            else:
+                # self.safe_count = True
+                self.safe_counter = 20
+        else:
+            self.finished = True
+
+    def rightward(self, value):
+        if value:
+            if self.finished:
+                self.smooth_flag = True
+                self.experiment_reset()
+
+                self.safe_count = True
+                self.safe_counter = 20
+
+                track_parameters = {'z_planning': [0, 100.0 * value],
+                                    't_planning': [0, 100.0],
+                                    'sample_time': self.sample_time}
+
+                self.reference.generate_rotation(**track_parameters)
+
+                self.time_vector = range(self.reference.n_points)
+                self.sample_time_vector = range(self.reference.n_points)
+                self.x_position_vector = range(self.reference.n_points)
+                self.x_position_dot_vector = range(self.reference.n_points)
+                self.y_position_vector = range(self.reference.n_points)
+                self.y_position_dot_vector = range(self.reference.n_points)
+                self.z_position_vector = range(self.reference.n_points)
+                self.z_position_dot_vector = range(self.reference.n_points)
+                self.x_ref_vector = range(self.reference.n_points)
+                self.y_ref_vector = range(self.reference.n_points)
+                self.value1 = range(self.reference.n_points)
+                self.current1_vector = range(self.reference.n_points)
+                self.reference1 = range(self.reference.n_points)
+                self.value2 = range(self.reference.n_points)
+                self.current2_vector = range(self.reference.n_points)
+                self.reference2 = range(self.reference.n_points)
+                self.timer_start()
+            else:
+                # self.safe_count = True
+                self.safe_counter = 20
+        else:
+            self.finished = True
+
+    def backward(self, value):
+        if value:
+            if self.finished:
+                self.smooth_flag = True
+                self.experiment_reset()
+
+                self.safe_count = True
+                self.safe_counter = 20
+
+                track_parameters = {'x_planning': [0, -value * 100.0],
+                                    'y_planning': [0, 0],
+                                    't_planning': [0, 100.0],
+                                    'sample_time': self.sample_time}
+
+                self.reference.generate_backward(**track_parameters)
 
                 self.time_vector = range(self.reference.n_points)
                 self.sample_time_vector = range(self.reference.n_points)
@@ -610,17 +713,10 @@ class Controller:
     def continuous(self, parameter, value):
         if parameter == 'forward':
             self.forward(value)
-
         elif parameter == 'backward':
-            if value:
-                pass
-            else:
-                self.finished = True
+            self.backward(value)
         elif parameter == 'right':
-            if value:
-                pass
-            else:
-                self.finished = True
+            self.rightward(value)
         elif parameter == 'left':
             if value:
                 pass
