@@ -198,3 +198,73 @@ class Track:
                 self.xd_dot_vector[base_interval_index + j] = xd_dot
                 self.yd_dot_vector[base_interval_index + j] = yd_dot
                 self.zd_dot_vector[base_interval_index + j] = 0.0
+
+    def generate_backward(self, x_planning=None, y_planning=None, sample_time=None,
+                          z_planning=None, t_planning=None, constant_k=None,
+                          constant_t=None, cubic=False):
+        if len(x_planning) != 2 or len(y_planning) != 2:
+            raise InvalidTrackParametersException('Only two values in vector are needed.')
+
+        i_points = int(t_planning[1] / sample_time)
+
+        if i_points > 2000:
+            raise InvalidTrackParametersException('Too much points.')
+
+        self.xd_vector = range(i_points)
+        self.yd_vector = range(i_points)
+        self.zd_vector = range(i_points)
+
+        self.xd_dot_vector = range(i_points)
+        self.yd_dot_vector = range(i_points)
+        self.zd_dot_vector = range(i_points)
+
+        self.n_points = i_points
+
+        delta_x = x_planning[1] / float(i_points)
+        delta_y = y_planning[1] / float(i_points)
+
+        xd_dot = delta_x / sample_time
+        yd_dot = delta_y / sample_time
+
+        self.n_points = i_points
+
+        for j in range(i_points):
+            self.xd_vector[j] = j*delta_x
+            self.yd_vector[j] = j*delta_y
+            self.zd_vector[j] = 0.0
+            self.xd_dot_vector[j] = xd_dot
+            self.yd_dot_vector[j] = yd_dot
+            self.zd_dot_vector[j] = 0.0
+
+    def generate_rotation(self, x_planning=None, y_planning=None, sample_time=None,
+                          z_planning=None, t_planning=None, constant_k=None,
+                          constant_t=None, cubic=False):
+        if len(z_planning) != 2:
+            raise InvalidTrackParametersException('Only two values in vector are needed.')
+
+        i_points = int(t_planning[1] / sample_time)
+
+        if i_points > 2000:
+            raise InvalidTrackParametersException('Too much points.')
+
+        self.xd_vector = range(i_points)
+        self.yd_vector = range(i_points)
+        self.zd_vector = range(i_points)
+
+        self.xd_dot_vector = range(i_points)
+        self.yd_dot_vector = range(i_points)
+        self.zd_dot_vector = range(i_points)
+
+        self.n_points = i_points
+
+        delta_z = z_planning[1] / float(i_points)
+        zd_dot = delta_z / sample_time
+
+        for j in range(i_points):
+            self.xd_vector[j] = 0.0
+            self.yd_vector[j] = 0.0
+            self.zd_vector[j] = j * delta_z
+            self.xd_dot_vector[j] = 0.0
+            self.yd_dot_vector[j] = 0.0
+            self.zd_dot_vector[j] = zd_dot
+
