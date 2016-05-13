@@ -11,6 +11,10 @@ function getOdometry(host, callback) {
     getRequest(host, "odometry", callback);
 }
 
+function getProfile(host, callback) {
+    getRequest(host, "profile", callback);
+}
+
 function getMetadata(host, callback) {
     getRequest(host, "metadata", callback);
 }
