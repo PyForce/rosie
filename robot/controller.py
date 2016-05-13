@@ -10,6 +10,7 @@ __version__ = '1.12'
 
 #---- Python import ----
 import os, sys, math, time
+from datetime import datetime
 # On Windows
 if sys.platform.startswith('win'):
     print('    PLATFORM: Windows')
@@ -20,6 +21,7 @@ else:
     import signal
 
 #---- rOSi import ----
+import settings as global_settings
 from robot.control import pid, track
 from robot.load import SETTINGS as settings
 
@@ -70,6 +72,10 @@ class Controller:
         self.COUNTER_POS = 0
         self.reference = track.Track()
         self._start_move=None     
+        
+        self.log_file=None
+        if global_settings.LOG:
+            self.log_file=open(os.path.join(os.getcwd(),'logs',"pos.log"),'w')      
         
         # On Windows
         if sys.platform.startswith('win'):
@@ -313,6 +319,12 @@ class Controller:
         self.y_position += ds * math.sin(self.z_position + dz / 2)
         self.z_position += dz
 
+        #log position
+        if global_settings.LOG:
+            self.log_file.write(datetime.now().time().isoformat()+" "+
+                                str(-self.y_position)+" "+
+                                str(self.x_position)+" "+
+                                str(self.z_position)+"\n")
         #send position
         self.COUNTER_POS+=1
         if self.COUNTER_POS==3:
