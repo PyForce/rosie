@@ -64,3 +64,6 @@ def send_updated_position(pos):
     # send position
     # print(pos)
     pass
+
+def get_profile():
+    return kernel.ROBOT.profile()

@@ -88,6 +88,31 @@ class Master:
         self.controller.x_position = y
         self.controller.z_position = theta
 
+    def profile(self, p={}):
+        """
+        Get or set the profile of the robot
+        
+        :param p: robot's profiles to setup
+        :type p: dict    
+        :return: current profile
+        :type: dict
+        
+        >>> master=Master()
+        >>> master.profile({'MOBILE_ROBOT': 'ROBOT'})
+        >>> master.profile()
+        {'MOBILE_ROBOT': 'ROBOT', 'FILENAME': 'robot.py'}
+        """
+        if p:
+            pass
+        #---- get profile ----
+        else:
+            settings=vars(load.SETTINGS)            
+            p={}
+            for i in settings.keys():
+                if not i.startswith('__'):
+                    p[i]=settings[i]
+            return p
+
     def is_ended(self):
         """
         Get task status of the robot.
