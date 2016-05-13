@@ -30,7 +30,7 @@ if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
     try:
         exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')
         board=locals()['board']
-        print('    ROBOT: '+settings.MOBILE_ROBOT)
+        print('    NAME: '+settings.MOBILE_ROBOT)
     except:
         board=None
 
