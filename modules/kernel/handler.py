@@ -1,8 +1,12 @@
 from modules.kernel import kernel
-from modules import ordex
 
-command = ordex.Command()
+ordex=None
+command=None
 
+def _ordex(rdx):
+    global ordex, command
+    ordex=rdx
+    command=ordex.Command()
 
 def get_odometry():
     p=kernel.ROBOT.position()
@@ -21,11 +25,14 @@ def set_position(X=0, Y=0, theta=0):
 
 
 def process_text(text=""):
-    print(' Processing text: %s' % repr(text))
-    cmd = command.extraction(text)
-    if isinstance(cmd, ordex.base.Common_Commands):
-        for item in cmd.CMD:
-            kernel.sync_exec(item)
+    if ordex:
+        print(' Processing text: %s' % repr(text))
+        cmd = command.extraction(text)
+        if isinstance(cmd, ordex.base.Common_Commands):
+            for item in cmd.CMD:
+                kernel.sync_exec(item)
+    else:
+        print("ALERT: NLP module isn't configured")
 
 def set_keys(keys=[]):
     kernel.KEYS = keys
