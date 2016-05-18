@@ -161,7 +161,7 @@ class Master:
             else:
                 self.controller.action_exec()
             
-    def async_request(self, request):
+    def async_request(self, request, z=0):
         """
         Process the request of the asynchronous handler.
 
@@ -173,9 +173,14 @@ class Master:
         >>> master.async_request(cmd)
         """
         #XXX check for generic request
-        right, left = self.controller.async_speed(request[0], request[1])
-        if right or left:
+        if not request==(0,0):
+            right, left = self.controller.async_speed(request[0], request[1])
+            if right or left:
+                encoder1, encoder2, _ = self.controller.get_state()
+                self.controller.navigation(encoder1, encoder2)
+                self.controller.set_speed(right, left)
+        elif z:
             encoder1, encoder2, _ = self.controller.get_state()
             self.controller.navigation(encoder1, encoder2)
-            self.controller.set_speed(right, left)
+            self.controller.set_speed(-z, z)
     

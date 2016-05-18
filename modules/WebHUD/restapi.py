@@ -111,7 +111,7 @@ def text():
 def drive_manual(data):
     """
     {
-        "keys": [87, 65, 83, 68]
+        "keys": [87, 65, 83, 68, 81, 69]
     }
     """
     keys = data['keys']

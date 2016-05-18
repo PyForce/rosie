@@ -13,8 +13,11 @@ $(document).ready(function(){
     // 65 -> A
     // 83 -> S
     // 68 -> D
+	
+	// 81 -> Q
+	// 69 -> E
 
-    if ([87, 65, 83, 68].some(function(element, index, array) { return element === e.which })) {
+    if ([87, 65, 83, 68, 81, 69].some(function(element, index, array) { return element === e.which })) {
       pressed.add(e.which);
       sio.emit('manual', {'keys': toArray(pressed)})
     }
