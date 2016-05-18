@@ -71,7 +71,11 @@ class Controller:
         self.SEND_POSITION = lambda x, y, theta: None
         self.COUNTER_POS = 0
         self.reference = track.Track()
-        self._start_move=None     
+        self._start_move=None   
+        self.motion=None
+        self.angle=0
+        self.difference=2*math.pi
+        self.request=None
         
         self.log_file=None
         if global_settings.LOG:
@@ -134,6 +138,7 @@ class Controller:
         >>> controller=Controller()
         >>> controller.move(track)
         """
+        self.motion="move"
         self.smooth = smooth
         #---- reset counter and PID (software) ----
         self.count = 0      
@@ -142,6 +147,18 @@ class Controller:
         #---- start the movement ----
         trace['sample_time']= self.sample_time    
         self.reference.generate(**trace)
+        self.finished = False
+        self._start_move()
+
+    def rotate(self, angle):
+        self.motion="rotate"
+        self.angle=angle
+        self.difference=2**32
+        #---- reset counter and PID (software) ----
+        self.count = 0      
+        if not settings.PID:
+            pid.reset()
+        #---- start the rotation ----
         self.finished = False
         self._start_move()
 
@@ -190,22 +207,36 @@ class Controller:
         #---- calculate the speed for each wheel ----
         encoder1, encoder2, _ = self.get_state()
         delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
-        #---- PID by software ----
-        if not settings.PID:
-            elapsed = pid.process_time()                        
-            set_point1, set_point2 = self._tracking()
-            set_point1, set_point2 = pid.speeds_regulation(set_point1, set_point2,
-                                                           delta_encoder_1, delta_encoder_2,
-                                                           elapsed, 0, 0, 0)
-        #---- PID by hardware ----
-        else:
-            set_point1, set_point2 = self._tracking()
-        #---- set calculated speeds ----
-        self.set_speed(set_point1, set_point2)
-        #---- condition of stop ----
-        self.count += 1
-        if self.count >= self.reference.n_points:
-            self.finished = True
+        #---- displacement ----
+        if self.motion=="move":
+            #---- PID by software ----
+            if not settings.PID:
+                elapsed = pid.process_time()                        
+                set_point1, set_point2 = self._tracking()
+                set_point1, set_point2 = pid.speeds_regulation(set_point1, set_point2,
+                                                               delta_encoder_1, delta_encoder_2,
+                                                               elapsed, 0, 0, 0)
+            #---- PID by hardware ----
+            else:
+                set_point1, set_point2 = self._tracking()
+            #---- set calculated speeds ----
+            self.set_speed(set_point1, set_point2)
+            #---- condition of stop ----
+            self.count += 1
+            if self.count >= self.reference.n_points:
+                self.finished = True
+        #---- rotation ----
+        elif self.motion=="rotate":
+            if self.angle<0:
+                self.set_speed(2, -2)
+            else:
+                self.set_speed(-2, 2)
+            z_position=self.z_position-int(self.z_position/(2*math.pi))*2*math.pi
+            tmp=abs(self.angle-z_position)
+            if tmp<self.difference and tmp>0.1:
+                self.difference=tmp
+            else:
+                self.finished = True
     
     def _unix_timer_start(self):
         """
