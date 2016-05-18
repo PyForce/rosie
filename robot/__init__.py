@@ -148,6 +148,7 @@ class Master:
         """
         if request:        
             #---- set action ----
+            self.controller.request=request
             try:
                 self.controller.action=request['action']
             except KeyError:
