@@ -36,10 +36,10 @@ class RobotOverlay extends L.ImageOverlay
         L.setOptions @, options
 
     _recalcBounds: () ->
-        x1 = [@_latlng.lat - @_width / 2, @_latlng.lng - @_height / 2]
-        x2 = [@_latlng.lat + @_width / 2, @_latlng.lng + @_height / 2]
+        sw = [@_latlng.lat + @_height / 2, @_latlng.lng - @_width / 2]
+        ne = [@_latlng.lat - @_height / 2, @_latlng.lng + @_width / 2]
 
-        @_bounds = L.latLngBounds [x1, x2]
+        @_bounds = L.latLngBounds(sw,ne)
 
     _reset: () ->
         image = @_image
@@ -48,8 +48,8 @@ class RobotOverlay extends L.ImageOverlay
         size = bounds.getSize()
 
         point =
-            x: (bounds.min.x + bounds.max.x) / 2
-            y: (bounds.min.y + bounds.max.y) / 2
+            x: (bounds.min.x)
+            y: (bounds.min.y)
 
         L.DomUtil.setPosition image, point, @_angle
         image.style.width = "#{size.x}px"
