@@ -32,13 +32,13 @@ class RobotActions
         Dispatcher.dispatch
             type: actionTypes.MOVE_ROBOT
             robot: robot
-            position: pos
+            position: {x: pos.y, y: pos.x, theta: -pos.theta}
 
     @path: (robot, path=null) ->
         if path
             robot.setPath path
             return
-        path = mapStore.getPath().map (e) -> [e.lat, e.lng]
+        path = mapStore.getPath().map (e) -> [e.lng, e.lat]
         robot.setPath path
 
         Dispatcher.dispatch
