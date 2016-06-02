@@ -57,7 +57,7 @@ class Arduino(DualSpeedMotorDriver):
         #     speed_2 = self.max_speed
         self.setpoint1 = speed_1
         self.setpoint2 = speed_2
-        package = pack("<Bff", COMMAND_SETPOINT, speed_1, speed_2)
+        package = pack("<Bff", COMMAND_SETPOINT, speed_2, speed_1)
         try:
             self.serialPort.write(package)
         except:
@@ -91,7 +91,7 @@ class Arduino(DualSpeedMotorDriver):
                 delta_pulses2 = self.pulses2 - self.lastPulses2
         except:
             logging.error("reading encoders")
-        return delta_pulses1, delta_pulses2, self.batteryStatus, 0, 0
+        return delta_pulses2, delta_pulses1, self.batteryStatus, 0, 0
 
     def set_constants(self, kc, ki, kd):
         package = pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)
