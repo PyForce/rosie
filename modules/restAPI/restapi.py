@@ -21,6 +21,12 @@ def objetify(req):
     return req.get_json(force=True)
 
 
+
+@app.route('/usound', methods=['GET'])
+def ultrasonic_measurements():
+    from robot.sensors.usound import get_all_sensors
+    return jsonify(ultrasound=get_all_sensors())
+
 @app.route('/odometry', methods=['GET'])
 def odometry():
     """
