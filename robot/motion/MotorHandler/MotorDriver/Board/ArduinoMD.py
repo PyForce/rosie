@@ -89,10 +89,10 @@ class Arduino(DualSpeedMotorDriver):
                 self.batteryStatus = batteryCharge
                 delta_pulses1 = self.pulses1 - self.lastPulses1
                 delta_pulses2 = self.pulses2 - self.lastPulses2
+                return delta_pulses2, delta_pulses1, self.batteryStatus, 0, 0
         except:
             logging.error("reading encoders")
-        return delta_pulses2, delta_pulses1, self.batteryStatus, 0, 0
-
+            return 0,0,0,0,0
     def set_constants(self, kc, ki, kd):
         package = pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)
         try:
