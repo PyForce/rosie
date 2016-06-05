@@ -1,0 +1,13 @@
+Flask==0.10.1
+Flask-Cors==2.1.2
+Flask-Sockets==0.2.0
+gevent==1.1.1
+gevent-websocket==0.9.5
+greenlet==0.4.9
+itsdangerous==0.24
+Jinja2==2.8
+MarkupSafe==0.23
+numpy==1.11.0
+Shapely==1.5.15
+six==1.10.0
+Werkzeug==0.11.9
