@@ -1,0 +1,20 @@
+{
+  "name": "WebHUD",
+  "version": "0.0.1",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+http://"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "react": "^15.0.2",
+    "react-addons-linked-state-mixin": "^15.0.2",
+    "react-addons-pure-render-mixin": "^15.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+  },
+  "author": "",
+  "license": "GNU GPL"
+}
