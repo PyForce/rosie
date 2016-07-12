@@ -21,10 +21,13 @@ gulp.task('less', function() {
     .pipe(gulp.dest('./static/css'));
 });
 
-gulp.task('watch', function() {
+gulp.task('watch-coffee', function() {
   gulp.watch(path.coffee, ['coffee']);
+});
+
+gulp.task('watch-less', function() {
   gulp.watch(path.less, ['less']);
 });
  
 // The default task (called when you run `gulp` from cli) 
-gulp.task('default', ['watch']);
+gulp.task('default', ['watch-coffee', 'watch-less']);
