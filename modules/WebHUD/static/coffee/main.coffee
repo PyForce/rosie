@@ -29,3 +29,11 @@ $(document).ready () ->
     , 100
 
 DEBUG = false
+
+imageUrl = "static/images/LTL.svg";
+width = 0.43;
+height = 0.25;
+coords = [0, 0];
+overlay = (new RobotOverlay imageUrl, coords, width, height).addTo map
+
+car = new Robot overlay
