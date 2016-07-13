@@ -10,16 +10,16 @@ $('#m-item2, #key').click(function() {
     if ($(this).hasClass('active')) {
         toggleTransition($('#mode-text'), true)
         // $("#video-streaming").css("margin-bottom", "10px");
-        setManualMode();
+        car.setManual();
     }
     else
-        setAutoMode();
+        car.setAuto();
 });
 
 // P2P
 $('#m-item3, #p2p').click(function() {
     toggleTransition($('#mode-text'), true);
-    setAutoMode();
+    car.setAuto();
     // $("#video-streaming").css("margin-bottom", "10px");
 });
 
@@ -27,7 +27,7 @@ $('#m-item3, #p2p').click(function() {
 $('#m-item1, #text').click(function() {
     toggleTransition($('#mode-text'));
     // $("#video-streaming").css("margin-bottom", "60px");
-    setAutoMode();
+    car.setAuto();
 });
 
 // CAMERA
@@ -83,7 +83,7 @@ map.on('click', function(e) {
     toggleTransition($('#robot-info-wrapper'), true);
 
     if($('#m-item3, #p2p').hasClass('active')) {
-        setPath(undefined, [[e.latlng.lat, e.latlng.lng]]);
+        car.setPath([[e.latlng.lat, e.latlng.lng]]);
         // console.log(e.latlng);
     }
 });

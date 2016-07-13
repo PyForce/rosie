@@ -177,7 +177,8 @@ imageUrl = "static/images/LTL.svg";
 width = 0.43;
 height = 0.25;
 coords = [0, 0];
-car = (new RobotOverlay imageUrl, coords, width, height).addTo map
+overlay = (new RobotOverlay imageUrl, coords, width, height).addTo map
+car = new Robot overlay
 
 trajectory = L.Polyline.Plotter([
                     [0, 6]
