@@ -65,7 +65,7 @@ $('.cancel-btn, .close, .ok-btn').click(function() {
 });
 
 
-$(car._image).click(function(){
+$(car.overlay._image).click(function(){
     var streaming = $('#video-streaming');
     streaming.addClass('visible');
     streaming.attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
