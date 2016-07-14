@@ -5,7 +5,7 @@ class Robot
         @host = host || document.domain
         @port = if port == undefined then location.port else port
         @streamPort = if streamPort == undefined then 8080 else streamPort
-        @manual = on
+        @manual = off
         @path = off
 
     move: (@pos) ->
