@@ -1,14 +1,27 @@
 # Class that wraps robot communication
 class Robot
 
-    constructor: (@overlay, @host) ->
-        if @host == undefined
-            @host = "#{document.domain}:#{location.port}"
-        @manual = false
+    constructor: (@overlay, host, port, streamPort) ->
+        @host = host || document.domain
+        @port = if port == undefined then location.port else port
+        @streamPort = if streamPort == undefined then 8080 else streamPort
+        @manual = on
+        @path = off
 
     move: (@pos) ->
         @overlay.setLatLng [@pos.x, @pos.y]
         @overlay.setAngle @pos.theta
+        if @info
+            @info.setState @pos
+
+    # attached robot card
+    attachInfo: (@info) ->
+        @getMetadata (data) =>
+            if @info
+                @info.setState data
+
+    dettachInfo: ->
+        @info = undefined
 
     getSensor: (name, callback) ->
         @getRequest 'sensor', callback, name
@@ -32,18 +45,24 @@ class Robot
         @setRequest 'text', callback, text: command
 
     setManual: (callback) ->
-        @manual = true
+        @manual = on
+        if @info
+            @info.setState manual: @manual
+
         @setRequest 'manual_mode', callback
 
     setAuto: (callback) ->
-        @manual = false
+        @manual = off
+        if @info
+            @info.setState manual: @manual
+
         @setRequest 'auto_mode', callback
 
 
     # AJAX requests
     getRequest: (route, callback, param) ->
         request =
-            url: "http://#{@host}/#{route}#{if param == undefined then ''\
+            url: "http://#{@host}:#{@port}/#{route}#{if param == undefined then ''\
                 else "/#{param}"}"
             method: "GET"
             crossDomain: true
@@ -58,7 +77,7 @@ class Robot
 
     setRequest: (route, callback, param) ->
         request =
-            url: "http://#{@host}/#{route}"
+            url: "http://#{@host}:#{@port}/#{route}"
             method: "PUT"
             crossDomain: true
             data: param
