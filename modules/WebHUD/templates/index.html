@@ -90,6 +90,17 @@
 
     <!-- Load react components -->
     <script src="static/js/components/hud.js"></script>
+    <script type="text/javascript">
+        $('.ui.menu>.item.options').click(function(){
+            $('.ui.sidebar').sidebar('toggle');
+        });
+        $('.ui.menu>.right.menu>.item').click(function(){
+            $('.ui.basic.modal').modal('show');
+        });
+        $('.ui.sidebar>.item.settings').click(function(){
+            $('.ui.settings.modal').modal('show');
+        });
+    </script>
 
     <!-- App specific libraries -->
     <script src="static/js/robot.js"></script>
