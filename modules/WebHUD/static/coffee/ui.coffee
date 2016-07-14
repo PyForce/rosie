@@ -11,25 +11,31 @@ mountHUD = (robot) ->
             -> ReactDOM.unmountComponentAtNode(
                 document.getElementById 'mode-text')
 
+    if not Modernizr.mq '(max-width: 600px)'
+        mountInfo robot
+    #load commands
+    cmdList = ReactDOM.render <CommandList/>,
+        document.getElementById 'commands'
+    cmdList.addCommand k, v for k, v of commands
+
+mountInfo = (robot) ->
     # show streaming
     ReactDOM.render <RobotVideo robot={robot}/>,
         document.getElementById 'video-streaming'
     # show info
     ReactDOM.render <RobotCard robot={robot}/>,
         document.getElementById 'robot-info-wrapper'
-    #load commands
-    cmdList = ReactDOM.render <CommandList/>,
-        document.getElementById 'commands'
-    cmdList.addCommand k, v for k, v of commands
 
 unmountHUD = ->
     # destroy HUD components
+    unmountInfo()
+    ReactDOM.unmountComponentAtNode document.getElementById 'commands'
+
+unmountInfo = ->
     ReactDOM.unmountComponentAtNode(
         document.getElementById 'video-streaming')
     ReactDOM.unmountComponentAtNode(
         document.getElementById 'robot-info-wrapper')
-    ReactDOM.unmountComponentAtNode document.getElementById 'commands'
-
 
 map.on 'click', (e) ->
     if car.path
@@ -44,6 +50,7 @@ $(car.overlay._image).click ->
 
 $(window).resize ->
     if Modernizr.mq '(max-width: 600px)'
-        unmountHUD()
+        unmountInfo()
     else if Modernizr.mq '(max-width: 3000px)'
-        mountHUD car
+        # mountInfo car
+        false
