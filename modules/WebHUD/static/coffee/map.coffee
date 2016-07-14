@@ -173,12 +173,12 @@ class RobotOverlay extends L.ImageOverlay
 mapLayer = L.geoJson().addTo map
 mapLayer.addData geodata
 
-trajectory = L.Polyline.Plotter([
-                    [0, 6]
-                ],
-                weight: 5
-                readOnly: true)
-            .addTo map
+# trajectory = L.Polyline.Plotter([
+#                     [0, 6]
+#                 ],
+#                 weight: 5
+#                 readOnly: true)
+#             .addTo map
 
 readOnly = true
 $("#i-p2p").click () ->
