@@ -4,7 +4,10 @@ commands =
         -> car.path = off
     wasd: Command 'game', (-> car.setManual()),
         -> car.setAuto()
-    text: Command 'font', -> car.setAuto()
+        text: Command 'font', (-> robot.setAuto(); ReactDOM.render <TextCommand
+            robot={robot}/>, document.getElementById 'mode-text'),
+            -> ReactDOM.unmountComponentAtNode(
+                document.getElementById 'mode-text')
 
 map.on 'click', (e) ->
     if car.path
