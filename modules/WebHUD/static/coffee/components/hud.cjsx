@@ -9,7 +9,6 @@ class RobotCard extends React.Component
       size: [0, 0, 0]
       x: 0
       y: 0
-      manual: @props.robot.manual
     @props.robot.attachInfo @
     super @props
 
@@ -32,7 +31,6 @@ class RobotCard extends React.Component
         <li>Dim: {size[0]} x {size[1]} x {size[2]}</li>
         <li>Pos: ({x.toFixed 3}, {y.toFixed 3})</li>
         <li>WiFi: none</li>
-        <li>Mode: {if @state.manual then 'Manual' else 'Auto'}</li>
       </ul>
     </div>
 
