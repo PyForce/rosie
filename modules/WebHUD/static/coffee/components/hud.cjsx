@@ -18,7 +18,7 @@ class RobotCard extends React.Component
 
   render: ->
     {photo, name, processor, motor_controller, size, x, y} = @state
-    <div id='robot-logo' className="shadow-map">
+    <div id='robot-logo' className="ui raised compact segment">
       <img src={photo} alt="robot"/>
       <ul>
         <li>Robot: {name}</li>
