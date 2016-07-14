@@ -1,11 +1,4 @@
-$('.icon').click(function() {
-    var wasActive = $(this).hasClass('active');
-    $('.icon').removeClass('active');
-    if (!wasActive)
-        $(this).addClass('active');
-});
-
-// KEY
+`// KEY
 $('#m-item2, #key').click(function() {
     if ($(this).hasClass('active')) {
         toggleTransition($('#mode-text'), true)
@@ -62,30 +55,6 @@ $('.cancel-btn, .close, .ok-btn').click(function() {
     toggleTransition(open, true);
     open.removeClass('open-dialog');
     toggleOverlay(false, true);
-});
-
-
-$(car.overlay._image).click(function(){
-    var streaming = $('#video-streaming');
-    streaming.addClass('visible');
-    streaming.attr('src', 'http://10.0.0.1:8080/stream/video.mjpeg');
-    // show info
-    toggleTransition($('#robot-info-wrapper'), false);
-    return false;
-});
-
-map.on('click', function(e) {
-    // hide streaming
-    var streaming = $('#video-streaming');
-    streaming.attr('src', '');
-    streaming.removeClass('visible');
-    // hide info
-    toggleTransition($('#robot-info-wrapper'), true);
-
-    if($('#m-item3, #p2p').hasClass('active')) {
-        car.setPath([[e.latlng.lat, e.latlng.lng]]);
-        // console.log(e.latlng);
-    }
 });
 
 /*
