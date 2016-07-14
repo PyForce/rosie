@@ -39,29 +39,25 @@ class RobotVideo extends React.Component
       alt="streaming"/>
 
 # Wrapper for command object
-Command = (icon, key, onAction, offAction) ->
+Command = (icon, onAction, offAction) ->
   icon: icon
-  key: key
   onAction: onAction
   offAction: offAction
+  active: false
 
 
 CommandComponent = React.createClass
-  getInitialState: ->
-    active: false
-
   run: ->
-    @setState (prevState) ->
-      active: !prevState.active
-    if not @state.active
+    if not @props.active
       @props.onAction()
-    else if @props.offAction
-      @props.offAction()
-
+      @props.switchActive @props._key, true
+    else
+      @props.switchActive @props._key, false
+      if @props.offAction
+        @props.offAction()
 
   render: ->
-    {icon} = @props
-    {active} = @state
+    {icon, active} = @props
     <li>
       <a className={"icon#{if active then ' active' else ''}"} onClick={@run}>
         <img src={icon} alt="cmd" className="shadow-map"/>
@@ -69,9 +65,30 @@ CommandComponent = React.createClass
     </li>
 
 class CommandList extends React.Component
+  constructor: (@props) ->
+    @state = commands: {}
+    super @props
+
+  switchActive: (key, val) ->
+    nCommands = {}
+    for k, cmd of @state.commands
+      do (k, cmd) ->
+        if k == key
+          cmd.active = val
+        else if val  # deactivate only if activating
+          cmd.active = false
+          cmd.offAction() if cmd.offAction # invoke off
+        nCommands[k] = cmd
+    @setState commands: nCommands
+
+  addCommand: (key, command) ->
+    @state.commands[key] = command
+    @setState commands: @state.commands
+
   render: ->
     <div className="commands">
       <ul className="commands-list">
-        {<CommandComponent {...cmd}/> for cmd in @props.commands}
+        {<CommandComponent key={k} _key={k} {...cmd}
+          switchActive={@switchActive.bind @}/> for k, cmd of @state.commands}
       </ul>
     </div>
