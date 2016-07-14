@@ -16,9 +16,14 @@ class RobotCard extends React.Component
   componentWillUnmount: ->
     @props.robot.dettachInfo()
 
+  componentDidMount: ->
+    node = ReactDOM.findDOMNode @refs.root
+    $(node).transition 'fade left'
+
   render: ->
     {photo, name, processor, motor_controller, size, x, y} = @state
-    <div id='robot-logo' className="ui raised compact segment">
+    <div id='robot-logo' className='ui raised compact segment' ref='root'
+      style={{visibility: 'hidden'}}>
       <img src={photo} alt="robot"/>
       <ul>
         <li>Robot: {name}</li>
@@ -33,10 +38,14 @@ class RobotCard extends React.Component
 
 
 class RobotVideo extends React.Component
+  componentDidMount: ->
+    node = ReactDOM.findDOMNode @refs.root
+    $(node).transition 'fade up'
+
   render: ->
     {host, streamPort} = @props.robot
     <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"}
-      alt="streaming"/>
+      alt="streaming" style={{visibility: 'hidden'}} ref='root'/>
 
 # Wrapper for command object
 Command = (icon, onAction, offAction) ->
@@ -85,6 +94,7 @@ class TextCommand extends React.Component
       left: '30%'
       right: '30%'
       width: '40%'
+
     <form onSubmit={@sendCommand.bind @} className='ui form'>
       <div className="field">
         <input style={style} type='text' ref='input'/>
