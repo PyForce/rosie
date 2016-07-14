@@ -59,9 +59,11 @@ CommandComponent = React.createClass
   render: ->
     {icon, active} = @props
     <li>
-      <a className={"icon#{if active then ' active' else ''}"} onClick={@run}>
-        <img src={icon} alt="cmd" className="shadow-map"/>
-      </a>
+      <button onClick={@run}
+        className="blue huge circular ui icon button#{if active then\
+        ' active basic' else ''}">
+        <i className={"icon #{icon}"}></i>
+      </button>
     </li>
 
 class CommandList extends React.Component
