@@ -1,10 +1,10 @@
 # commands
 commands =
-    path: Command 'static/icons/b-p2p.svg', (-> car.setAuto(); car.path = on),
+    path: Command 'line chart', (-> car.setAuto(); car.path = on),
         -> car.path = off
-    wasd: Command 'static/icons/b-key.svg', (-> car.setManual()),
+    wasd: Command 'game', (-> car.setManual()),
         -> car.setAuto()
-    text: Command 'static/icons/b-text.svg', -> car.setAuto()
+    text: Command 'font', -> car.setAuto()
 
 map.on 'click', (e) ->
     if car.path
