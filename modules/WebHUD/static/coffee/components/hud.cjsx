@@ -66,6 +66,31 @@ CommandComponent = React.createClass
       </button>
     </li>
 
+class TextCommand extends React.Component
+  sendCommand: (e) ->
+    e.preventDefault()
+    inputNode = ReactDOM.findDOMNode @refs.input
+    # send command to robot
+    @props.robot.postCommand inputNode.value
+    inputNode.value = ''
+
+  componentDidMount: ->
+    inputNode = ReactDOM.findDOMNode @refs.input
+    inputNode.focus()
+
+  render: ->
+    style =
+      position: 'fixed'
+      top: '20%'
+      left: '30%'
+      right: '30%'
+      width: '40%'
+    <form onSubmit={@sendCommand.bind @} className='ui form'>
+      <div className="field">
+        <input style={style} type='text' ref='input'/>
+      </div>
+    </form>
+
 class CommandList extends React.Component
   constructor: (@props) ->
     @state = commands: {}
