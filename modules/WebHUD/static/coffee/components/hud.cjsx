@@ -46,7 +46,7 @@ Command = (icon, onAction, offAction) ->
   active: false
 
 
-CommandComponent = React.createClass
+class CommandComponent extends React.Component
   run: ->
     if not @props.active
       @props.onAction()
@@ -59,7 +59,7 @@ CommandComponent = React.createClass
   render: ->
     {icon, active} = @props
     <li>
-      <button onClick={@run}
+      <button onClick={@run.bind @}
         className="blue huge circular ui icon button#{if active then\
         ' active basic' else ''}">
         <i className={"icon #{icon}"}></i>
