@@ -235,7 +235,7 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
                 self.reference_speeds[points_per_segment * j + i].x_speed = - 3 * (s - 1) * (
                     s - 1) * x_i + 3 * s * s * x_f + alpha_x * (
                     3 * s * s - 2 * s) + beta_x * (3 * s * s - 4 * s + 1)
-                self.reference_speeds[points_per_segment * j + i].y = - 3 * (s - 1) * (
+                self.reference_speeds[points_per_segment * j + i].y_speed = - 3 * (s - 1) * (
                     s - 1) * y_i + 3 * s * s * y_f + alpha_y * (
                     3 * s * s - 2 * s) + beta_y * (3 * s * s - 4 * s + 1)
 

@@ -41,4 +41,4 @@ class FileNameProviderByTime(FileNameProvider):
         @rtype : str
         @return : "unique" file name
         """
-        return time.strftime("%Y%m%d%H%M%S")
+        return time.strftime("E%Y%m%d%H%M%S")
