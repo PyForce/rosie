@@ -93,10 +93,11 @@ class newServer:
         trajectory_parameters = DifferentialDriveTrajectoryParameters(locations_tuple, float(track_data[0]),
                                                                       self.motion.sample_time, float(track_data[1]))
 
-        if self.motion.finished:
+        if self.motion.ordered_stop:
             self.tracker.smooth_flag = False
             self.motion.trajectory_planner = self.cubic_trajectory_planner
             self.motion.movement_init(trajectory_parameters)
+            self.motion.movement_start()
             self.queue.put('path begin')
         else:
             self.queue.put('experiment running')
@@ -118,12 +119,13 @@ class newServer:
 
         locations_tuple = tuple(DifferentialDriveRobotLocation(x_planning[i], y_planning[i], 0.) for i in
                                 range(len(x_planning)))
-        trajectory_parameters = DifferentialDriveTrajectoryParameters(locations_tuple, t_planning[0],
+        trajectory_parameters = DifferentialDriveTrajectoryParameters(locations_tuple, t_planning[1],
                                                                       self.motion.sample_time)
         if self.motion.ordered_stop:
             self.tracker.smooth_flag = not points
             self.motion.trajectory_planner = self.linear_trajectory_planner
             self.motion.movement_init(trajectory_parameters)
+            self.motion.movement_start()
             if points:
                 self.queue.put('points begin')
             else:

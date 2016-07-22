@@ -112,9 +112,10 @@ class DifferentialDriveMovementController:
         Finish the movement
 
         """
+        self.timer_stop()
+        self.movement_stop()
         self.motor_handler.stop_motors()
         self.movement_supervisor.movement_end()
-        self.timer_stop()
 
     def movement_start(self):
         """
