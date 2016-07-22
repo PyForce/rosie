@@ -1,6 +1,7 @@
 import math
 import signal
 import time
+from MRobot.RobotState import DifferentialDriveRobotState
 
 __author__ = 'Silvio'
 
@@ -35,6 +36,7 @@ class DifferentialDriveMovementController:
         self.trajectory_tracker = trajectory_tracker
         self.odometry_localizer = odometry_localizer
         self.trajectory_planner = trajectory_planner
+        self.robot_state = DifferentialDriveRobotState()
 
         self.prev_time = 0
         self.timer_init()
@@ -90,7 +92,8 @@ class DifferentialDriveMovementController:
                                                                elapsed_time)
         self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-        location = self.odometry_localizer.update_location(delta_encoder_count_1, delta_encoder_count_2)
+        location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
+                                                                            delta_encoder_count_2)
 
         reference_location, reference_speed = self.trajectory_planner.get_next_point()
 
@@ -98,9 +101,11 @@ class DifferentialDriveMovementController:
 
         self.motor_handler.set_speeds(set_point_1, set_point_2)
 
-        self.movement_supervisor.movement_update(location, reference_location, reference_speed, u1, u2, angular_speed_1,
-                                                 set_point_1, current_1, angular_speed_2, set_point_2, current_2,
-                                                 battery_voltage, elapsed_time)
+        self.robot_state.update(location, global_position, reference_location, reference_speed, u1, u2, angular_speed_1,
+                                set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
+                                elapsed_time)
+
+        self.movement_supervisor.movement_update(self.robot_state)
 
     def movement_finish(self):
         """
