@@ -84,7 +84,7 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
 
         segments = len(trajectory_parameters.key_locations) - 1
         total_time = segments * trajectory_parameters.constant_t
-        self.points_count = total_time / trajectory_parameters.sample_time
+        self.points_count = int(total_time / trajectory_parameters.sample_time)
 
         self.reference_locations = [DifferentialDriveRobotLocation() for i in range(self.points_count)]
         self.reference_speeds = [DifferentialDriveRobotSpeed() for i in range(self.points_count)]
