@@ -177,7 +177,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         if self.updates_done >= len(self.x_position_vector):
             return
 
-        self.sample_time_vector = elapsed_time
+        self.sample_time_vector[self.updates_done] = elapsed_time
 
         self.x_position_vector[self.updates_done] = location.x_position
         self.y_position_vector[self.updates_done] = location.y_position
