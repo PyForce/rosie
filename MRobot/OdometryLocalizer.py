@@ -24,8 +24,8 @@ class DifferentialDriveOdometryLocalizer:
         """
         Update the robot's location
 
-        @rtype : DifferentialDriveRobotLocation
-        @return: Updated location
+        @rtype : tuple
+        @return: Updated local and global locations (DifferentialDriveRobotLocation, DifferentialDriveRobotLocation)
         @param delta_encoder_count_1: Count of wheel 1's encoder since last update
         @param delta_encoder_count_2: Count of wheel 2's encoder since last update
         @type delta_encoder_count_1: int
@@ -90,4 +90,4 @@ class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
         self.globalLocation.y_position += ds * math.sin(self.globalLocation.z_position + dz / 2)
         self.globalLocation.z_position += dz
 
-        return self.location
+        return self.location, self.globalLocation

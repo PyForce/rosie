@@ -24,38 +24,12 @@ class DifferentialDriveMovementSupervisor:
         pass
 
     @abstractmethod
-    def movement_update(self, location, reference_location, reference_speed, reference_x_speed, reference_y_speed,
-                        angular_speed_1, angular_ref_1, current_1, angular_speed_2, angular_ref_2, current_2,
-                        battery_voltage, elapsed_time):
+    def movement_update(self, robot_state):
         """
         Method to be called when the state of the robot changes during the movement
         
-        @param elapsed_time: time since last update
-        @param battery_voltage: voltage of the battery of the robot
-        @param current_2: current of the motor 2
-        @param angular_ref_2: angular speed of reference for motor 2
-        @param angular_speed_2: angular speed of motor 2
-        @param current_1: current of the motor 1
-        @param angular_ref_1: angular speed of reference for motor 1
-        @param angular_speed_1: angular speed of motor 1
-        @param reference_y_speed: corrected reference for speed in X axis
-        @param reference_x_speed: corrected reference for speed in Y axis
-        @param reference_speed: speed of reference of the robot
-        @param reference_location: location of reference of the robot
-        @param location: location of the robot
-        @type elapsed_time: float
-        @type battery_voltage: float
-        @type current_2: float
-        @type angular_ref_2: float
-        @type angular_speed_2: float
-        @type current_1: float
-        @type angular_ref_1: float
-        @type angular_speed_1: float
-        @type reference_y_speed: float
-        @type reference_x_speed: float
-        @type reference_speed: MRobot.RobotSpeed.DifferentialDriveRobotSpeed
-        @type reference_location: MRobot.RobotLocation.DifferentialDriveRobotLocation
-        @type location: MRobot.RobotLocation.DifferentialDriveRobotLocation
+        @type robot_state: MRobot.RobotState.DifferentialDriveRobotState
+        @param robot_state: the new state of the robot
         """
         pass
 
@@ -141,66 +115,40 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.current_2_vector = range(expected_updates)
         self.angular_2_ref_vector = range(expected_updates)
 
-    def movement_update(self, location, reference_location, reference_speed, reference_x_speed, reference_y_speed,
-                        angular_speed_1, angular_ref_1, current_1, angular_speed_2, angular_ref_2, current_2,
-                        battery_voltage, elapsed_time):
+    def movement_update(self, robot_state):
         """
         Method to be called when the state of the robot changes during the movement
 
-        @param elapsed_time: time since last update
-        @param battery_voltage: voltage of the battery of the robot
-        @param current_2: current of the motor 2
-        @param angular_ref_2: angular speed of reference for motor 2
-        @param angular_speed_2: angular speed of motor 2
-        @param current_1: current of the motor 1
-        @param angular_ref_1: angular speed of reference for motor 1
-        @param angular_speed_1: angular speed of motor 1
-        @param reference_y_speed: corrected reference for speed in X axis
-        @param reference_x_speed: corrected reference for speed in Y axis
-        @param reference_speed: speed of reference of the robot
-        @param reference_location: location of reference of the robot
-        @param location: location of the robot
-        @type elapsed_time: float
-        @type battery_voltage: float
-        @type current_2: float
-        @type angular_ref_2: float
-        @type angular_speed_2: float
-        @type current_1: float
-        @type angular_ref_1: float
-        @type angular_speed_1: float
-        @type reference_y_speed: float
-        @type reference_x_speed: float
-        @type reference_speed: MRobot.RobotSpeed.DifferentialDriveRobotSpeed
-        @type reference_location: MRobot.RobotLocation.DifferentialDriveRobotLocation
-        @type location: MRobot.RobotLocation.DifferentialDriveRobotLocation
+        @type robot_state: MRobot.RobotState.DifferentialDriveRobotState
+        @param robot_state: the new state of the robot
         """
         if self.updates_done >= len(self.x_position_vector):
             return
 
-        self.sample_time_vector[self.updates_done] = elapsed_time
+        self.sample_time_vector[self.updates_done] = robot_state.elapsed_time
 
-        self.x_position_vector[self.updates_done] = location.x_position
-        self.y_position_vector[self.updates_done] = location.y_position
-        self.z_position_vector[self.updates_done] = location.z_position
+        self.x_position_vector[self.updates_done] = robot_state.location.x_position
+        self.y_position_vector[self.updates_done] = robot_state.location.y_position
+        self.z_position_vector[self.updates_done] = robot_state.location.z_position
 
-        self.x_ref_vector[self.updates_done] = reference_location.x_position
-        self.y_ref_vector[self.updates_done] = reference_location.y_position
-        self.z_ref_vector[self.updates_done] = reference_location.z_position
+        self.x_ref_vector[self.updates_done] = robot_state.reference_location.x_position
+        self.y_ref_vector[self.updates_done] = robot_state.reference_location.y_position
+        self.z_ref_vector[self.updates_done] = robot_state.reference_location.z_position
 
-        self.x_ref_speed_vector[self.updates_done] = reference_speed.x_speed
-        self.y_ref_speed_vector[self.updates_done] = reference_speed.y_speed
-        self.z_ref_speed_vector[self.updates_done] = reference_speed.z_speed
+        self.x_ref_speed_vector[self.updates_done] = robot_state.reference_speed.x_speed
+        self.y_ref_speed_vector[self.updates_done] = robot_state.reference_speed.y_speed
+        self.z_ref_speed_vector[self.updates_done] = robot_state.reference_speed.z_speed
 
-        self.speed_x_ref_vector[self.updates_done] = reference_x_speed
-        self.speed_y_ref_vector[self.updates_done] = reference_y_speed
+        self.speed_x_ref_vector[self.updates_done] = robot_state.x_speed_ref
+        self.speed_y_ref_vector[self.updates_done] = robot_state.y_speed_ref
 
-        self.angular_speed_1_vector[self.updates_done] = angular_speed_1
-        self.angular_1_ref_vector[self.updates_done] = angular_ref_1
-        self.current_1_vector[self.updates_done] = current_1
+        self.angular_speed_1_vector[self.updates_done] = robot_state.angular_speed_1
+        self.angular_1_ref_vector[self.updates_done] = robot_state.angular_ref_1
+        self.current_1_vector[self.updates_done] = robot_state.current_1
 
-        self.angular_speed_2_vector[self.updates_done] = angular_speed_2
-        self.angular_2_ref_vector[self.updates_done] = angular_ref_2
-        self.current_2_vector[self.updates_done] = current_2
+        self.angular_speed_2_vector[self.updates_done] = robot_state.angular_speed_2
+        self.angular_2_ref_vector[self.updates_done] = robot_state.angular_ref_2
+        self.current_2_vector[self.updates_done] = robot_state.current_2
 
         self.updates_done += 1
 
