@@ -1,42 +1,7 @@
-from abc import ABCMeta, abstractmethod
 import math
+from Motion.TrajectoryTracker.Differential import DifferentialDriveTrajectoryTracker
 
 __author__ = 'Silvio'
-
-
-class DifferentialDriveTrajectoryTracker:
-    """
-    Abstract class to make trajectory tracking of a differential drive mobile robot
-
-    """
-    __metaclass__ = ABCMeta
-
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def track(self, reference_location, reference_speed, robot_location):
-        """
-        Method to determine the speed to drive the motors of the robot
-
-        @rtype : tuple
-        @return: speed of reference for the wheel (2 float) and corrected x and y speeds of reference (2 float)
-        @param robot_location: actual robot's location
-        @param reference_speed: speed of reference for the robot
-        @param reference_location: location of reference for the robot
-        @type robot_location: MRobot.RobotLocation.DifferentialDriveRobotLocation
-        @type reference_speed: MRobot.RobotSpeed.DifferentialDriveRobotSpeed
-        @type reference_location: MRobot.RobotLocation.DifferentialDriveRobotLocation
-        """
-        pass
-
-    @abstractmethod
-    def reset(self):
-        """
-        Reset the tracker
-
-        """
-        pass
 
 
 class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
@@ -48,7 +13,7 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
     @param constant_k1: constant k1 of the tracker
     @param constant_b: constant b of the tracker
     @param smooth_flag: don't use P point as reference("smooth control")
-    @type robot_parameters: MRobot.RobotParameters.DifferentialDriveRobotParameters
+    @type robot_parameters: Motion.RobotParameters.DifferentialDriveRobotParameters
     @type constant_k2: float
     @type constant_k1: float
     @type constant_b: float
@@ -79,9 +44,9 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
         @param robot_location: actual robot's location
         @param reference_speed: speed of reference for the robot
         @param reference_location: location of reference for the robot
-        @type robot_location: MRobot.RobotLocation.DifferentialDriveRobotLocation
-        @type reference_speed: MRobot.RobotSpeed.DifferentialDriveRobotSpeed
-        @type reference_location: MRobot.RobotLocation.DifferentialDriveRobotLocation
+        @type robot_location: Motion.RobotLocation.DifferentialDriveRobotLocation
+        @type reference_speed: Motion.RobotSpeed.DifferentialDriveRobotSpeed
+        @type reference_location: Motion.RobotLocation.DifferentialDriveRobotLocation
         """
         xd = reference_location.x_position
         yd = reference_location.y_position

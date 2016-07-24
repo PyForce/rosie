@@ -64,15 +64,15 @@ class DifferentialDriveMotorHandler:
         pass
 
 
-class SpeedControlledMotorHandler(DifferentialDriveMotorHandler):
+class HardSpeedControlledMH(DifferentialDriveMotorHandler):
     """
     Class to handle the speed of motors using a driver that make control of the speeds directly
 
     @param speed_motor_driver: Driver to be used to set the speeds of the motors
-    @type speed_motor_driver: MRobot.MotorDriver.DualSpeedMotorDriver
+    @type speed_motor_driver: Motion.MotorDriver.DualSpeedMotorDriver
     """
     def __init__(self, speed_motor_driver):
-        super(SpeedControlledMotorHandler, self).__init__()
+        super(HardSpeedControlledMH, self).__init__()
         self.speed_motor_driver = speed_motor_driver
 
     def set_speeds(self, speed_1, speed_2):
@@ -121,18 +121,18 @@ class SpeedControlledMotorHandler(DifferentialDriveMotorHandler):
         pass
 
 
-class SpeedControllerMotorHandler(DifferentialDriveMotorHandler):
+class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
     """
     Class to handle the speed of motors using an speed controller
 
     @param speed_controller: Controller to be used to control the speeds of the motors
     @param power_motor_driver: Drive to be used to set the power of the motors
-    @type power_motor_driver: MRobot.MotorDriver.DualPowerMotorDriver
-    @type speed_controller: MRobot.SpeedController.DualSpeedController
+    @type power_motor_driver: Motion.MotorDriver.DualPowerMotorDriver
+    @type speed_controller: Motion.SpeedController.DualSpeedController
     """
 
     def __init__(self, speed_controller, power_motor_driver):
-        super(SpeedControllerMotorHandler, self).__init__()
+        super(SoftSpeedControlledMH, self).__init__()
         self.power_motor_driver = power_motor_driver
         self.speed_controller = speed_controller
 
