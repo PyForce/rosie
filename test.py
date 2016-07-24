@@ -1,17 +1,18 @@
 from time import sleep
 
-from Motion.RobotLocation import DifferentialDriveRobotLocation
-from Motion.TrajectoryPlanner.Parameters import DifferentialDriveTrajectoryParameters
+from Motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
+from Motion.MotorHandler.Differential import SoftSpeedControlledMH
+from Motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
+from Motion.MotorHandler.SpeedController.Controller.PID import PIDSpeedController
+from Motion.MovementController.Differential import DifferentialDriveRobotParameters, \
+    DifferentialDriveMovementController, \
+    DifferentialDriveRobotLocation
+from Motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
+from Motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
+from Motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
+from Motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
+
 from Tools.FileNameProvider import FileNameProviderByTime
-from Motion.MotorHandler.MotorDriver import MD25MotorDriver
-from Motion.MotorHandler import SpeedControllerMotorHandler
-from Motion.MovementController import DifferentialDriveMovementController
-from Motion.MovementSupervisor import FileLoggerMovementSupervisor
-from Motion.Localizer.Differential import RungeKutta2OdometryLocalizer
-from Motion.RobotParameters import DifferentialDriveRobotParameters
-from Motion.MotorHandler.SpeedController import PIDSpeedController
-from Motion.TrajectoryPlanner import LinearTrajectoryPlanner
-from Motion.TrajectoryTracker import IOLinearizationTrajectoryTracker
 
 __author__ = 'Silvio'
 
@@ -27,7 +28,7 @@ if __name__ == '__main__':
                                           robot_parameters.constant_kd, robot_parameters.max_value_power,
                                           robot_parameters.min_value_power)
     power_motor_driver = MD25MotorDriver(1, 0x58)
-    motor_handler = SpeedControllerMotorHandler(speed_controller, power_motor_driver)
+    motor_handler = SoftSpeedControlledMH(speed_controller, power_motor_driver)
     movement_controller = DifferentialDriveMovementController(movement_supervisor, trajectory_planner,
                                                               odometry_localizer,
                                                               trajectory_tracker, motor_handler, robot_parameters,
