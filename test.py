@@ -1,16 +1,17 @@
 from time import sleep
-from MRobot.RobotLocation import DifferentialDriveRobotLocation
-from MRobot.TrajectoryParameters import DifferentialDriveTrajectoryParameters
-from MRobot.FileNameProvider import FileNameProviderByTime
-from MRobot.MotorDriver import MD25MotorDriver
-from MRobot.MotorHandler import SpeedControllerMotorHandler
-from MRobot.MovementController import DifferentialDriveMovementController
-from MRobot.MovementSupervisor import FileLoggerMovementSupervisor
-from MRobot.OdometryLocalizer import RungeKutta2OdometryLocalizer
-from MRobot.RobotParameters import DifferentialDriveRobotParameters
-from MRobot.SpeedController import PIDSpeedController
-from MRobot.TrajectoryPlanner import LinearTrajectoryPlanner
-from MRobot.TrajectoryTracker import IOLinearizationTrajectoryTracker
+
+from Motion.RobotLocation import DifferentialDriveRobotLocation
+from Motion.TrajectoryPlanner.Parameters import DifferentialDriveTrajectoryParameters
+from Tools.FileNameProvider import FileNameProviderByTime
+from Motion.MotorHandler.MotorDriver import MD25MotorDriver
+from Motion.MotorHandler import SpeedControllerMotorHandler
+from Motion.MovementController import DifferentialDriveMovementController
+from Motion.MovementSupervisor import FileLoggerMovementSupervisor
+from Motion.Localizer.Differential import RungeKutta2OdometryLocalizer
+from Motion.RobotParameters import DifferentialDriveRobotParameters
+from Motion.MotorHandler.SpeedController import PIDSpeedController
+from Motion.TrajectoryPlanner import LinearTrajectoryPlanner
+from Motion.TrajectoryTracker import IOLinearizationTrajectoryTracker
 
 __author__ = 'Silvio'
 

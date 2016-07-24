@@ -1,18 +1,20 @@
 import Queue
 import socket
 import math
-from MRobot.FileNameProvider import FileNameProviderByTime
-from MRobot.MotorDriver import MD25MotorDriver
-from MRobot.MotorHandler import SpeedControllerMotorHandler
-from MRobot.MovementController import DifferentialDriveMovementController
-from MRobot.MovementSupervisor import FileLoggerMovementSupervisor
-from MRobot.OdometryLocalizer import RungeKutta2OdometryLocalizer
-from MRobot.RobotLocation import DifferentialDriveRobotLocation
-from MRobot.RobotParameters import DifferentialDriveRobotParameters
-from MRobot.SpeedController import PIDSpeedController
-from MRobot.TrajectoryParameters import DifferentialDriveTrajectoryParameters
-from MRobot.TrajectoryPlanner import LinearTrajectoryPlanner, CubicTrajectoryPlanner
-from MRobot.TrajectoryTracker import IOLinearizationTrajectoryTracker
+from Motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
+from Motion.MotorHandler.Differential import SoftSpeedControlledMH
+from Motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
+from Motion.MotorHandler.SpeedController.Controller.PID import PIDSpeedController
+from Motion.MovementController.Differential import DifferentialDriveRobotParameters, \
+    DifferentialDriveMovementController, \
+    DifferentialDriveRobotLocation
+from Motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
+from Motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
+from Motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
+from Motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
+from Motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
+
+from Tools.FileNameProvider import FileNameProviderByTime
 
 
 class MySupervisor(FileLoggerMovementSupervisor):
@@ -30,7 +32,7 @@ class MySupervisor(FileLoggerMovementSupervisor):
     def movement_update(self, robot_state):
         """
 
-        @type robot_state: MRobot.RobotState.DifferentialDriveRobotState
+        @type robot_state: Motion.RobotState.DifferentialDriveRobotState
         """
         super(MySupervisor, self).movement_update(robot_state)
         self.to_list('position %f,%f,%f' % (
@@ -58,7 +60,7 @@ class newServer:
                                               robot_parameters.constant_kd, robot_parameters.max_value_power,
                                               robot_parameters.min_value_power)
         power_motor_driver = MD25MotorDriver(1, 0x58)
-        motor_handler = SpeedControllerMotorHandler(speed_controller, power_motor_driver)
+        motor_handler = SoftSpeedControlledMH(speed_controller, power_motor_driver)
         movement_controller = DifferentialDriveMovementController(self.movement_supervisor,
                                                                   self.linear_trajectory_planner,
                                                                   odometry_localizer,
