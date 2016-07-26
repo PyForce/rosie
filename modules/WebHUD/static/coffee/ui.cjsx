@@ -21,7 +21,7 @@ mountHUD = (robot) ->
 mountInfo = (robot) ->
     # show streaming
     ReactDOM.render <RobotVideo robot={robot}/>,
-        document.getElementById 'video-streaming'
+        document.getElementById 'streaming'
     # show info
     ReactDOM.render <RobotCard robot={robot}/>,
         document.getElementById 'robot-info-wrapper'
@@ -33,7 +33,7 @@ unmountHUD = ->
 
 unmountInfo = ->
     ReactDOM.unmountComponentAtNode(
-        document.getElementById 'video-streaming')
+        document.getElementById 'streaming')
     ReactDOM.unmountComponentAtNode(
         document.getElementById 'robot-info-wrapper')
 
