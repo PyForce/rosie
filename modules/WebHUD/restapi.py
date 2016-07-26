@@ -40,17 +40,13 @@ def profile():
 @app.route('/metadata', methods=['GET'])
 @allow_origin
 def metadata():
-    """
-    {
-        "name": "LTL",
-        "processor" : "RaspberryPi",
-        "motor_controller" : "Arduino Uno",
-        "size" : [0.3, 0.5, 0.34],
-        "photo": "http://photo_url",
-        "sensors": ["seensor1", "sensor2"]
+    settings = robot_handler.kernel.ROBOT.profile()
+    data = {
+        "name": settings['MOBILE_ROBOT'],
+        "thumbnail": url_for('.thumbnail'),
+        "vector": url_for('.vector'),
     }
-    """
-    return jsonify(**json.loads(metadata.__doc__))
+    return jsonify(**data)
 
 
 @app.route('/thumbnail', methods=['GET'])
