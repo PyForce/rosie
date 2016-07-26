@@ -1,11 +1,12 @@
-from flask import request, jsonify, json
+from flask import request, jsonify, json, url_for, send_file
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
 from modules.kernel import handler as robot_handler
 
 from threading import Thread
 from time import sleep
-
+import os
+from settings import PROFILE
 
 client_count = 0
 
@@ -50,6 +51,20 @@ def metadata():
     }
     """
     return jsonify(**json.loads(metadata.__doc__))
+
+
+@app.route('/thumbnail', methods=['GET'])
+@allow_origin
+def thumbnail():
+    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'thumbnail.png')
+    return send_file(filePath)
+
+
+@app.route('/vector', methods=['GET'])
+@allow_origin
+def vector():
+    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'vector.svg')
+    return send_file(filePath)
 
 
 @app.route('/sensor/<string:name>', methods=['GET'])
