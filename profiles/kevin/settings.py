@@ -8,22 +8,23 @@ Appearance
 """
 
 # Name of the mobile robot
-MOBILE_ROBOT = 'LTL3.0'
+MOBILE_ROBOT = 'Kevin'
 
 # Distance between the wheels (in meters)
-DISTANCE = 0.249
+DISTANCE = 0.154
 
 # Radius of the wheels (in meters)
-RADIUS = 0.04911
+RADIUS = 0.325
 
 # Distance between the rear and the front part of the robot (in meters)
-LARGE = 0.277
+LARGE = 0.24
 
 # Distance between left and the right part of the robot (in meters)
-WIDTH = 0.30
+WIDTH = 0.18
 
 # Distance between the floor and the highest part of the robot (in meters)
-HEIGHT = 0.24
+HEIGHT = 0.23
+
 
 """
 Motor Controller
@@ -50,7 +51,7 @@ Motors
 """
 
 # Resolution of encoders (In steps per turn)
-ENCODER_STEPS = 270.9
+ENCODER_STEPS = 40.0
 
 # Max speed (in radians by seconds)
 MAX_SPEED = 8.0
