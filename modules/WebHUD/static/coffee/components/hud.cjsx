@@ -29,7 +29,7 @@ class RobotCard extends React.Component
         <li>Robot: {name}</li>
         <li>SBC: {processor}</li>
         <li>Service Board: {motor_controller}</li>
-        <li>Dim: {size[0]} x {size[1]} x {size[2]}</li>
+        <li>Dim: {size[1]} x {size[0]} x {size[2]}</li>
         <li>Pos: ({x.toFixed 3}, {y.toFixed 3})</li>
       </ul>
     </div>
