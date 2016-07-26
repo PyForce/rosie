@@ -58,9 +58,9 @@ class CommandComponent extends React.Component
   run: ->
     if not @props.active
       @props.onAction()
-      @props.switchActive @props._key, true
+      @props.switchActive @props.name, true
     else
-      @props.switchActive @props._key, false
+      @props.switchActive @props.name, false
       if @props.offAction
         @props.offAction()
 
@@ -124,7 +124,7 @@ class CommandList extends React.Component
   render: ->
     <div className="commands">
       <ul className="commands-list">
-        {<CommandComponent key={k} _key={k} {...cmd}
+        {<CommandComponent key={k} name={k} {...cmd}
           switchActive={@switchActive.bind @}/> for k, cmd of @state.commands}
       </ul>
     </div>
