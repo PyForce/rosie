@@ -33,7 +33,10 @@ $(document).ready () ->
         # 83 -> S
         # 68 -> D
 
-        if [87, 65, 83, 68].some((element, index, array) -> element == e.which)
+        # 81 -> Q
+        # 69 -> E
+
+        if [87, 65, 83, 68, 81, 69].some((element, index, array) -> element == e.which)
           pressed.add e.which
     , true
 
