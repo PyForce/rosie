@@ -71,9 +71,6 @@ class RobotOverlay extends L.ImageOverlay
     getLatLng: () ->
         @_latlng
 
-    setDimensions: (@_width, @_height) ->
-        @_recalcBounds()
-
 
 `var themap={
     "name" : "Gustavo's House",
