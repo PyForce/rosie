@@ -10,7 +10,8 @@ class Robot
         @overlay.addTo map
         @getMetadata (data) =>
             @overlay.setDimensions data.size[0], data.size[1]
-            @move data.pos
+        @getOdometry (data) =>
+            @move data
 
     move: (@pos) ->
         @overlay.setLatLng [@pos.x, @pos.y]
