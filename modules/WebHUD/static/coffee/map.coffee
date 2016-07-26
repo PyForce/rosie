@@ -21,6 +21,7 @@ L.DomUtil.setPosition = (el, point, angle) ->
         el.style.left = "#{point.x}px"
         el.style.top = "#{point.y}px"
 
+
 class RobotOverlay extends L.ImageOverlay
     constructor: (@_url, latlng, @_width, @_height, options) ->
         @_latlng = L.latLng latlng
@@ -68,6 +69,10 @@ class RobotOverlay extends L.ImageOverlay
 
     getLatLng: () ->
         @_latlng
+
+    setDimensions: (@_width, @_height) ->
+        @_recalcBounds()
+
 
 `var geodata = {
     "type": "FeatureCollection",
