@@ -2,7 +2,7 @@
 class RobotCard extends React.Component
   constructor: (@props) ->
     @state =
-      photo: ''
+      thumbnail: ''
       name: ''
       processor: ''
       motor_controller: ''
@@ -20,10 +20,11 @@ class RobotCard extends React.Component
     $(node).transition 'fade left'
 
   render: ->
-    {photo, name, processor, motor_controller, size, x, y} = @state
+    {thumbnail, name, processor, motor_controller, size, x, y} = @state
+    {host, port} = @props.robot
     <div id='robot-logo' className='ui raised compact segment' ref='root'
       style={{visibility: 'hidden'}}>
-      <img src={photo} alt="robot"/>
+      <img src={"http://#{host}:#{port}#{thumbnail}"} alt="robot"/>
       <ul>
         <li>Robot: {name}</li>
         <li>SBC: {processor}</li>
@@ -43,7 +44,8 @@ class RobotVideo extends React.Component
   render: ->
     {host, streamPort} = @props.robot
     <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"}
-      alt="streaming" style={{visibility: 'hidden'}} ref='root'/>
+      alt="streaming" style={{visibility: 'hidden'}} ref='root'
+      id='video-streaming'/>
 
 # Wrapper for command object
 Command = (icon, onAction, offAction) ->

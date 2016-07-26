@@ -1,11 +1,12 @@
-from flask import request, jsonify, json
+from flask import request, jsonify, json, url_for, send_file
 from WebHUD import app, sio, emit
 from WebHUD.utils import allow_origin
 from modules.kernel import handler as robot_handler
 
 from threading import Thread
 from time import sleep
-
+import os
+from settings import PROFILE
 
 client_count = 0
 
@@ -39,17 +40,27 @@ def profile():
 @app.route('/metadata', methods=['GET'])
 @allow_origin
 def metadata():
-    """
-    {
-        "name": "LTL",
-        "processor" : "RaspberryPi",
-        "motor_controller" : "Arduino Uno",
-        "size" : [0.3, 0.5, 0.34],
-        "photo": "http://photo_url",
-        "sensors": ["seensor1", "sensor2"]
+    settings = robot_handler.kernel.ROBOT.profile()
+    data = {
+        "name": settings['MOBILE_ROBOT'],
+        "thumbnail": url_for('.thumbnail'),
+        "vector": url_for('.vector'),
     }
-    """
-    return jsonify(**json.loads(metadata.__doc__))
+    return jsonify(**data)
+
+
+@app.route('/thumbnail', methods=['GET'])
+@allow_origin
+def thumbnail():
+    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'thumbnail.png')
+    return send_file(filePath)
+
+
+@app.route('/vector', methods=['GET'])
+@allow_origin
+def vector():
+    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'vector.svg')
+    return send_file(filePath)
 
 
 @app.route('/sensor/<string:name>', methods=['GET'])
