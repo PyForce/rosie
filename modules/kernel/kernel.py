@@ -243,10 +243,10 @@ def _user():
     """
     #XXX find another way
     global KEYS
-    x, y = 0, 0
+    x, y , z = 0, 0, 0
     print('USER MODE: STARTED')
     while USER_THREAD:
-        dx, dy = 0, 0
+        dx, dy ,dz = 0, 0, 0
         if 87 in KEYS:  # W
             dy+=8
         if 65 in KEYS:  # A
@@ -255,9 +255,20 @@ def _user():
             dy-=8
         if 68 in KEYS:  # D
             dx+=8
+        if 81 in KEYS:  # Q
+            dz-=8
+        if 69 in KEYS:  # E          
+            dz+=8
+        
         x=(x+dx)/2.0
         y=(y+dy)/2.0
-        ROBOT.async_request((x,y))
+        z=(z+dz)/2.0
+        
+        if dx or dy or round(x,2) or round(y,2):
+            ROBOT.async_request((x,y))
+        elif round(z,2):
+            ROBOT.async_request((0,0),z)
+            
         time.sleep(0.1)
     ROBOT.end_current_task()
     KEYS=[]
