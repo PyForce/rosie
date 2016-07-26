@@ -1,15 +1,22 @@
 # Class that wraps robot communication
 class Robot
-    constructor: (imageUrl, host, port, streamPort) ->
+    constructor: (host, port, streamPort) ->
         @host = host || document.domain
         @port = if port == undefined then location.port else port
         @streamPort = if streamPort == undefined then 8080 else streamPort
         @manual = off
         @path = off
-        @overlay = new RobotOverlay imageUrl, [0, 0], 0.3, 0.3
-        @overlay.addTo map
+
         @getMetadata (data) =>
-            @overlay.setDimensions data.size[0], data.size[1]
+            imageUrl = "http://#{@host}:#{@port}#{data.vector}"
+            @overlay = new RobotOverlay imageUrl, [0, 0], 0.3, 0.3
+            @overlay.addTo map
+            $(@overlay._image).click =>
+                # show HUD
+                mountHUD @
+                # don't propagate event
+                false
+
         @getOdometry (data) =>
             @move data
 

@@ -357,11 +357,11 @@ class Controller:
                                 str(self.x_position)+" "+
                                 str(self.z_position)+"\n")
         #send position
-        self.COUNTER_POS+=1
-        if self.COUNTER_POS==3:
-            self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
-            self.COUNTER_POS=0;
-		
+        # self.COUNTER_POS+=1
+        # if self.COUNTER_POS==3:
+        self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
+        self.COUNTER_POS=0;
+
         return delta_encoder_1, delta_encoder_2
 
     def action_exec(self):
