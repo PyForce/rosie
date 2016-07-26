@@ -10,6 +10,7 @@ __version__ = '1.12'
 
 #---- Python import ----
 import os, sys, math, time
+from datetime import datetime
 # On Windows
 if sys.platform.startswith('win'):
     print('    PLATFORM: Windows')
@@ -20,6 +21,7 @@ else:
     import signal
 
 #---- rOSi import ----
+import settings as global_settings
 from robot.control import pid, track
 from robot.load import SETTINGS as settings
 
@@ -30,7 +32,7 @@ if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
     try:
         exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')
         board=locals()['board']
-        print('    ROBOT: '+settings.MOBILE_ROBOT)
+        print('    NAME: '+settings.MOBILE_ROBOT)
     except:
         board=None
 
@@ -69,7 +71,15 @@ class Controller:
         self.SEND_POSITION = lambda x, y, theta: None
         self.COUNTER_POS = 0
         self.reference = track.Track()
-        self._start_move=None     
+        self._start_move=None   
+        self.motion=None
+        self.angle=0
+        self.difference=2*math.pi
+        self.request=None
+        
+        self.log_file=None
+        if global_settings.LOG:
+            self.log_file=open(os.path.join(os.getcwd(),'logs',"pos.log"),'w')      
         
         # On Windows
         if sys.platform.startswith('win'):
@@ -128,6 +138,7 @@ class Controller:
         >>> controller=Controller()
         >>> controller.move(track)
         """
+        self.motion="move"
         self.smooth = smooth
         #---- reset counter and PID (software) ----
         self.count = 0      
@@ -136,6 +147,18 @@ class Controller:
         #---- start the movement ----
         trace['sample_time']= self.sample_time    
         self.reference.generate(**trace)
+        self.finished = False
+        self._start_move()
+
+    def rotate(self, angle):
+        self.motion="rotate"
+        self.angle=angle
+        self.difference=2**32
+        #---- reset counter and PID (software) ----
+        self.count = 0      
+        if not settings.PID:
+            pid.reset()
+        #---- start the rotation ----
         self.finished = False
         self._start_move()
 
@@ -184,22 +207,36 @@ class Controller:
         #---- calculate the speed for each wheel ----
         encoder1, encoder2, _ = self.get_state()
         delta_encoder_1, delta_encoder_2 = self.navigation(encoder1, encoder2)
-        #---- PID by software ----
-        if not settings.PID:
-            elapsed = pid.process_time()                        
-            set_point1, set_point2 = self._tracking()
-            set_point1, set_point2 = pid.speeds_regulation(set_point1, set_point2,
-                                                           delta_encoder_1, delta_encoder_2,
-                                                           elapsed, 0, 0, 0)
-        #---- PID by hardware ----
-        else:
-            set_point1, set_point2 = self._tracking()
-        #---- set calculated speeds ----
-        self.set_speed(set_point1, set_point2)
-        #---- condition of stop ----
-        self.count += 1
-        if self.count >= self.reference.n_points:
-            self.finished = True
+        #---- displacement ----
+        if self.motion=="move":
+            #---- PID by software ----
+            if not settings.PID:
+                elapsed = pid.process_time()                        
+                set_point1, set_point2 = self._tracking()
+                set_point1, set_point2 = pid.speeds_regulation(set_point1, set_point2,
+                                                               delta_encoder_1, delta_encoder_2,
+                                                               elapsed, 0, 0, 0)
+            #---- PID by hardware ----
+            else:
+                set_point1, set_point2 = self._tracking()
+            #---- set calculated speeds ----
+            self.set_speed(set_point1, set_point2)
+            #---- condition of stop ----
+            self.count += 1
+            if self.count >= self.reference.n_points:
+                self.finished = True
+        #---- rotation ----
+        elif self.motion=="rotate":
+            if self.angle<0:
+                self.set_speed(2, -2)
+            else:
+                self.set_speed(-2, 2)
+            z_position=self.z_position-int(self.z_position/(2*math.pi))*2*math.pi
+            tmp=abs(self.angle-z_position)
+            if tmp<self.difference and tmp>0.1:
+                self.difference=tmp
+            else:
+                self.finished = True
     
     def _unix_timer_start(self):
         """
@@ -313,12 +350,18 @@ class Controller:
         self.y_position += ds * math.sin(self.z_position + dz / 2)
         self.z_position += dz
 
+        #log position
+        if global_settings.LOG:
+            self.log_file.write(datetime.now().time().isoformat()+" "+
+                                str(-self.y_position)+" "+
+                                str(self.x_position)+" "+
+                                str(self.z_position)+"\n")
         #send position
-        self.COUNTER_POS+=1
-        if self.COUNTER_POS==3:
-            self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
-            self.COUNTER_POS=0;
-		
+        # self.COUNTER_POS+=1
+        # if self.COUNTER_POS==3:
+        self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
+        self.COUNTER_POS=0;
+
         return delta_encoder_1, delta_encoder_2
 
     def action_exec(self):

@@ -16,6 +16,14 @@ DISTANCE = 0.2995
 # Radius of the wheels (in meters)
 RADIUS = 0.05
 
+# Distance between the rear and the front part of the robot (in meters)
+LARGE = 0.20
+
+# Distance between left and the right part of the robot (in meters)
+WIDTH = 0.42
+
+# Distance between the floor and the highest part of the robot (in meters)
+HEIGHT = 0
 
 """
 Motor Controller

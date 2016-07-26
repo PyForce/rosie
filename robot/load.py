@@ -16,8 +16,10 @@ def load_global_settings():
     global SETTINGS
     if os.path.exists(os.path.join(os.getcwd(),'profiles',global_settings.PROFILE)):
         try:
-            exec("from profiles."+global_settings.PROFILE+" import settings")
-            SETTINGS=locals()['settings']
+            # substitute dirty exec call
+            _temp = __import__("profiles.%s" % (global_settings.PROFILE),
+                               globals(), locals(), ['settings'], -1)
+            SETTINGS = _temp.settings
             print('    PROFILE: '+global_settings.PROFILE)
         except:
             SETTINGS=None
