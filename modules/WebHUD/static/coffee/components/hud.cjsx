@@ -44,7 +44,8 @@ class RobotVideo extends React.Component
   render: ->
     {host, streamPort} = @props.robot
     <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"}
-      alt="streaming" style={{visibility: 'hidden'}} ref='root'/>
+      alt="streaming" style={{visibility: 'hidden'}} ref='root'
+      id='video-streaming'/>
 
 # Wrapper for command object
 Command = (icon, onAction, offAction) ->
