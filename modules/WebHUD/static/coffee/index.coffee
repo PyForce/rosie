@@ -51,6 +51,5 @@ $(document).ready () ->
     , 100
 
 
-imageUrl = "static/images/LTL.svg"
-car = new Robot imageUrl
+car = new Robot()
 
