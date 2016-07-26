@@ -1,13 +1,13 @@
 DEBUG = false
 
 $(document).ready () ->
-    setInterval () ->
-        car.getOdometry (pos) ->
-            # car.setLatLng [pos.x, pos.y]
-            # car.setAngle(pos.theta*180/Math.pi) # converting to degrees
-            # car.setAngle(pos.theta)
-            car.move pos
-    , 100
+    # setInterval () ->
+    #     car.getOdometry (pos) ->
+    #         # car.setLatLng [pos.x, pos.y]
+    #         # car.setAngle(pos.theta*180/Math.pi) # converting to degrees
+    #         # car.setAngle(pos.theta)
+    #         car.move pos
+    # , 100
 
     # websocket
     sio = io.connect "http://#{document.domain}:#{location.port}"
@@ -18,8 +18,9 @@ $(document).ready () ->
     sio.on 'echo reply', (msg) ->
         console.log msg.text
 
-    sio.on 'position', (data) ->
-        console.log 'position', data
+    sio.on 'position', (pos) ->
+        # console.log 'position', data
+        car.move pos
 
     sio.emit 'echo',
         'text': 'hello socket.io world!'
