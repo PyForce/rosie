@@ -9,7 +9,7 @@ class Robot
 
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
-            @overlay = new RobotOverlay imageUrl, [0, 0], 0.3, 0.3
+            @overlay = new RobotOverlay imageUrl, [0, 0], data.size[1], data.size[0]
             @overlay.addTo map
             $(@overlay._image).click =>
                 # show HUD
