@@ -42,12 +42,6 @@ map.on 'click', (e) ->
         car.setPath [[e.latlng.lat, e.latlng.lng]]
     else unmountHUD()
 
-$(car.overlay._image).click ->
-    # show HUD
-    mountHUD car
-    # don't propagate event
-    false
-
 $(window).resize ->
     if Modernizr.mq '(max-width: 600px)'
         unmountInfo()
