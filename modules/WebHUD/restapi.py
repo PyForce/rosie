@@ -45,6 +45,7 @@ def metadata():
         "name": settings['MOBILE_ROBOT'],
         "thumbnail": url_for('.thumbnail'),
         "vector": url_for('.vector'),
+        "size": [settings['LARGE'], settings['WIDTH'], settings['HEIGHT']]
     }
     return jsonify(**data)
 
