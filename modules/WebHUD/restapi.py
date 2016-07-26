@@ -180,7 +180,3 @@ def disconnect():
 def echo_reply(data):
     print('client echo:', data)
     sio.emit('echo reply', 'hello at server side')
-
-
-def send_position(x, y, theta):
-    sio.emit('position', {"x": x, "y": y, 'theta': theta})

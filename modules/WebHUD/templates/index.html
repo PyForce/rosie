@@ -5,7 +5,7 @@
     <title>WebHUD</title>
 
     <!-- General styles -->
-    <link rel="stylesheet" type="text/css" href="static/lib/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="static/lib/css/semantic.min.css" />
     <link rel="stylesheet" type="text/css" href="static/css/navigation.css" />
     <link rel="stylesheet" href="static/css/icon-menu.css">
     <link rel="stylesheet" href="static/css/style.css">
@@ -14,201 +14,90 @@
     <!-- <link rel="stylesheet" href="static/lib/css/leaflet.css" /> -->
     <link rel="stylesheet" href="static/lib/css/leaflet-1.0.css" />
 
+    <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico"/>
 </head>
 
 <body>
-    <nav class="nav-bar nav-bar-fixed-top">
-        <ul class="nav nav-bar-nav">
-            <li>
-                <a id="menu" class="clickable">
-                    <i class="glyphicon glyphicon-th-list"></i>
-                </a>
-            </li>
-        </ul>
-        <ul class="nav nav-bar-nav nav-bar-right">
-            <li><a id="about" class="clickable">About</a>
-            </li>
-        </ul>
-    </nav>
-    <div id="overlay"></div>
-
-    <!-- Navigation -->
-    <!--<div class="top-bar">
-            <div class="row">
-                <div class="col-md-12">
-                    <img class="icon" id="i-settings" title="Settings" src="static/icons/settings.png"></img>
-                    <img class="icon" id="i-menu" title="Menu" src="static/icons/menu.png"></img>
-                    <img class="icon" id="i-key" title="Key mode" src="static/icons/b-key.png"></img>
-                    <img class="icon" id="i-text" title="Text mode" src="static/icons/b-text.png"></img>
-                    <img class="icon" id="i-p2p" title="Point to point mode" src="static/icons/b-p2p.png"></img>
-                </div>
-            </div> -->
-    <!-- Settings list -->
-    <!-- <div class="row">
-                <div class="col-md-12">
-                    <div class="responsive">
-                        <div class="list-menu" id="settings">
-                            <ul>
-                                <li><a>Setting 1</a></li>
-                                <li><a>Setting 2</a></li>
-                                <li><a>Setting 3</a></li>
-                                <li><a>Setting 4</a></li>
-                                <li><a>Setting 5</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-    <!-- Menu list -->
-    <!-- <div class="nav-bar">
-                <div class="col-md-12">
-                    <div class="list-menu" id="menu">
-                        <ul>
-                            <li><a id="m-item1">Text</a></li>
-                            <li><a id="m-item2">Key</a></li>
-                            <li><a id="m-item3">Point to Point</a></li>
-                            <li><a id="m-item4">Streaming</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div> -->
-
-    <div class="container-fluid">
-        <!-- <div class="column"> -->
-        <div class="side-bar transition out" data-transition="transition out">
-            <h2>Menu</h2>
-            <div class="side-bar-list-container">
-                <ul class="side-bar-list">
-                    <li><a id="settings" class="clickable">Settings</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div id="map-container" class="col-sm-10 col-md-10">
-            <div id="map"></div>
-        </div>
-
-        <div id="robot-info-wrapper" class="shadow-map transition out-right" data-transition="transition out-right">
-            <div id="robot-logo">
-                <img src="static/images/LTL2_blue.png" />
-
-                <ul>
-                    <li>Robot: LTL2</li>
-                    <li>SBC: RPi</li>
-                    <li>Service Board: Arduino Uno</li>
-                    <li>Dim: .41 x .23 x .35</li>
-                    <li>Pos: (1.2m, 3.4m)</li>
-                    <li>WiFi: -71dBm</li>
-
-                </ul>
-
-            </div>
-        </div>
-        <!-- </div> -->
-        <div class="commands">
-            <ul class="commands-list">
-                <li>
-                    <a id="p2p" class="icon">
-                        <img src="static/icons/b-p2p.svg" alt="p2p" class="shadow-map">
-                    </a>
-                </li>
-                <li>
-                    <a id="key" class="icon">
-                        <img src="static/icons/b-key.svg" alt="key" class="shadow-map">
-                    </a>
-                </li>
-                <li>
-                    <a id="text" class="icon">
-                        <img src="static/icons/b-text.svg" alt="text" class="shadow-map">
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <img id="video-streaming" src=""/>
+    <div class="ui sidebar left vertical inverted labeled icon menu">
+        <a class="item settings">
+            <i class="settings icon"></i>
+            Settings
+        </a>
     </div>
-
-    <!-- TEXT MODE -->
-    <div id="mode-text" class="modal-dialog modal-text transition in" data-transition="transition in">
-        <form id="form-text">
-            <!-- <div id="input-text"> -->
-            <input id="text-order" autocomplete="off" placeholder="Order" type="text">
-            <!-- <button id="btn-order" type="submit"> -->
-            <!-- </div> -->
-        </form>
-    </div>
-
-    <div id="settings-dialog" class="modal-dialog modal-settings transition out-top" data-transition="transition out-top">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close">
-                    <i class="glyphicon glyphicon-remove"></i>
-                </button>
-                <h4 class="modal-title">Settings</h4>
-            </div>
-            <div class="modal-body modal-body-with-panes">
-                <div class="modal-body-pane">
-                    <div>
-                        <form class="settings-container">
-                            <p class="prompt">Setup the application</p>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="cancel-btn btn btn-default">Cancel</button>
-                <button type="button" class="save-btn btn btn-primary">
-                    <span class="btn-label">
-                        <span class="save-btn-label-next">Apply</span>
-                    </span>
-                </button>
+    <div class="ui pusher">
+        <div class="ui blue top fixed inverted borderless icon menu">
+            <a class="item options">
+                <i class="options icon"></i>
+            </a>
+            <div class="right menu">
+                <a class="ui item">About</a>
             </div>
         </div>
-    </div>
 
-    <div id="about-dialog" class="modal-dialog transition out-top" data-transition="transition out-top">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close">
-                    <i class="glyphicon glyphicon-remove"></i>
-                </button>
-                <h4 class="modal-title">About</h4>
+        <div class="ui container">
+            <div id="map-container" class="column">
+                <div id="map"></div>
             </div>
-            <div class="modal-body modal-body-with-panes">
-                <div class="modal-body-pane">
-                    <div>
-                        <form class="settings-container">
-                            <p class="prompt about-text">This application it's designed by the <b>PyForce</b> group</p>
-                        </form>
-                    </div>
+
+            <div id="robot-info-wrapper"></div>
+
+            <div id="commands"></div>
+            <div id="video-streaming"></div>
+            <div id="mode-text"></div>
+        </div>
+
+        <div class="ui modal settings">
+            <i class="close icon"></i>
+            <div class="header">Settings</div>
+            <div class="content">Setup the application</div>
+        </div>
+
+        <div class="ui basic modal">
+            <i class="close icon"></i>
+            <div class="header">About</div>
+            <div class="content">
+                <div class="description">
+                    This application it's designed by the <b>PyForce</b> group
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="ok-btn btn btn-primary">
-                    <span class="btn-label">
-                        <span class="save-btn-label-next">OK</span>
-                    </span>
-                </button>
+            <div class="actions">
+                <div class="ui ok green basic inverted button">
+                    <i class="checkmark icon"></i>
+                    Ok
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Load libs -->
     <script src="static/lib/js/jquery-1.10.2.js"></script>
-    <script src="static/lib/js/bootstrap.min.js"></script>
-    <!--script src="static/lib/js/leaflet.js"></script-->
+    <script src="static/lib/js/semantic.min.js"></script>
     <script src="static/lib/js/leaflet-1.0.js"></script>
     <script src="static/lib/js/leaflet.plotter.min.js"></script>
     <script src="static/lib/js/socket.io-1.3.7.js"></script>
     <script src="static/lib/js/modernizr.min.js"></script>
+    <script src="static/lib/js/react.min.js"></script>
+    <script src="static/lib/js/react-dom.min.js"></script>
+
+    <!-- Load react components -->
+    <script src="static/js/components/hud.js"></script>
+    <script type="text/javascript">
+        $('.ui.menu>.item.options').click(function(){
+            $('.ui.sidebar').sidebar('toggle');
+        });
+        $('.ui.menu>.right.menu>.item').click(function(){
+            $('.ui.basic.modal').modal('show');
+        });
+        $('.ui.sidebar>.item.settings').click(function(){
+            $('.ui.settings.modal').modal('show');
+        });
+    </script>
 
     <!-- App specific libraries -->
+    <script src="static/js/robot.js"></script>
     <script src="static/js/map.js"></script>
-    <script src="static/js/ui-actions.js"></script>
-    <script src="static/js/sio.js"></script>
-    <script src="static/js/protocol.js"></script>
-    <script src="static/js/main.js"></script>
-    <script src="static/js/keyboard.js"></script>
+    <script src="static/js/index.js"></script>
+    <script src="static/js/ui.js"></script>
 
 </body>
 
