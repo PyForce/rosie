@@ -11,7 +11,7 @@ class Robot
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
             @overlay = new RobotOverlay imageUrl, [0, 0], 0.3, 0.3
             @overlay.addTo map
-            $(@overlay._image).click ->
+            $(@overlay._image).click =>
                 # show HUD
                 mountHUD @
                 # don't propagate event
