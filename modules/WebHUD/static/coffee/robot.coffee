@@ -101,3 +101,6 @@ class Robot
             if DEBUG
                 for prop in data
                     console.log "result.#{prop} = #{data[prop]}"
+
+
+car = new Robot()
