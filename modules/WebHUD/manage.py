@@ -5,6 +5,7 @@ sys.path.append(abspath(join(dirname(__file__), '..')))
 from WebHUD import app, sio
 from WebHUD.restapi import *
 from WebHUD.views import *
+from WebHUD import static
 
 host = '0.0.0.0'
 port = 5000
