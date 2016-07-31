@@ -6,9 +6,7 @@
 
     <!-- General styles -->
     <link rel="stylesheet" type="text/css" href="static/lib/css/semantic.min.css" />
-    <link rel="stylesheet" type="text/css" href="static/css/navigation.css" />
-    <link rel="stylesheet" href="static/css/icon-menu.css">
-    <link rel="stylesheet" href="static/css/style.css">
+    {{ css('less') }}
 
     <!-- Map related -->
     <!-- <link rel="stylesheet" href="static/lib/css/leaflet.css" /> -->
@@ -79,8 +77,6 @@
     <script src="static/lib/js/react.min.js"></script>
     <script src="static/lib/js/react-dom.min.js"></script>
 
-    <!-- Load react components -->
-    <script src="static/js/components/hud.js"></script>
     <script type="text/javascript">
         $('.ui.menu>.item.options').click(function(){
             $('.ui.sidebar').sidebar('toggle');
@@ -94,10 +90,7 @@
     </script>
 
     <!-- App specific libraries -->
-    <script src="static/js/robot.js"></script>
-    <script src="static/js/map.js"></script>
-    <script src="static/js/index.js"></script>
-    <script src="static/js/ui.js"></script>
+    {{ js('coffee', 'cjsx') }}
 
 </body>
 
