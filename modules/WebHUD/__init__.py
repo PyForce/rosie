@@ -7,6 +7,7 @@ app = Flask(__name__)
 sio = SocketIO(app)
 sio.init_app(app)
 
+app.config['STATIC_RUN_ON_REFRESH'] = False
 st = Static(app)
 
 if __name__ == '__main__':

@@ -54,3 +54,5 @@ def runner(command, filename, data, ext):
         _, cext = splitext(filename)
         dest = filename.replace(cext, ext)
         return dest, out
+
+st.runall()
