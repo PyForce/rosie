@@ -51,5 +51,3 @@ $(document).ready () ->
     , 100
 
 
-car = new Robot()
-
