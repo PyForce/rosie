@@ -46,7 +46,7 @@ class RobotOverlay extends L.ImageOverlay
             x: (bounds.min.x + bounds.max.x) / 2
             y: (bounds.min.y + bounds.max.y) / 2
 
-        L.DomUtil.setPosition image, bounds.max, @_angle
+        L.DomUtil.setPosition image, point, @_angle
         image.style.width = "#{size.x}px"
         image.style.height = "#{size.y}px"
         image.style.zIndex = '1000'
