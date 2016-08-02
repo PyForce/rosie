@@ -6,10 +6,8 @@ from robot import Robot
 from robot.motion.MovementController.Differential import DifferentialDriveRobotLocation
 from robot.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
 from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
-
 from robot.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
 from robot.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
-
 from tools.FileNameProvider import FileNameProviderByTime
 
 
@@ -53,22 +51,29 @@ class newServer:
         self.address = None
         self.index = 0
 
-    def process_path(self, data):
-        track_data = data.split(',')
-
+    def _extractXYTPlanning(self, track_data, index):
         x_planning = []
         y_planning = []
-        z_planning = []
+        t_planning = []
 
-        for i, string in enumerate(track_data[3:]):
+        
+        for i, string in enumerate(track_data[index:]):
             if i % 3 == 0:
                 x_planning.append(float(string))
             elif i % 3 == 1:
                 y_planning.append(float(string))
             else:
-                z_planning.append(float(string))
+                t_planning.append(float(string))
 
-        locations_tuple = tuple(DifferentialDriveRobotLocation(x_planning[i], y_planning[i], z_planning[i]) for i in
+        return x_planning, y_planning, t_planning
+
+
+
+    def process_path(self, data):
+        track_data = data.split(',')
+        x_planning, y_planning, t_planning = self._extractXYTPlanning(track_data, 3)
+
+        locations_tuple = tuple(DifferentialDriveRobotLocation(x_planning[i], y_planning[i], t_planning[i]) for i in
                                 range(len(x_planning)))
 
         trajectory_parameters = DifferentialDriveTrajectoryParameters(locations_tuple, float(track_data[0]),
@@ -85,18 +90,7 @@ class newServer:
 
     def process_reference_points(self, data, points):
         track_data = data.split(',')
-
-        x_planning = []
-        y_planning = []
-        t_planning = []
-
-        for i, string in enumerate(track_data[1:]):
-            if i % 3 == 0:
-                x_planning.append(float(string))
-            elif i % 3 == 1:
-                y_planning.append(float(string))
-            else:
-                t_planning.append(float(string))
+        x_planning, y_planning, t_planning = self._extractXYTPlanning(track_data, 1)
 
         locations_tuple = tuple(DifferentialDriveRobotLocation(x_planning[i], y_planning[i], 0.) for i in
                                 range(len(x_planning)))
@@ -131,28 +125,24 @@ class newServer:
                                                   self.r.motion.robot_state.current_1, self.r.motion.robot_state.current2))
 
     def process_position(self, data):
+        current_position = self.r.position()
         if data == 'ask':
-            self.queue.put('position %f,%f,%f' % (
-                self.r.motion.odometry_localizer.globalLocation.x_position, self.r.motion.odometry_localizer.globalLocation.y_position,
-                self.r.motion.odometry_localizer.globalLocation.z_position))
+            self.queue.put('position %f,%f,%f' % current_position)
         elif data == 'reset':
             self.r.motion.odometry_localizer.reset_global_location()
-            self.queue.put('position %f,%f,%f' % (
-                self.r.motion.odometry_localizer.globalLocation.x_position, self.r.motion.odometry_localizer.globalLocation.y_position,
-                self.r.motion.odometry_localizer.globalLocation.z_position))
+            self.queue.put('position %f,%f,%f' % current_position)
         else:
             position_data = data.split(',')
 
-            x = float(position_data[0])
-            y = float(position_data[1])
-            t = float(position_data[2])
+            x, y, t = float(position_data[0]), float(position_data[1]), float(position_data[2])
 
-            delta_x = x - self.r.motion.odometry_localizer.globalLocation.x_position
-            delta_y = y - self.r.motion.odometry_localizer.globalLocation.y_position
+            x0, y0, z0 = current_position
+
+            delta_x = x - x0
+            delta_y = y - y0
 
             beta = math.atan2(delta_y, delta_x)
-            theta_n = math.atan2(math.sin(self.r.motion.odometry_localizer.globalLocation.z_position),
-                                 math.cos(self.r.motion.odometry_localizer.globalLocation.z_position))
+            theta_n = math.atan2(math.sin(z0), math.cos(z0))
             alpha = beta - theta_n
             l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
             xf_p = l * math.cos(alpha)
@@ -192,12 +182,6 @@ class newServer:
 
         elif command == 'parameter':
             self.process_parameter(data)
-
-        elif command == 'localization':
-            pass
-
-        elif command == 'movement':
-            pass
 
         else:
             self.queue.put('bad message')

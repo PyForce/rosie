@@ -1,5 +1,5 @@
 import time
-import server2
+import server
 import thread
 
 __author__ = 'Silvio'
