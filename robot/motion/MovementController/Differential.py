@@ -2,9 +2,6 @@ import math
 import signal
 import time
 
-__author__ = 'Silvio'
-
-
 class DifferentialDriveRobotLocation:
     """
     Structure containing the cartesian coordinates of a robot

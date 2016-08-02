@@ -5,7 +5,7 @@ import thread
 __author__ = 'Silvio'
 
 if __name__ == '__main__':
-    my_server = server2.newServer(50007)
+    my_server = server.newServer(50007)
     thread.start_new_thread(my_server.run, ())
     thread.start_new_thread(my_server.sender_thread(), ())
 

@@ -3,15 +3,13 @@ from robot import Robot
 from robot.motion.MovementController.Differential import DifferentialDriveRobotLocation
 from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
 
-__author__ = 'Silvio'
-
 if __name__ == '__main__':
     r = Robot()
 
     trajectory_parameters = DifferentialDriveTrajectoryParameters((DifferentialDriveRobotLocation(0., 0., 0.),
                                                                    DifferentialDriveRobotLocation(1., 0., 0.),
                                                                    DifferentialDriveRobotLocation(1., 1., 0.)), 5.,
-                                                                  r.motion.robot_parameters.sample_time)
+                                                                   r.motion.sample_time)
     r.track(trajectory_parameters)
 
     while True:
