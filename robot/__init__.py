@@ -141,6 +141,39 @@ class Robot:
         self.motion.movement_init(trajectory_parameters)
         self.motion.movement_start()
 
+    def position(self,x=None,y=None,theta=None):
+        """
+        Get or set the position of the robot
+        
+        :param x: X value of (X,Y)
+        :type x: float
+        :param y: Y value of (X,Y)
+        :type y: float
+        :param theta: orientation
+        :type theta: float      
+        :return: current position (when ``x``, ``y`` and ``theta`` are None)
+        :type: tuple
+        
+        >>> r = Robot()
+        >>> r.position(2,3,0.5)
+        >>> r.position()
+        (2, 3, 0.5)
+        """
+        #---- get position ----
+        if x == None and y == None and theta == None:
+            x = self.motion.odometry_localizer.globalLocation.x_position
+            y = self.motion.odometry_localizer.globalLocation.y_position
+            z = self.motion.odometry_localizer.globalLocation.z_position
+            return x, y, z
+        
+        # TODO: Check the invertion
+        #---- set position ----
+        self.motion.odometry_localizer.globalLocation.y_position = x
+        self.motion.odometry_localizer.globalLocation.x_position = y
+        self.motion.odometry_localizer.globalLocation.z_position = theta
+
+
+
     def change_supervisor(self, newsupervisor):
         self.motion.movement_supervisor = newsupervisor
 
