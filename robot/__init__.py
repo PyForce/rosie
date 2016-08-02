@@ -140,3 +140,9 @@ class Robot:
     def track(self, trajectory_parameters):
         self.motion.movement_init(trajectory_parameters)
         self.motion.movement_start()
+
+    def change_supervisor(self, newsupervisor):
+        self.motion.movement_supervisor = newsupervisor
+
+    def change_trajectory_planner(self, newplanner):
+        self.motion.trajectory_planner = newplanner

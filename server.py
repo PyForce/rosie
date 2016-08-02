@@ -1,18 +1,15 @@
 import Queue
 import socket
 import math
+from robot import Robot
 
-from robot.motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
-from robot.motion.MotorHandler.Differential import HardSpeedControlledMH
-from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
-from robot.motion.MovementController.Differential import DifferentialDriveRobotParameters, \
-    DifferentialDriveMovementController, \
-    DifferentialDriveRobotLocation
+from robot.motion.MovementController.Differential import DifferentialDriveRobotLocation
 from robot.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
 from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
+
 from robot.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
 from robot.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
-from robot.motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
+
 from tools.FileNameProvider import FileNameProviderByTime
 
 
@@ -45,30 +42,10 @@ class MySupervisor(FileLoggerMovementSupervisor):
 
 class newServer:
     def __init__(self, port):
-        robot_parameters = DifferentialDriveRobotParameters(0.05, 0.2995, 360, 0.05, 3.0, 3.0, 1.0, 1.0, 2.0, 127.0,
-                                                            -128.0, 0.05)
-        self.movement_supervisor = MySupervisor(robot_parameters, FileNameProviderByTime())
-        self.linear_trajectory_planner = LinearTrajectoryPlanner()
-        self.cubic_trajectory_planner = CubicTrajectoryPlanner()
-        odometry_localizer = RungeKutta2OdometryLocalizer(robot_parameters)
-        self.localizer = odometry_localizer
-        trajectory_tracker = IOLinearizationTrajectoryTracker(robot_parameters.constant_b, robot_parameters.constant_k1,
-                                                              robot_parameters.constant_k2, robot_parameters)
-        self.tracker = trajectory_tracker
+        self.r = Robot()
+        self.r.change_supervisor(MySupervisor(self.r.motion.robot_parameters, FileNameProviderByTime()))
+        
 
-        speed_controller = PIDSpeedController(robot_parameters.constant_kc, robot_parameters.constant_ki,
-                                              robot_parameters.constant_kd, robot_parameters.max_value_power,
-                                              robot_parameters.min_value_power)
-        power_motor_driver = MD25MotorDriver(1, 0x58)
-        motor_handler = SoftSpeedControlledMH(speed_controller, power_motor_driver)
-
-
-        movement_controller = DifferentialDriveMovementController(self.movement_supervisor,
-                                                                  self.linear_trajectory_planner,
-                                                                  odometry_localizer,
-                                                                  trajectory_tracker, motor_handler, robot_parameters,
-                                                                  robot_parameters.sample_time)
-        self.motion = movement_controller
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(('', port))
@@ -95,13 +72,13 @@ class newServer:
                                 range(len(x_planning)))
 
         trajectory_parameters = DifferentialDriveTrajectoryParameters(locations_tuple, float(track_data[0]),
-                                                                      self.motion.sample_time, float(track_data[1]))
+                                                                      self.r.motion.sample_time, float(track_data[1]))
 
-        if self.motion.ordered_stop:
-            self.tracker.smooth_flag = False
-            self.motion.trajectory_planner = self.cubic_trajectory_planner
-            self.motion.movement_init(trajectory_parameters)
-            self.motion.movement_start()
+        if self.r.motion.ordered_stop:
+            self.r.motion.trajectory_tracker.smooth_flag = False
+            cubic_trajectory_planner = CubicTrajectoryPlanner()           
+            self.r.change_trajectory_planner(cubic_trajectory_planner)
+            self.r.track(trajectory_parameters)
             self.queue.put('path begin')
         else:
             self.queue.put('experiment running')
@@ -124,12 +101,14 @@ class newServer:
         locations_tuple = tuple(DifferentialDriveRobotLocation(x_planning[i], y_planning[i], 0.) for i in
                                 range(len(x_planning)))
         trajectory_parameters = DifferentialDriveTrajectoryParameters(locations_tuple, t_planning[1],
-                                                                      self.motion.sample_time)
-        if self.motion.ordered_stop:
-            self.tracker.smooth_flag = not points
-            self.motion.trajectory_planner = self.linear_trajectory_planner
-            self.motion.movement_init(trajectory_parameters)
-            self.motion.movement_start()
+                                                                      self.r.motion.sample_time)
+        if self.r.motion.ordered_stop:
+            self.r.motion.trajectory_tracker.smooth_flag = not points
+
+            lineal_trajectory_planner = LinearTrajectoryPlanner()           
+            self.r.change_trajectory_planner(lineal_trajectory_planner)
+            self.r.track(trajectory_parameters)
+
             if points:
                 self.queue.put('points begin')
             else:
@@ -138,28 +117,29 @@ class newServer:
             self.queue.put('experiment running')
 
     def process_parameter(self, data):
+        # TODO: Fix This
         parameter, value = data.split(',')
         if parameter == 'constant_kc' or parameter == 'constant_ki' or parameter == 'constant_kd' or \
                         parameter == 'constant_k1' or parameter == 'constant_k2' or parameter == 'constant_b':
-            # self.motion.set_parameter(parameter, value)
+            # self.r.motion.set_parameter(parameter, value)
             self.queue.put('parameter ok')
         else:
             self.queue.put('parameter bad')
 
     def process_status(self):
-        self.queue.put('status %d,%d,%f,%f,%f' % (0, 0, self.motion.robot_state.battery_voltage,
-                                                  self.motion.robot_state.current_1, self.motion.robot_state.current2))
+        self.queue.put('status %d,%d,%f,%f,%f' % (0, 0, self.r.motion.robot_state.battery_voltage,
+                                                  self.r.motion.robot_state.current_1, self.r.motion.robot_state.current2))
 
     def process_position(self, data):
         if data == 'ask':
             self.queue.put('position %f,%f,%f' % (
-                self.localizer.globalLocation.x_position, self.localizer.globalLocation.y_position,
-                self.localizer.globalLocation.z_position))
+                self.r.motion.odometry_localizer.globalLocation.x_position, self.r.motion.odometry_localizer.globalLocation.y_position,
+                self.r.motion.odometry_localizer.globalLocation.z_position))
         elif data == 'reset':
-            self.localizer.reset_global_location()
+            self.r.motion.odometry_localizer.reset_global_location()
             self.queue.put('position %f,%f,%f' % (
-                self.localizer.globalLocation.x_position, self.localizer.globalLocation.y_position,
-                self.localizer.globalLocation.z_position))
+                self.r.motion.odometry_localizer.globalLocation.x_position, self.r.motion.odometry_localizer.globalLocation.y_position,
+                self.r.motion.odometry_localizer.globalLocation.z_position))
         else:
             position_data = data.split(',')
 
@@ -167,27 +147,25 @@ class newServer:
             y = float(position_data[1])
             t = float(position_data[2])
 
-            delta_x = x - self.localizer.globalLocation.x_position
-            delta_y = y - self.localizer.globalLocation.y_position
+            delta_x = x - self.r.motion.odometry_localizer.globalLocation.x_position
+            delta_y = y - self.r.motion.odometry_localizer.globalLocation.y_position
 
             beta = math.atan2(delta_y, delta_x)
-            theta_n = math.atan2(math.sin(self.localizer.globalLocation.z_position),
-                                 math.cos(self.localizer.globalLocation.z_position))
+            theta_n = math.atan2(math.sin(self.r.motion.odometry_localizer.globalLocation.z_position),
+                                 math.cos(self.r.motion.odometry_localizer.globalLocation.z_position))
             alpha = beta - theta_n
             l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
             xf_p = l * math.cos(alpha)
             yf_p = l * math.sin(alpha)
 
             trajectory_parameters = DifferentialDriveTrajectoryParameters((DifferentialDriveRobotLocation(0., 0., 0.),
-                                                                           DifferentialDriveRobotLocation(xf_p, yf_p,
-                                                                                                          0.)), t,
-                                                                          self.motion.sample_time)
+                                                                            DifferentialDriveRobotLocation(xf_p, yf_p,0.)), 
+                                                                            t, self.r.motion.robot_parameters.sample_time)
 
-            self.tracker.smooth_flag = True
-            self.motion.trajectory_planner = self.linear_trajectory_planner
-            self.motion.movement_init(trajectory_parameters)
-
-            self.motion.movement_start()
+            self.r.motion.trajectory_tracker.smooth_flag = True
+            lineal_trajectory_planner = LinearTrajectoryPlanner()           
+            self.r.change_trajectory_planner(lineal_trajectory_planner)
+            self.r.track(trajectory_parameters)
 
     def process_request(self, request):
 
@@ -203,7 +181,7 @@ class newServer:
             self.process_reference_points(data, False)
 
         elif command == 'experiment' and data == 'stop':
-            self.motion.movement_stop()
+            self.r.motion.movement_stop()
             self.queue.put('stop ok')
 
         elif command == 'position':
@@ -229,8 +207,8 @@ class newServer:
             if not self.queue.empty():
                 to_send = self.queue.get()
                 self.socket.sendto(to_send, self.address)
-            if not self.index == self.movement_supervisor.the_index:
-                to_send = self.movement_supervisor.the_list[self.index]
+            if not self.index == self.r.motion.movement_supervisor.the_index:
+                to_send = self.r.motion.movement_supervisor.the_list[self.index]
                 self.socket.sendto(to_send, self.address)
                 self.index += 1
                 if self.index >= 2000:
