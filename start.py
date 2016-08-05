@@ -22,7 +22,13 @@ if settings.MODULES:
         print("LOADING: ordex")
         from modules import ordex
         handler._ordex(ordex)
-    
+
+    if settings.MODULES & profiles.cluster:
+        print()
+        print('LOADING: cluster')
+        from modules import cluster
+        cluster.run()
+
     # load module: WebHUD
     if settings.MODULES & profiles.WebHUD:
         print("")
@@ -30,4 +36,3 @@ if settings.MODULES:
         from modules.WebHUD.manage import run_server
         if __name__ == '__main__':
             run_server()
-    
