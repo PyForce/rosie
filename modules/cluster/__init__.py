@@ -3,8 +3,12 @@ import threading
 from cluster import http_client, socketserver, ClusterHandler, ScanHandler
 from modules.kernel import kernel
 
+responder = None
+cluster = None
+
 
 def run():
+    global cluster, responder
     settings = kernel.ROBOT.profile()
     if settings.get('CLUSTER_VISIBLE'):
         responder_address = settings.get('CLUSTER_VISIBLE_BIND', ('', 9876))
@@ -21,3 +25,10 @@ def run():
     cluster_thread = threading.Thread(target=cluster.serve_forever)
     cluster_thread.daemon = True
     cluster_thread.start()
+
+
+def stop():
+    if responder:
+        responder.shutdown()
+    if cluster:
+        cluster.shutdown()
