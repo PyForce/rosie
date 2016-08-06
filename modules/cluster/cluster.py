@@ -35,6 +35,7 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
     def do_GET(self):
         pass
 
+    unsubs_re = re.compile(r'/unsubscribe\?host=(?P<host>.*)')
 
     def do_POST(self):
         if self.path == '/subscribe':
@@ -46,3 +47,12 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
             else:
                 self.robots[info['host']] = info['services']
                 self.send_response(200)
+        match = self.unsubs_re.match(self.path)
+        if match:
+            host = match.groups('host')
+            if host in self.robots:
+                del self.robots[host]
+                self.send_response(200)
+            else:
+                self.send_error(404,
+                                "The host doesn't match any registered robot")
