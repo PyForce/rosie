@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import settings.config as global_settings
 
 __all__=['Controller', '__version__']
 
@@ -26,8 +27,9 @@ from robot.control import pid, track
 from robot.load import SETTINGS as settings
 
 #==== import and load the robot control board ====
-board=None
-if os.path.exists(os.path.join(os.getcwd(),'robot','boards',settings.FILENAME)):
+board = None
+if os.path.exists(os.path.join(os.getcwd(), 'robot', 'boards',
+                  settings.FILENAME)):
     # TODO: Change this crab to something less painfull for debugging
     try:
         exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')

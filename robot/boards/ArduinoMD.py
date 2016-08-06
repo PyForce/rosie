@@ -7,17 +7,18 @@ from math import pi
 from threading import Thread
 from time import sleep
 
-import os
-import settings as global_settings
+import settings.config as global_settings
 
-settings=None
 
-if os.path.exists(os.path.join(os.getcwd(),'profiles',global_settings.PROFILE)):
+settings = None
+
+profile = global_settings.get('general', 'profile')
+if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
     try:
         exec("from profiles."+global_settings.PROFILE+" import settings")
         settings=locals()['settings']
     except:
-        settings=None
+        settings = None
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7
