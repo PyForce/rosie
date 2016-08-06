@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
+import math
+import os
+import sys
+import time
+from datetime import datetime
+import importlib
+
 import settings.config as global_settings
+from robot.control import pid, track
+from robot.load import SETTINGS as settings
+
 
 __all__=['Controller', '__version__']
 
@@ -10,8 +20,6 @@ __version__ = '1.12'
 #### IMPORT ####
 
 #---- Python import ----
-import os, sys, math, time
-from datetime import datetime
 # On Windows
 if sys.platform.startswith('win'):
     print('    PLATFORM: Windows')
@@ -22,9 +30,6 @@ else:
     import signal
 
 #---- rOSi import ----
-import settings as global_settings
-from robot.control import pid, track
-from robot.load import SETTINGS as settings
 
 #==== import and load the robot control board ====
 board = None

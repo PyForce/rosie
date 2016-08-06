@@ -1,10 +1,10 @@
 # Virtual Motor Driver 1.0
 # Script just for simulations. It allows to use rOSi platform without a robot.
 # Author: Gustavo Viera Lopez
-
+import importlib
 import math
-import time
 import os
+import time
 
 import settings.config as global_settings
 
