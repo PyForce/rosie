@@ -107,4 +107,4 @@ modules/WebHUD/static/js/
 modules/WebHUD/static/css/
 
 # ignore settings
-settings.py
+config
