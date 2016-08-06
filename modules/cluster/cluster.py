@@ -1,8 +1,8 @@
 import re
 import struct
 import sys
-from socket import inet_aton
-
+from . import cluster
+from modules import kernel
 
 if sys.version_info.major == 3:
     import socketserver
@@ -13,13 +13,19 @@ else:
 
 
 class ScanHandler(socketserver.BaseRequestHandler):
+    name = kernel.ROBOT.profile().get('CLUSTER_NAME', 'my-cluster')
+    poke_struct = struct.Struct('!BB')
+    info_struct = struct.Struct('!BBhB%ds' % len(name))
+
     def handle(self):
         data = self.request[0]
         socket = self.request[1]
-        host_a, w_port, s_port = struct.unpack(data)
-        # TODO: Fix paramenters to send
-        info = struct.pack('!4shp', inet_aton(''), 0, 'My Cluster')
-        socket.sendto(info, self.client_address)
+        tp, msg = self.poke_struct.unpack(data)
+
+        if tp == 8 and msg == 0:
+            info = self.info_struct.pack(0, 0, cluster.server_port,
+                                         len(self.name), self.name)
+            socket.sendto(info, self.client_address)
 
 
 class ClusterHandler(http_client.BaseHTTPRequestHandler):
