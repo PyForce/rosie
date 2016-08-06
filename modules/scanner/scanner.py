@@ -1,9 +1,8 @@
-import hmac
 import socket
 import struct
 import sys
+import threading
 from collections import namedtuple
-from threading import Thread
 
 
 if sys.version_info.major == 3:
@@ -12,44 +11,67 @@ else:
     from httplib import HTTPConnection
 
 
-CHUNK_SIZE = 260
-
 Client = namedtuple('Client', ['host', 'web', 'streaming'])
 Cluster = namedtuple('Cluster', ['name', 'hot', 'port'])
 
 
-class Scanner(Thread):
+class Scanner:
     def __init__(self, scan=True, **kwargs):
-        namespace = kwargs.get('namespace')
         info = kwargs.get('info')
         host = kwargs.get('host')
-        port = kwargs.get('port', 9876)
+        # anything lower than 0 scan until stop is called
+        self.interval = kwargs.get('interval', 5)
+        self.port = kwargs.get('port', 9876)
 
-        if scan and namespace:
-            self.socket = socket.socket(type=socket.SOCK_DGRAM)
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            self.socker.bind(('', port))
+        self.scan_struct = struct.Struct('!BB')
+        self.recv_struct = struct.Struct('!BBhB')
 
-            self.clusters = []
-            enc_namespace = hmac.new(namespace).digest()
-            data = struct.pack('!16s', enc_namespace)
-            self.socket.sendto(data, ('<broadcast>', port))
+        self.scanning = False
 
-            super(Scanner, self).__init__()
-
-            self.start()
+        if scan:
+            self.scan()
         elif host and info:
             # send request to cluster_host, cluster_port
-            self.info = info
-            self.subscribe(host, port)
+            self.info = info if isinstance(info, Client) else Client(**info)
+            self.subscribe(host, self.port)
 
-    def run(self):
-        while not self._Thread__stopped:
-            data, (host, _) = self.socket.recvfrom(CHUNK_SIZE)
-            port, name = struct.unpack('!hp', data)
+    def scan(self):
+        if not self.scanning:
+            self.socket = socket.socket(type=socket.SOCK_DGRAM,
+                                        proto=socket.IPPROTO_UDP)
+            self.socket.bind(('', self.port))
+
+            data = self.scan_struct.pack(8, 0)
+            self.socket.sendto(data, ('<broadcast>', self.port))
+
+            self.scanning = True
+
+            self.clusters = []
+            self.thread = threading.Thread(target=self.ping)
+            # close thread together with main thread
+            self.thread.daemon = True
+            self.thread.start()
+            self.timer = self.interval > 0 and threading.Timer(self.interval,
+                                                               self.stop)
+
+    def stop(self):
+        if self.scanning:
+            self.timer and self.timer.cancel()
+            self.scanning = False
+            self.thread.join()
+            self.socket.shutdown()
+
+    def ping(self):
+        while self.scanning:
+            data, (host, _) = self.socket.recvfrom(1024)
+            tp, msg, port, name_len = self.recv_struct.unpack(
+                data[:self.recv_struct.size])
+            if tp == msg == 0:
+                name = struct.unpack('!%ds' % name_len,
+                                     data[self.recv_struct.size:])
             self.clusters.append(Cluster(name, host, port))
 
-    def subscribe(self, host='', port=9876, cluster=None):
+    def subscribe(self, host='', port=6789, cluster=None):
         if cluster:
             host = cluster.host
             port = cluster.port
