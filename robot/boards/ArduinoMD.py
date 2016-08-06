@@ -1,13 +1,17 @@
-try:
-    from serial import Serial
-except:
-    print ("      ERROR: Importing serial")
-from struct import *
+import importlib
+import os
+import struct
 from math import pi
 from threading import Thread
 from time import sleep
 
 import settings.config as global_settings
+
+
+try:
+    from serial import Serial
+except:
+    print("      ERROR: Importing serial")
 
 
 settings = None

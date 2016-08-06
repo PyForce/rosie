@@ -4,6 +4,10 @@ Created on Thu Apr  9 17:07:02 2015
 
 @author: Toni
 """
+import importlib
+
+from robot.planner.maps import graph
+from robot.planner.searcher import astar
 
 __all__=['set_map', 'path_xyt']
 
@@ -14,11 +18,8 @@ __version__ = '1.12'
 #### IMPORT ####
 
 #---- Python import ----
-import os
 
 #---- rOSi import ----
-from robot.planner.searcher import astar
-from robot.planner.maps import graph
 
 #### GLOBAL VARIABLES ####
 
