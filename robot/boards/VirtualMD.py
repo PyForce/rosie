@@ -6,16 +6,19 @@ import math
 import time
 import os
 
-import settings as global_settings
+import settings.config as global_settings
 
-settings=None
 
-if os.path.exists(os.path.join(os.getcwd(),'profiles',global_settings.PROFILE)):
+settings = None
+profile = global_settings.get('general', 'profile')
+
+if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
     try:
         exec("from profiles."+global_settings.PROFILE+" import settings")
         settings=locals()['settings']
     except:
-        settings=None
+        settings = None
+
 
 class VirtualMotorDriver:    
     def __init__(self):
