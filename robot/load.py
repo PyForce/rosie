@@ -4,7 +4,8 @@ import os
 
 import settings.config as global_settings
 
-__all__=['SETTINGS','load_global_settings']
+
+__all__ = ['SETTINGS', 'load_global_settings']
 
 #### IMPORT ####
 
@@ -21,7 +22,8 @@ def load_global_settings():
     if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
         try:
             # substitute dirty exec call
-            SETTINGS = importlib.import_module("profiles.%s.settings" % (profile))
+            SETTINGS = importlib.import_module("profiles.%s.settings" %
+                                               (profile))
             print('    PROFILE: ' + profile)
         except:
             SETTINGS = None
