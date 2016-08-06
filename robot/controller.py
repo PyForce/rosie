@@ -37,8 +37,8 @@ if os.path.exists(os.path.join(os.getcwd(), 'robot', 'boards',
                   settings.FILENAME)):
     # TODO: Change this crab to something less painfull for debugging
     try:
-        exec("from robot.boards import "+settings.FILENAME[:-3]+' as board')
-        board=locals()['board']
+        board = importlib.import_module('robot.boards.%s' %
+                                        settings.FILENAME[:-3])
         print('    NAME: '+settings.MOBILE_ROBOT)
     except:
         board=None
@@ -381,8 +381,7 @@ class Controller:
         >>> controller.action_exec()
         """
         try:
-            actions=open(os.path.join(os.getcwd(),'robot','actions.py'),'rU').read()
-            exec(actions)
+            importlib.import_module('robot.actions')
         except OSError:
             print("    ERROR: Actions")
             
