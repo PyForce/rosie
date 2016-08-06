@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import importlib
+import os
+
 import settings.config as global_settings
 
 __all__=['SETTINGS','load_global_settings']
 
 #### IMPORT ####
 
-import os
 
 SETTINGS = None
 
