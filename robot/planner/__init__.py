@@ -42,21 +42,14 @@ def set_map(file_name=''):
     """
     global MAP
     #---- fix the name ----
-    if not file_name.endswith('.py'):
-        file_name=file_name+'.py'
+    file_name.rstrip('.py')
     #---- check and load the map ----
-    map_file=os.path.join(PATH_MAP,file_name)
-    if os.path.exists(map_file):
-        try:
-            raw=open(map_file,'rU').read()
-            exec(raw)
-            MAP=locals()['CURRENT_MAP']
-        except:
-            MAP=None
-            print("    WARNING: Map information wasn't loaded")
-    else:
-        print("    WARNING: Map file not exist")
-        MAP=None
+    try:
+        raw = importlib.import_module('%s.%s' % (PATH_MAP, file_name))
+        MAP = raw.CURRENT_MAP
+    except:
+        MAP = None
+        print("    WARNING: Map information wasn't loaded")
 
 def path_xyt(start,target,show=True):
     """

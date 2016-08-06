@@ -14,8 +14,7 @@ profile = global_settings.get('general', 'profile')
 
 if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
     try:
-        exec("from profiles."+global_settings.PROFILE+" import settings")
-        settings=locals()['settings']
+        settings = importlib.import_module('profiles.%s.settings' % profile)
     except:
         settings = None
 
