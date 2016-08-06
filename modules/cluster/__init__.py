@@ -1,7 +1,7 @@
 import threading
 
 from cluster import http_client, socketserver, ClusterHandler, ScanHandler
-from modules.kernel import kernel
+from modules import kernel
 
 responder = None
 cluster = None
