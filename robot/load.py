@@ -21,10 +21,8 @@ def load_global_settings():
     if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
         try:
             # substitute dirty exec call
-            _temp = __import__("profiles.%s" % (global_settings.PROFILE),
-                               globals(), locals(), ['settings'], -1)
-            SETTINGS = _temp.settings
-            print('    PROFILE: '+global_settings.PROFILE)
+            SETTINGS = importlib.import_module("profiles.%s.settings" % (profile))
+            print('    PROFILE: ' + profile)
         except:
             SETTINGS = None
             print("    ERROR! In <"+global_settings.PROFILE+">")
