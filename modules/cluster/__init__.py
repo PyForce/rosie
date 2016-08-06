@@ -17,8 +17,6 @@ def run():
 
     cluster_address = settings.get('CLUSTER_BIND', ('', 6789))
     cluster = http_client.HTTPServer(cluster_address, ClusterHandler)
-    global cluster_addr
-    cluster_addr = cluster.server_address
 
     cluster_thread = threading.Thread(target=cluster.serve_forever)
     cluster_thread.daemon = True
