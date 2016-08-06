@@ -1,6 +1,7 @@
 import re
 import struct
 import sys
+import json
 from . import cluster
 from modules import kernel
 
@@ -29,13 +30,19 @@ class ScanHandler(socketserver.BaseRequestHandler):
 
 
 class ClusterHandler(http_client.BaseHTTPRequestHandler):
+    robots = {}
+
     def do_GET(self):
         pass
 
-    subs_re = re.compile(r'/subscribe\?host=(?P<host>[^&]*)&web-port=(?P<web>'
-                         '[0-9]{1,5})&stream-port=(?P<stream>[0-9]{1,5})')
 
     def do_POST(self):
-        subscribe = self.subs_re.match(self.path)
-        if subscribe:
-            pass
+        if self.path == '/subscribe':
+            payload = self.rfile.read(self.headers['Content-Length'])
+            info = json.loads(payload)
+            if info['host'] in self.robots:
+                self.send_error(409,
+                                'A Robot with that host is already registered')
+            else:
+                self.robots[info['host']] = info['services']
+                self.send_response(200)
