@@ -33,7 +33,11 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
     robots = {}
 
     def do_GET(self):
-        pass
+        if self.path == '/list':
+            payload = json.dumps([{'host': host, 'services': host['services']}
+                                 for host in self.robots])
+            self.wfile.write(payload)
+            self.send_response(200)
 
     unsubs_re = re.compile(r'/unsubscribe\?host=(?P<host>.*)')
 
