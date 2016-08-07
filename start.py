@@ -3,7 +3,9 @@ import importlib
 import os
 import signal
 import sys
+import threading
 
+from modules import kernel
 from settings import config
 
 
@@ -22,9 +24,18 @@ if __name__ == '__main__':
     modules = []
 
     def close_modules(signum, frame):
-        for module in modules:
+        for module, thr in modules:
+            print('[.] closing %s...' % module.__name__)
             if hasattr(module, 'end'):
                 module.end()
+            while thr and thr.isAlive():
+                thr.join(3)
+                if thr.is_alive():
+                    print('\033[33m[*] join timed out, killing thread!!\033[0m')
+                    thr._Thread__stop()
+            print('[+] closed %s...' % module.__name__)
+        event.clear()
+
     signal.signal(signal.SIGTERM, close_modules)
     signal.signal(signal.SIGINT, close_modules)
 
@@ -38,7 +49,14 @@ if __name__ == '__main__':
             print('\033[31m[*] module %s not loaded\033[0m' % sect)
         # no exception was raised
         else:
-            print('[-] loaded %s' % sect)
-            modules.append(module)
+            print('[+] loaded %s' % sect)
+            thr = None
             if hasattr(module, 'init'):
-                module.init()
+                thr = threading.Thread(target=module.init)
+                thr.start()
+            modules.append((module, thr))
+
+    # run kernel as main thread
+    event = threading.Event()
+    event.set()
+    kernel._run(event)

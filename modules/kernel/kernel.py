@@ -122,12 +122,12 @@ def sync_exec(command={}):
 #### PRIVATE FUNCTIONS ####
 
 
-def _run():
+def _run(event):
     """
     Kernel main thread.
     """
     global PROCESS
-    while True:
+    while event.is_set():
         #---- sleep ----
         if PROCESS == 'SLEEP':
             time.sleep(0.5)
@@ -269,7 +269,7 @@ def _user():
         y = (y+dy)/2.0
         z = (z+dz)/2.0
 
-        if dx or dy or round(x, 2) or round(y,2):
+        if dx or dy or round(x, 2) or round(y, 2):
             ROBOT.async_request((x, y))
         elif round(z, 2):
             ROBOT.async_request((0, 0), z)
@@ -340,9 +340,3 @@ def _robot(cmd):
     CURRENT_COMMAND = None
     PROCESS = 'EXEC_TEMPORAL'
     print('   THREAD STATUS: END')
-
-#==== RUN PROCESS ====
-kern_thread = threading.Thread(target=_run)
-# close thread along with main thread
-kern_thread.daemon = True
-kern_thread.start()
