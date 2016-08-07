@@ -4,24 +4,24 @@ Created on Mon Apr 13 21:12:48 2015
 
 @author: Toni
 """
+import sys
+import time
+import datetime
+import threading
 
 __all__=['mode', 'sync_exec', 'async_exec', '__version__']
+import robot
+
+
 
 ###### INFORMATION ######
 
 __version__ = '1.12'
 
-#### IMPORT ####
-
-#---- Pyhton import ----
-try:
+if sys.version_info.major == 3:
     import queue
-except ImportError:
+else:
     import Queue as queue
-import time, datetime, threading
-
-#---- rOSi import ----
-import robot
 
 #### GLOBAL VARIABLES ####
 
