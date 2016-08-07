@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 import os
+import runpy
 import sys
 import time
 from datetime import datetime
@@ -392,7 +393,7 @@ class Controller:
         >>> controller.action_exec()
         """
         try:
-            importlib.import_module('robot.actions')
+            runpy.run_module('robot.actions')
         except OSError:
             print("    ERROR: Actions")
 
