@@ -24,6 +24,7 @@ def odometry():
     x, y, theta = robot_handler.get_odometry()
     return jsonify(x=x, y=y, theta=theta)
 
+
 @app.route('/profile', methods=['GET'])
 @allow_origin
 def profile():
@@ -36,6 +37,7 @@ def profile():
     """
     prof = robot_handler.get_profile()
     return jsonify(prof=prof)
+
 
 @app.route('/metadata', methods=['GET'])
 @allow_origin
