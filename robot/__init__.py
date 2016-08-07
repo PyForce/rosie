@@ -5,7 +5,7 @@ Created on Mon Apr 13 21:32:24 2015
 @author: Toni
 """
 
-__all__=['Master', '__version__']
+__all__ = ['Master', '__version__']
 
 ###### INFORMATION ######
 
@@ -22,7 +22,7 @@ from robot import controller as Controller
 
 #### GLOBAL VARIABLES ####
 
-PATH_METHOD="Lineal Smooth"
+PATH_METHOD = "Lineal Smooth"
             # "Cubic"
             # None
 
@@ -31,25 +31,23 @@ PATH_METHOD="Lineal Smooth"
 class Master:
     def __init__(self):
         self.controller = Controller.Controller()
-        self.position(-0.3,0.3,0)
-
+        self.position(-0.3, 0.3, 0)
 
     #==== PRIVATE FUNCTIONS ====
-
     def _track_switcher(self, track):
         """
         Path controller switcher.
-        
+
         :param track: trace to follow
         :type track: dict
         """
         #---- Cubic ----
         if PATH_METHOD == "Cubic":
-            track['z_planning'] = track['t_planning']   
+            track['z_planning'] = track['t_planning']
             track['constant_t'] = 10
             track['constant_k'] = 5
             track['cubic'] = True
-        #---- Lineal Smooth ----        
+        #---- Lineal Smooth ----
         elif PATH_METHOD == "Lineal Smooth":
             if self.controller.finished:
                 self.controller.move(track)
@@ -57,29 +55,29 @@ class Master:
         #---- None ----
         if self.controller.finished:
             self.controller.move(track, False)
-    
+
     #==== PUBLIC FUNCTIONS ====
-    
-    def position(self,x=None,y=None,theta=None):
+
+    def position(self, x=None, y=None, theta=None):
         """
         Get or set the position of the robot
-        
+
         :param x: X value of (X,Y)
         :type x: float
         :param y: Y value of (X,Y)
         :type y: float
         :param theta: orientation
-        :type theta: float      
+        :type theta: float
         :return: current position (when ``x``, ``y`` and ``theta`` are None)
         :type: tuple
-        
+
         >>> master=Master()
         >>> master.position(2,3,0.5)
         >>> master.position()
         (2, 3, 0.5)
         """
         #---- get position ----
-        if x == None and y == None and theta == None:
+        if x is None and y is None and theta is None:
             return (self.controller.y_position,
                     self.controller.x_position,
                     self.controller.z_position)
@@ -91,12 +89,12 @@ class Master:
     def profile(self, p={}):
         """
         Get or set the profile of the robot
-        
+
         :param p: robot's profiles to setup
-        :type p: dict    
+        :type p: dict
         :return: current profile
         :type: dict
-        
+
         >>> master=Master()
         >>> master.profile({'MOBILE_ROBOT': 'ROBOT'})
         >>> master.profile()
@@ -116,20 +114,20 @@ class Master:
     def is_ended(self):
         """
         Get task status of the robot.
-        
+
         :return: current task status
         :type: bool
-        
+
         >>> master=Master()
         >>> master.is_ended()
         True
         """
         return self.controller.finished
-        
+
     def end_current_task(self):
         """
         End current task of the robot.
-        
+
         >>> master=Master()
         >>> master.end_current_task()
         """
@@ -141,39 +139,39 @@ class Master:
 
         :param request: synchronous request
         :type request: dict
-        
+
         >>> cmd={'place': [(0,0),(1,1)]}
         >>> master=Master()
         >>> master.sync_request(cmd)
         """
-        if request:        
+        if request:
             #---- set action ----
-            self.controller.request=request
+            self.controller.request = request
             try:
-                self.controller.action=request['action']
+                self.controller.action = request['action']
             except KeyError:
-                self.controller.action='stop'
+                self.controller.action = 'stop'
             #---- process path (place) ----
-            path=planner.path_xyt(self.position(),request)
+            path = planner.path_xyt(self.position(), request)
             if path:
                 self._track_switcher(path)
             #---- execute action ----
             else:
                 self.controller.action_exec()
-            
+
     def async_request(self, request, z=0):
         """
         Process the request of the asynchronous handler.
 
         :param request: asynchronous request
-        :type request: tuple       
-        
+        :type request: tuple
+
         >>> cmd=(2.0,5.0)
         >>> master=Master()
         >>> master.async_request(cmd)
         """
         #XXX check for generic request
-        if not request==(0,0):
+        if not request == (0, 0):
             right, left = self.controller.async_speed(request[0], request[1])
             if right or left:
                 encoder1, encoder2, _ = self.controller.get_state()
@@ -183,4 +181,3 @@ class Master:
             encoder1, encoder2, _ = self.controller.get_state()
             self.controller.navigation(encoder1, encoder2)
             self.controller.set_speed(-z, z)
-    
