@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 import importlib
 
-import settings.config as global_settings
+from settings import config as global_settings
 from robot.control import pid, track
 from robot.load import SETTINGS as settings
 
