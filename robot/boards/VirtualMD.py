@@ -6,7 +6,7 @@ import math
 import os
 import time
 
-import settings.config as global_settings
+from settings import config as global_settings
 
 
 settings = None
