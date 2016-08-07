@@ -1,33 +1,35 @@
 import threading
 
 from cluster import http_client, socketserver, ClusterHandler, ScanHandler
-from modules import kernel
+from settings import config
 
 responder = None
 cluster = None
 
 
-def run():
+def init():
     global cluster, responder
-    settings = kernel.ROBOT.profile()
-    if settings.get('CLUSTER_VISIBLE'):
-        responder_address = settings.get('CLUSTER_VISIBLE_BIND', ('', 9876))
-        responder = socketserver.UDPServer(responder_address, ScanHandler)
+
+    if config.getboolean('cluster', 'visible', True):
+        host = config.get('cluster', 'visble-host', '')
+        port = config.getint('cluster', 'visble-port', 9876)
+        responder = socketserver.UDPServer((host, port), ScanHandler)
 
         responder_thread = threading.Thread(target=responder.serve_forever)
         # Exit the responder thread when the main thread terminates
         responder_thread.daemon = True
         responder_thread.start()
 
-    cluster_address = settings.get('CLUSTER_BIND', ('', 6789))
-    cluster = http_client.HTTPServer(cluster_address, ClusterHandler)
+    host = config.get('cluster', 'host', '')
+    port = config.getint('cluster', 'port', 6789)
+    cluster = http_client.HTTPServer((host, port), ClusterHandler)
 
     cluster_thread = threading.Thread(target=cluster.serve_forever)
     cluster_thread.daemon = True
     cluster_thread.start()
 
 
-def stop():
+def end():
     if responder:
         responder.shutdown()
     if cluster:
