@@ -17,8 +17,6 @@ def init():
 
         responder_thread = threading.Thread(
             target=responder_server.serve_forever)
-        # Exit the responder thread when the main thread terminates
-        responder_thread.daemon = True
         responder_thread.start()
 
     host = config.get('cluster', 'host', '')
@@ -26,7 +24,6 @@ def init():
     cluster_server = http_client.HTTPServer((host, port), ClusterHandler)
 
     cluster_thread = threading.Thread(target=cluster_server.serve_forever)
-    cluster_thread.daemon = True
     cluster_thread.start()
 
 
