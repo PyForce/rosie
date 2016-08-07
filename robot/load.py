@@ -27,6 +27,6 @@ def load_global_settings():
             print('    PROFILE: ' + profile)
         except:
             SETTINGS = None
-            print("    ERROR! In <"+global_settings.PROFILE+">")
+            print("    ERROR! In <"+profile+">")
     else:
         print("    WARNING! Directory <"+profile+"> do not exist")
