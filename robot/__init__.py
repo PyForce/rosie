@@ -28,7 +28,19 @@ PATH_METHOD = "Lineal Smooth"
 
 #### CLASS ####
 
+
+class Singleton(type):
+    instance = None
+
+    def __call__(self, *args, **kwargs):
+        if not self.instance:
+            self.instance = super(Singleton, self).__call__(*args, **kwargs)
+        return self.instance
+
+
 class Master:
+    __metaclass__ = Singleton
+
     def __init__(self):
         self.controller = Controller.Controller()
         self.position(-0.3, 0.3, 0)
