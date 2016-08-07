@@ -9,22 +9,6 @@ $(document).ready () ->
     #         car.move pos
     # , 100
 
-    # websocket
-    sio = io.connect "http://#{document.domain}:#{location.port}"
-
-    sio.onclose = () ->
-        alert 'SIO CLOSED!!!'
-
-    sio.on 'echo reply', (msg) ->
-        console.log msg.text
-
-    sio.on 'position', (pos) ->
-        # console.log 'position', data
-        car.move pos
-
-    sio.emit 'echo',
-        'text': 'hello socket.io world!'
-
     # keyboards events
     pressed = new Set()
     document.body.addEventListener 'keydown', (e) ->
@@ -49,5 +33,3 @@ $(document).ready () ->
         pressed.forEach (e) -> l.push e
         sio.emit 'manual', {'keys': l}
     , 100
-
-
