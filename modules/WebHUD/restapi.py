@@ -168,10 +168,6 @@ def send_position(x, y, theta):
     sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
 
-def do_nothing(*args, **kwargs):
-    pass
-
-
 @sio.on('connect')
 def connect():
     global client_count
@@ -187,7 +183,7 @@ def disconnect():
     client_count -= 1
 
     if client_count == 0:
-        robot_handler.set_position_notifier(do_nothing)
+        robot_handler.set_position_notifier(None)
 
 
 @sio.on('echo')
