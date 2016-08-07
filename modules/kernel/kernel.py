@@ -18,11 +18,6 @@ try:
     import queue
 except ImportError:
     import Queue as queue
-try:
-    import _thread
-except ImportError:
-    import thread as _thread
-    
 import time, datetime, threading
 
 #---- rOSi import ----
@@ -335,4 +330,7 @@ def _robot(cmd):
     print('   THREAD STATUS: END')
 
 #==== RUN PROCESS ====
-_thread.start_new_thread(_run,())
+kern_thread = threading.Thread(target=_run)
+# close thread along with main thread
+kern_thread.daemon = True
+kern_thread.start()
