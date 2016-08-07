@@ -2,8 +2,8 @@ import re
 import struct
 import sys
 import json
-from . import cluster
 from modules import kernel
+from . import cluster_server
 
 if sys.version_info.major == 3:
     import socketserver
@@ -14,7 +14,8 @@ else:
 
 
 class ScanHandler(socketserver.BaseRequestHandler):
-    name = kernel.ROBOT.profile().get('CLUSTER_NAME', 'my-cluster')
+    name = config.get('cluster', 'name', 'cluster - %s:%d' %
+                      cluster_server.server_address)
     poke_struct = struct.Struct('!BB')
     info_struct = struct.Struct('!BBhB%ds' % len(name))
 
@@ -24,7 +25,7 @@ class ScanHandler(socketserver.BaseRequestHandler):
         tp, msg = self.poke_struct.unpack(data)
 
         if tp == 8 and msg == 0:
-            info = self.info_struct.pack(0, 0, cluster.server_port,
+            info = self.info_struct.pack(0, 0, cluster_server.server_port,
                                          len(self.name), self.name)
             socket.sendto(info, self.client_address)
 
