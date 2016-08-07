@@ -1,25 +1,28 @@
 # Virtual Motor Driver 1.0
 # Script just for simulations. It allows to use rOSi platform without a robot.
 # Author: Gustavo Viera Lopez
-
+import importlib
 import math
-import time
 import os
+import time
 
-import settings as global_settings
+from settings import config as global_settings
 
-settings=None
 
-if os.path.exists(os.path.join(os.getcwd(),'profiles',global_settings.PROFILE)):
+settings = None
+profile = global_settings.get('general', 'profile')
+
+if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
     try:
-        exec("from profiles."+global_settings.PROFILE+" import settings")
-        settings=locals()['settings']
+        settings = importlib.import_module('profiles.%s.settings' % profile)
     except:
-        settings=None
+        settings = None
 
-class VirtualMotorDriver:    
+
+class VirtualMotorDriver:
     def __init__(self):
-        # Private variables (You should not access it directly, use methods instead)
+        # Private variables (You should not access it directly,
+        # use methods instead)
         self.encoder1 = 0
         self.encoder2 = 0
         self.battery_voltage = 100
@@ -28,13 +31,17 @@ class VirtualMotorDriver:
         self.current_speed2 = 0
         self.ENCODER_STEPS = settings.ENCODER_STEPS
         self.MAX_SPEED = settings.MAX_SPEED
+
     def set_speeds(self, motor1, motor2):
-        self.current_speed1, self.current_speed2 = self.__check_max_speed__(motor1, motor2)
-        self.history.append([self.current_speed1, self.current_speed2, time.time()])
+        self.current_speed1, self.current_speed2 =\
+            self.__check_max_speed__(motor1, motor2)
+        self.history.append([self.current_speed1, self.current_speed2,
+                             time.time()])
 
     def read_state(self):
-        self.history.append([self.current_speed1, self.current_speed2, time.time()])
-        self.__update_encoders_status__() 
+        self.history.append([self.current_speed1, self.current_speed2,
+                             time.time()])
+        self.__update_encoders_status__()
         # print(self.encoder1, self.encoder2)
         return self.encoder1, self.encoder2, self.battery_voltage
 
@@ -67,17 +74,18 @@ class VirtualMotorDriver:
 
     def __reset_history__(self):
         self.history = []
-        self.history.append([self.current_speed1, self.current_speed2, time.time()])
+        self.history.append([self.current_speed1, self.current_speed2,
+                             time.time()])
 
     def __check_max_speed__(self, motor1, motor2):
         speed1 = motor1
         speed2 = motor2
         if motor1 >= self.MAX_SPEED:
-            speed1 = self.MAX_SPEED 
+            speed1 = self.MAX_SPEED
         if motor2 >= self.MAX_SPEED:
             speed2 = self.MAX_SPEED
         if motor1 <= -self.MAX_SPEED:
-            speed1 = -self.MAX_SPEED 
+            speed1 = -self.MAX_SPEED
         if motor2 <= -self.MAX_SPEED:
             speed2 = -self.MAX_SPEED
         return speed1, speed2

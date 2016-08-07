@@ -1,12 +1,12 @@
-from flask import request, jsonify, json, url_for, send_file
-from WebHUD import app, sio, emit
-from WebHUD.utils import allow_origin
-from modules.kernel import handler as robot_handler
-
-from threading import Thread
-from time import sleep
 import os
-from settings import PROFILE
+
+from . import app, sio
+from .utils import allow_origin
+from flask import request, jsonify, json, url_for, send_file
+from kernel import handler as robot_handler
+
+from settings import config
+
 
 client_count = 0
 
@@ -24,6 +24,7 @@ def odometry():
     x, y, theta = robot_handler.get_odometry()
     return jsonify(x=x, y=y, theta=theta)
 
+
 @app.route('/profile', methods=['GET'])
 @allow_origin
 def profile():
@@ -36,6 +37,7 @@ def profile():
     """
     prof = robot_handler.get_profile()
     return jsonify(prof=prof)
+
 
 @app.route('/metadata', methods=['GET'])
 @allow_origin
@@ -53,14 +55,16 @@ def metadata():
 @app.route('/thumbnail', methods=['GET'])
 @allow_origin
 def thumbnail():
-    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'thumbnail.png')
+    profile = config.get('general', 'profile')
+    filePath = os.path.join(os.getcwd(), 'profiles', profile, 'thumbnail.png')
     return send_file(filePath)
 
 
 @app.route('/vector', methods=['GET'])
 @allow_origin
 def vector():
-    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'vector.svg')
+    profile = config.get('general', 'profile')
+    filePath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
     return send_file(filePath)
 
 
@@ -166,10 +170,6 @@ def send_position(x, y, theta):
     sio.emit('position', {"x": x, "y": y, 'theta': theta})
 
 
-def do_nothing(*args, **kwargs):
-    pass
-
-
 @sio.on('connect')
 def connect():
     global client_count
@@ -185,7 +185,7 @@ def disconnect():
     client_count -= 1
 
     if client_count == 0:
-        robot_handler.set_position_notifier(do_nothing)
+        robot_handler.set_position_notifier(None)
 
 
 @sio.on('echo')
