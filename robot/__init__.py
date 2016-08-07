@@ -116,12 +116,8 @@ class Master:
             pass
         #---- get profile ----
         else:
-            settings=vars(load.SETTINGS)            
-            p={}
-            for i in settings.keys():
-                if not i.startswith('__'):
-                    p[i]=settings[i]
-            return p
+            settings = vars(load.SETTINGS)
+            return {i: settings[i] for i in settings if not i.startswith('__')}
 
     def is_ended(self):
         """
