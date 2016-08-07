@@ -1,4 +1,14 @@
 #! /usr/bin/env python
+import importlib
+import os
+import signal
+import sys
+
+from settings import config
+
+
+# allows for all modules to be imported as `import <module_name>`
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), 'modules')))
 
 print("       ___  ____     ")
 print("  _ _ / _ \/ ___\ _  ")
@@ -8,31 +18,27 @@ print(" |_|  \___/\____/|_| ")
 print(" ------ SYSTEM ----- ")
 print("")
 
-import settings
-import profiles
+if __name__ == '__main__':
+    modules = []
 
-# start the rOSi kernel
-print("ROBOT DETAILS")
-from modules.kernel import handler
+    def close_modules(signum, frame):
+        for module in modules:
+            if hasattr(module, 'end'):
+                module.end()
+    signal.signal(signal.SIGTERM, close_modules)
+    signal.signal(signal.SIGINT, close_modules)
 
-if settings.MODULES:
-    # load module: ordex
-    if settings.MODULES & profiles.ordex:
-        print("")
-        print("LOADING: ordex")
-        from modules import ordex
-        handler._ordex(ordex)
-
-    if settings.MODULES & profiles.cluster:
-        print()
-        print('LOADING: cluster')
-        from modules import cluster
-        cluster.run()
-
-    # load module: WebHUD
-    if settings.MODULES & profiles.WebHUD:
-        print("")
-        print("LOADING: WebHUD")
-        from modules.WebHUD.manage import run_server
-        if __name__ == '__main__':
-            run_server()
+    for sect in filter(lambda s: config.getboolean(s, 'active'),
+                       config.sections()):
+        print('[.] loading %s...' % sect)
+        try:
+            module = importlib.import_module(sect)
+        except Exception as e:
+            print(e)
+            print('\033[31m[*] module %s not loaded\033[0m' % sect)
+        # no exception was raised
+        else:
+            print('[-] loaded %s' % sect)
+            modules.append(module)
+            if hasattr(module, 'init'):
+                module.init()
