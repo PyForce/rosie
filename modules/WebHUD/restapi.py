@@ -1,14 +1,12 @@
+import os
+
 from . import app, sio
 from .utils import allow_origin
 from flask import request, jsonify, json, url_for, send_file
-from WebHUD import app, sio, emit
-from WebHUD.utils import allow_origin
-from modules.kernel import handler as robot_handler
+from kernel import handler as robot_handler
 
-from threading import Thread
-from time import sleep
-import os
-from settings import PROFILE
+from settings import config
+
 
 client_count = 0
 
