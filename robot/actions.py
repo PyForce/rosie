@@ -9,8 +9,6 @@ if self.action=='turn':
     self.action='stop'
     angle=self.request['value']
     angle=math.pi*angle/180.0 + self.z_position-int(self.z_position/(2*math.pi))*2*math.pi    
-    
-    print("angle "+str(angle))
     self.rotate(angle)
 
 #==== STOP ====
