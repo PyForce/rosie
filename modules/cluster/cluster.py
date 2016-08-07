@@ -45,7 +45,7 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == '/subscribe':
-            payload = self.rfile.read(self.headers['Content-Length'])
+            payload = self.rfile.read(int(self.headers['Content-Length']))
             info = json.loads(payload)
             if info['host'] in self.robots:
                 self.send_error(409,
