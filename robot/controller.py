@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+import importlib
 import math
 import os
 import runpy
 import sys
 import time
 from datetime import datetime
-import importlib
 
-from settings import config as global_settings
 from robot.control import pid, track
 from robot.load import SETTINGS as settings
+from settings import config as global_settings
 
 
 __all__ = ['Controller', '__version__']
