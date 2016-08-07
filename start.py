@@ -1,4 +1,12 @@
 #! /usr/bin/env python
+print("       ___  ____     ")
+print("  _ _ / _ \/ ___\ _  ")
+print(" | '_| | | \___ \(_) ")
+print(" | | | |_| |___) | | ")
+print(" |_|  \___/\____/|_| ")
+print(" ------ SYSTEM ----- ")
+print("")
+
 import importlib
 import os
 import signal
@@ -12,13 +20,6 @@ from settings import config
 # allows for all modules to be imported as `import <module_name>`
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), 'modules')))
 
-print("       ___  ____     ")
-print("  _ _ / _ \/ ___\ _  ")
-print(" | '_| | | \___ \(_) ")
-print(" | | | |_| |___) | | ")
-print(" |_|  \___/\____/|_| ")
-print(" ------ SYSTEM ----- ")
-print("")
 
 if __name__ == '__main__':
     modules = []
