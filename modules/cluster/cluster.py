@@ -52,7 +52,7 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
                                 'A Robot with that host is already registered')
             else:
                 self.robots[info['host']] = info['services']
-                self.send_response(200)
+                self.send_response(201)
         match = self.unsubs_re.match(self.path)
         if match:
             host = match.groups('host')
