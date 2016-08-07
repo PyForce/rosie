@@ -53,14 +53,16 @@ def metadata():
 @app.route('/thumbnail', methods=['GET'])
 @allow_origin
 def thumbnail():
-    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'thumbnail.png')
+    profile = config.get('general', 'profile')
+    filePath = os.path.join(os.getcwd(), 'profiles', profile, 'thumbnail.png')
     return send_file(filePath)
 
 
 @app.route('/vector', methods=['GET'])
 @allow_origin
 def vector():
-    filePath = os.path.join(os.getcwd(), 'profiles', PROFILE, 'vector.svg')
+    profile = config.get('general', 'profile')
+    filePath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
     return send_file(filePath)
 
 
