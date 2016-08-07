@@ -190,5 +190,4 @@ def disconnect():
 
 @sio.on('echo')
 def echo_reply(data):
-    print('client echo:', data)
     sio.emit('echo reply', 'hello at server side')
