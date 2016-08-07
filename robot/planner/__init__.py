@@ -4,7 +4,7 @@ Created on Thu Apr  9 17:07:02 2015
 
 @author: Toni
 """
-import importlib
+import runpy
 
 from robot.planner.maps import graph
 from robot.planner.searcher import astar
@@ -47,7 +47,7 @@ def set_map(file_name=''):
     file_name.rstrip('.py')
     #---- check and load the map ----
     try:
-        raw = importlib.import_module('%s.%s' % (PATH_MAP, file_name))
+        raw = runpy.run_module('%s.%s' % (PATH_MAP, file_name))
         MAP = raw.CURRENT_MAP
     except:
         MAP = None
