@@ -2,8 +2,8 @@ import re
 import struct
 import sys
 import json
-from modules import kernel
 from . import cluster_server
+from settings import config
 
 if sys.version_info.major == 3:
     import socketserver
