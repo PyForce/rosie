@@ -48,7 +48,7 @@ def set_map(file_name=''):
     #---- check and load the map ----
     try:
         raw = runpy.run_module('%s.%s' % (PATH_MAP, file_name))
-        MAP = raw.CURRENT_MAP
+        MAP = raw['CURRENT_MAP']
     except:
         MAP = None
         print("    WARNING: Map information wasn't loaded")
