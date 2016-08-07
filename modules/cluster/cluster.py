@@ -14,8 +14,7 @@ else:
 
 
 class ScanHandler(socketserver.BaseRequestHandler):
-    name = config.get('cluster', 'name', 'cluster - %s:%d' %
-                      cluster_server.server_address)
+    name = config.get('cluster', 'name', 'my-cluster')
     poke_struct = struct.Struct('!BB')
     info_struct = struct.Struct('!BBhB%ds' % len(name))
 
