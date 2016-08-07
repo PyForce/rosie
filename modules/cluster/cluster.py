@@ -53,12 +53,14 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
             else:
                 self.robots[info['host']] = info['services']
                 self.send_response(201)
+
+    def do_DELETE(self):
         match = self.unsubs_re.match(self.path)
         if match:
-            host = match.groups('host')
+            host, = match.groups('host')
             if host in self.robots:
                 del self.robots[host]
-                self.send_response(200)
+                self.send_response(204)
             else:
                 self.send_error(404,
                                 "The host doesn't match any registered robot")
