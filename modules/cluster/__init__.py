@@ -1,10 +1,10 @@
 import threading
 
-from cluster import http_client, socketserver, ClusterHandler, ScanHandler
-from settings import config
 responder_server = None
 cluster_server = None
 
+from .cluster import http_client, socketserver, ClusterHandler, ScanHandler
+from settings import config
 
 
 def init():
