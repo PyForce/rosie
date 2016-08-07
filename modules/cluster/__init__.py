@@ -22,9 +22,7 @@ def init():
     host = config.get('cluster', 'host', '')
     port = config.getint('cluster', 'port', 6789)
     cluster_server = http_client.HTTPServer((host, port), ClusterHandler)
-
-    cluster_thread = threading.Thread(target=cluster_server.serve_forever)
-    cluster_thread.start()
+    cluster_server.serve_forever()
 
 
 def end():
