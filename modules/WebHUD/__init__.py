@@ -5,7 +5,6 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 
 sio = SocketIO(app)
-sio.init_app(app)
 
 st = Static(app)
 
