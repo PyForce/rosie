@@ -78,7 +78,7 @@ def path_xyt(start, target, show=True):
     try:
         path_list = target['path']
         if type(start) is tuple:
-            path_list.insert(0,start[:2])
+            path_list.insert(0, start[:2])
         if len(path_list) > 1:
             new_list = []
             for i in range(len(path_list)-1):
@@ -163,7 +163,7 @@ def _pos_approach(p):
         point = (0, 0)
         mindist_point = 2**32
         for v in MAP.V:
-            mindist = astar.distance(p,v.pos)
+            mindist = astar.distance(p, v.pos)
             if mindist < mindist_point:
                 mindist_point = mindist
                 point = v.pos
