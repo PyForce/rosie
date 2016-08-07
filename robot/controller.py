@@ -77,7 +77,7 @@ class Controller:
         self.count = 0
         self.sample_time = 0.05
         self.action = 'stop'
-        self.SEND_POSITION = lambda x, y, theta: None
+        self.SEND_POSITION = None
         self.COUNTER_POS = 0
         self.reference = track.Track()
         self._start_move = None
@@ -375,7 +375,9 @@ class Controller:
         #send position
         # self.COUNTER_POS+=1
         # if self.COUNTER_POS==3:
-        self.SEND_POSITION(-self.y_position, self.x_position, self.z_position)
+        if self.SEND_POSITION:
+            self.SEND_POSITION(-self.y_position, self.x_position,
+                               self.z_position)
         self.COUNTER_POS = 0
 
         return delta_encoder_1, delta_encoder_2
