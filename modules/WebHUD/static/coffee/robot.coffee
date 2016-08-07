@@ -7,6 +7,12 @@ class Robot
         @manual = off
         @path = off
 
+        @sio = io.connect "http://#{@host}:#{@port}"
+        @sio.onclose = () ->
+            alert 'Closed socket.io'
+        @sio.on 'echo reply', (msg) -> console.log msg.text
+        @sio.on 'position', (pos) => @move(pos)
+
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
             @overlay = new RobotOverlay imageUrl, [0, 0], data.size[1], data.size[0]
