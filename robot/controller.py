@@ -368,7 +368,7 @@ class Controller:
         self.z_position += dz
 
         #log position
-        if global_settings.LOG:
+        if global_settings.getboolean('general', 'log'):
             self.log_file.write(datetime.now().time().isoformat()+" " +
                                 str(-self.y_position)+" " +
                                 str(self.x_position)+" " +
@@ -393,7 +393,7 @@ class Controller:
         >>> controller.action_exec()
         """
         try:
-            runpy.run_module('robot.actions')
+            runpy.run_module('robot.actions', init_globals={'self': self})
         except OSError:
             print("    ERROR: Actions")
 
