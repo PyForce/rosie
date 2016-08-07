@@ -5,7 +5,7 @@ from math import pi
 from threading import Thread
 from time import sleep
 
-import settings.config as global_settings
+from settings import config as global_settings
 
 
 try:

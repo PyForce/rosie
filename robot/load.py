@@ -2,7 +2,7 @@
 import importlib
 import os
 
-import settings.config as global_settings
+from settings import config as global_settings
 
 
 __all__ = ['SETTINGS', 'load_global_settings']
