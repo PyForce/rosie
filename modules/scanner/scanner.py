@@ -19,7 +19,8 @@ Cluster = namedtuple('Cluster', ['name', 'host', 'port'])
 
 class Scanner:
     def __init__(self, scan=True, **kwargs):
-        host = kwargs.get('host')
+        cluster_host = kwargs.get('cluster_host')
+        cluster_port = kwargs.get('cluster_port', 6789)
         # anything lower than 0 scan until stop is called
         self.interval = kwargs.get('interval', 5)
         self.port = kwargs.get('port', 9876)
@@ -31,9 +32,9 @@ class Scanner:
 
         if scan:
             self.scan()
-        if host:
+        if cluster_host:
             # send request to cluster host
-            self.subscribe(host, self.port)
+            self.subscribe(cluster_host, cluster_port)
 
     def scan(self):
         if not self.scanning:
