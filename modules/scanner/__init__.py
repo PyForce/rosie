@@ -8,10 +8,11 @@ def init():
     global scanner
     from settings import config
 
-    listen = config.getint('scanner', 'port', 9876)
     scanner = Scanner(scan=config.getboolean('scanner', 'scan', True),
-                      host=config.get('scanner', 'cluster_host', None),
-                      port=config.getint('scanner', 'cluster_port', listen))
+                      port=config.getint('scanner', 'port', 9876),
+                      cluster_host=config.get('scanner', 'cluster-host', None),
+                      cluster_port=config.getint('scanner', 'cluster-port',
+                                                 6789))
 
 
 def end():
