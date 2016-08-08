@@ -1,10 +1,10 @@
 import os
 
-from . import app, sio
-from .utils import allow_origin
 from flask import request, jsonify, json, url_for, send_file
 from kernel import handler as robot_handler
 
+from . import app, sio
+from .utils import allow_origin
 from settings import config
 
 
