@@ -19,6 +19,7 @@ load.load_global_settings()
 
 from robot import planner
 from robot import controller as Controller
+from utils import Singleton
 
 #### GLOBAL VARIABLES ####
 
@@ -27,15 +28,6 @@ PATH_METHOD = "Lineal Smooth"
             # None
 
 #### CLASS ####
-
-
-class Singleton(type):
-    instance = None
-
-    def __call__(self, *args, **kwargs):
-        if not self.instance:
-            self.instance = super(Singleton, self).__call__(*args, **kwargs)
-        return self.instance
 
 
 class Master:
