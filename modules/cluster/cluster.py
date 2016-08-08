@@ -2,7 +2,6 @@ import re
 import struct
 import sys
 import json
-from . import cluster_server
 from settings import config
 
 if sys.version_info.major == 3:
@@ -69,3 +68,13 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
             else:
                 self.send_error(404,
                                 "The host doesn't match any registered robot")
+
+
+if config.getboolean('cluster', 'visible', True):
+    host = config.get('cluster', 'visible-host', '')
+    port = config.getint('cluster', 'visible-port', 9876)
+    responder_server = socketserver.UDPServer((host, port), ScanHandler)
+
+host = config.get('cluster', 'host', '')
+port = config.getint('cluster', 'port', 6789)
+cluster_server = http_client.HTTPServer((host, port), ClusterHandler)
