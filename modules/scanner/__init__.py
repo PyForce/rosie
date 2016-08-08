@@ -1,19 +1,14 @@
 from scanner import Scanner
+from settings import config
 
 
-scanner = None
+scanner_server = Scanner(port=config.getint('scanner', 'port', 9876),
+                         interval=config.getint('scanner', 'interval', 0))
 
 
 def init():
-    global scanner
-    from settings import config
 
-    scanner = Scanner(scan=config.getboolean('scanner', 'scan', True),
-                      port=config.getint('scanner', 'port', 9876),
-                      cluster_host=config.get('scanner', 'cluster-host', None),
-                      cluster_port=config.getint('scanner', 'cluster-port',
-                                                 6789))
 
 
 def end():
-    scanner.stop()
+    scanner_server.stop()
