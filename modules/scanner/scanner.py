@@ -30,18 +30,13 @@ class Scanner:
 
         self.scanning = False
 
-        if scan:
-            self.scan()
-        if cluster_host:
-            # send request to cluster host
-            self.subscribe(cluster_host, cluster_port)
-
     def scan(self):
         if not self.scanning:
             self.socket = socket.socket(type=socket.SOCK_DGRAM,
                                         proto=socket.IPPROTO_UDP)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            self.socket.settimeout(self.interval / 2)
+            self.socket.settimeout(self.interval / 2
+                                   if self.interval > 0 else 1)
             self.socket.bind(('', 0))
 
             data = self.scan_struct.pack(8, 0)
