@@ -48,7 +48,7 @@ class Scanner:
 
             self.scanning = True
 
-            self.clusters = []
+            self.clusters = set()
             self.thread = threading.Thread(target=self.ping)
             self.thread.start()
             self.timer = self.interval > 0 and\
@@ -72,7 +72,7 @@ class Scanner:
             if tp == msg == 0:
                 name = struct.unpack('!%ds' % name_len,
                                      data[self.recv_struct.size:])
-            self.clusters.append(Cluster(name, host, port))
+            self.clusters.add(Cluster(name, host, port))
 
     def subscribe(self, host='', port=6789, cluster=None, **kwargs):
         if cluster:
