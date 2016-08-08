@@ -56,7 +56,7 @@ class Scanner:
             self.timer and self.timer.cancel()
             self.scanning = False
             self.thread.join()
-            self.socket.shutdown()
+            self.socket.close()
 
     def ping(self):
         while self.scanning:
