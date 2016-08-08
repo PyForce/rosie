@@ -31,5 +31,5 @@ $(document).ready () ->
     setInterval () ->
         l = []
         pressed.forEach (e) -> l.push e
-        sio.emit 'manual', {'keys': l}
+        car.sio.emit 'manual', {'keys': l} if car
     , 100
