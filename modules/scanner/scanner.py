@@ -14,7 +14,7 @@ else:
     from httplib import HTTPConnection
 
 
-Cluster = namedtuple('Cluster', ['name', 'hot', 'port'])
+Cluster = namedtuple('Cluster', ['name', 'host', 'port'])
 
 
 class Scanner:
