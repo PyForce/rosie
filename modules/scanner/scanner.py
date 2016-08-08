@@ -22,7 +22,7 @@ class Scanner:
 
     def __init__(self, **kwargs):
         # anything lower than 0 scan until stop is called
-        self.interval = kwargs.get('interval', 5)
+        self.interval = kwargs.get('interval', 0)
         self.port = kwargs.get('port', 9876)
 
         self.scan_struct = struct.Struct('!BB')
@@ -47,15 +47,23 @@ class Scanner:
             self.clusters = set()
             self.thread = threading.Thread(target=self.ping)
             self.thread.start()
-            self.timer = self.interval > 0 and\
-                threading.Timer(self.interval, self.stop)
+
+            self.timer = None
+            if self.interval > 0:
+                self.timer = threading.Timer(self.interval, self.restart)
+                self.timer.start()
 
     def stop(self):
         if self.scanning:
-            self.timer and self.timer.cancel()
+            if self.timer:
+                self.timer.cancel()
             self.scanning = False
             self.thread.join()
             self.socket.close()
+
+    def restart(self):
+        self.stop()
+        self.scan()
 
     def ping(self):
         while self.scanning:
