@@ -1,17 +1,18 @@
-from modules import kernel
 from scanner import Scanner
 
 
 scanner = None
 
 
-def run():
+def init():
     global scanner
-    settings = kernel.ROBOT.profile()
-    scanner = Scanner(scan=settings.get('SCANNER_SCAN', False),
-                      info=settings.get('SCANNER_INFO'),
-                      host=settings.get('SCANNER_HOST'))
+    from settings import config
+
+    listen = config.getint('scanner', 'port', 9876)
+    scanner = Scanner(scan=config.getboolean('scanner', 'scan', True),
+                      host=config.get('scanner', 'cluster_host', None),
+                      port=config.getint('scanner', 'cluster_port', listen))
 
 
-def stop():
+def end():
     scanner.stop()
