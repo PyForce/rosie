@@ -11,13 +11,11 @@ else:
     from httplib import HTTPConnection
 
 
-Client = namedtuple('Client', ['host', 'web', 'streaming'])
 Cluster = namedtuple('Cluster', ['name', 'hot', 'port'])
 
 
 class Scanner:
     def __init__(self, scan=True, **kwargs):
-        info = kwargs.get('info')
         host = kwargs.get('host')
         # anything lower than 0 scan until stop is called
         self.interval = kwargs.get('interval', 5)
@@ -30,9 +28,8 @@ class Scanner:
 
         if scan:
             self.scan()
-        elif host and info:
-            # send request to cluster_host, cluster_port
-            self.info = info if isinstance(info, Client) else Client(**info)
+        if host:
+            # send request to cluster host
             self.subscribe(host, self.port)
 
     def scan(self):
@@ -71,11 +68,27 @@ class Scanner:
                                      data[self.recv_struct.size:])
             self.clusters.append(Cluster(name, host, port))
 
-    def subscribe(self, host='', port=6789, cluster=None):
+    def subscribe(self, host='', port=6789, cluster=None, **kwargs):
         if cluster:
             host = cluster.host
             port = cluster.port
+
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        data = {
+            'host': config.get('general', 'host', socket.gethostname()),
+            'services': {
+                sect: config.getint(sect, 'port')
+                for sect in config.sections()
+                if sect not in ('general', 'scanner') and
+                config.has_option(sect, 'port')
+            }
+        }
+        data['services'].update(kwargs)
+        payload = json.dumps(data)
+
         conn = HTTPConnection(host, port)
-        conn.request('POST', "/subscribe?host=%s&web-port=%d&stream-port=%d" %
-                    (self.info.host, self.info.web, self.info.streaming))
-        return conn.getresponse().status == 200
+        conn.request('POST', '/subscribe', payload, headers)
+        # return if new resource was created
+        return conn.getresponse().status == 201
