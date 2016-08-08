@@ -39,7 +39,9 @@ class Scanner:
         if not self.scanning:
             self.socket = socket.socket(type=socket.SOCK_DGRAM,
                                         proto=socket.IPPROTO_UDP)
-            self.socket.bind(('', self.port))
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self.socket.settimeout(self.interval / 2)
+            self.socket.bind(('', 0))
 
             data = self.scan_struct.pack(8, 0)
             self.socket.sendto(data, ('<broadcast>', self.port))
@@ -61,7 +63,10 @@ class Scanner:
 
     def ping(self):
         while self.scanning:
-            data, (host, _) = self.socket.recvfrom(1024)
+            try:
+                data, (host, _) = self.socket.recvfrom(1024)
+            except socket.timeout:
+                break
             tp, msg, port, name_len = self.recv_struct.unpack(
                 data[:self.recv_struct.size])
             if tp == msg == 0:
