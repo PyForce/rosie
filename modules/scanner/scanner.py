@@ -48,11 +48,9 @@ class Scanner:
 
             self.clusters = []
             self.thread = threading.Thread(target=self.ping)
-            # close thread together with main thread
-            self.thread.daemon = True
             self.thread.start()
-            self.timer = self.interval > 0 and threading.Timer(self.interval,
-                                                               self.stop)
+            self.timer = self.interval > 0 and\
+                threading.Timer(self.interval, self.stop)
 
     def stop(self):
         if self.scanning:
