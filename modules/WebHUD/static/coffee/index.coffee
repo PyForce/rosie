@@ -1,14 +1,6 @@
 DEBUG = false
 
 $(document).ready () ->
-    # setInterval () ->
-    #     car.getOdometry (pos) ->
-    #         # car.setLatLng [pos.x, pos.y]
-    #         # car.setAngle(pos.theta*180/Math.pi) # converting to degrees
-    #         # car.setAngle(pos.theta)
-    #         car.move pos
-    # , 100
-
     # keyboards events
     pressed = new Set()
     document.body.addEventListener 'keydown', (e) ->
