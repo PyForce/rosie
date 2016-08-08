@@ -70,8 +70,8 @@ class Scanner:
             tp, msg, port, name_len = self.recv_struct.unpack(
                 data[:self.recv_struct.size])
             if tp == msg == 0:
-                name = struct.unpack('!%ds' % name_len,
-                                     data[self.recv_struct.size:])
+                name, = struct.unpack('!%ds' % name_len,
+                                      data[self.recv_struct.size:])
             self.clusters.add(Cluster(name, host, port))
 
     def subscribe(self, host='', port=6789, cluster=None, **kwargs):
