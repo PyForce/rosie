@@ -37,6 +37,7 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
             payload = json.dumps([{'host': host, 'services': self.robots[host]}
                                  for host in self.robots])
             self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
             self.wfile.write('\r\n')
             self.wfile.write(payload)
 
