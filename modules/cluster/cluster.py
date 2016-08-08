@@ -46,13 +46,18 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/subscribe':
             payload = self.rfile.read(int(self.headers['Content-Length']))
-            info = json.loads(payload)
-            if info['host'] in self.robots:
-                self.send_error(409,
-                                'A Robot with that host is already registered')
+            try:
+                info = json.loads(payload)
+            except ValueError:
+                self.send_error(400)
             else:
-                self.robots[info['host']] = info['services']
-                self.send_response(201)
+                if info['host'] in self.robots:
+                    self.send_error(409,
+                                    'A Robot with that host is already'
+                                    ' registered')
+                else:
+                    self.robots[info['host']] = info['services']
+                    self.send_response(201)
 
     def do_DELETE(self):
         match = self.unsubs_re.match(self.path)
