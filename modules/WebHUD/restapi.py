@@ -6,6 +6,7 @@ from kernel import handler as robot_handler
 from . import app, sio
 from .utils import allow_origin
 from settings import config
+from scanner import scanner_server as scanner
 
 
 client_count = 0
@@ -164,6 +165,16 @@ def maps():
     """
     map = request.values['map']
     return 'OK'
+
+
+@app.route('/clusters')
+@allow_origin
+def clusters():
+    data = {
+        cluster.name: [cluster.host, cluster.port]
+        for cluster in scanner.clusters
+    }
+    return jsonify(**data)
 
 
 def send_position(x, y, theta):
