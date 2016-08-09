@@ -28,6 +28,7 @@ class Scanner:
         self.scan_struct = struct.Struct('!BB')
         self.recv_struct = struct.Struct('!BBhB')
 
+        self.clusters = set()
         self.scanning = False
 
     def scan(self):
@@ -44,7 +45,6 @@ class Scanner:
 
             self.scanning = True
 
-            self.clusters = set()
             self.thread = threading.Thread(target=self.ping)
             self.thread.start()
 
