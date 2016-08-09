@@ -30,6 +30,7 @@ unmountHUD = ->
     # destroy HUD components
     unmountInfo()
     ReactDOM.unmountComponentAtNode document.getElementById 'commands'
+    delete window.car
 
 unmountInfo = ->
     ReactDOM.unmountComponentAtNode(
@@ -38,7 +39,8 @@ unmountInfo = ->
         document.getElementById 'robot-info-wrapper')
 
 map.on 'click', (e) ->
-    if car.path
+    car  = window.car
+    if car and car.path
         car.setPath [[e.latlng.lat, e.latlng.lng]]
     else unmountHUD()
 

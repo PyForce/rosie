@@ -20,9 +20,12 @@ class Robot
             $(@overlay._image).click =>
                 # show HUD
                 mountHUD @
+                # set this as the selected robot
+                window.car = @
                 # don't propagate event
                 false
 
+        # fetch initial position
         @getOdometry (data) =>
             @move data
 
@@ -108,5 +111,4 @@ class Robot
                 for prop in data
                     console.log "result.#{prop} = #{data[prop]}"
 
-
-car = new Robot()
+robots = [new Robot()]

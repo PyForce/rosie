@@ -17,6 +17,7 @@ $(document).ready () ->
     $(document.body).on 'keyup', (e) -> pressed.delete e.which
 
     setInterval () ->
+        car = window.car
         l = []
         pressed.forEach (e) -> l.push e
         car.sio.emit 'manual', {'keys': l} if car
