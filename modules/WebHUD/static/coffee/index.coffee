@@ -3,7 +3,7 @@ DEBUG = false
 $(document).ready () ->
     # keyboards events
     pressed = new Set()
-    document.body.addEventListener 'keydown', (e) ->
+    $(document.body).on 'keydown', (e) ->
         # 87 -> W
         # 65 -> A
         # 83 -> S
@@ -12,13 +12,9 @@ $(document).ready () ->
         # 81 -> Q
         # 69 -> E
 
-        if [87, 65, 83, 68, 81, 69].some((element, index, array) -> element == e.which)
-          pressed.add e.which
-    , true
+        pressed.add e.which if e.which in [87, 65, 83, 68, 81, 69]
 
-    document.body.addEventListener 'keyup', (e) ->
-        pressed.delete e.which
-    , true
+    $(document.body).on 'keyup', (e) -> pressed.delete e.which
 
     setInterval () ->
         l = []
