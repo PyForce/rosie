@@ -31,5 +31,15 @@ class FallbackConfigParser(configparser.ConfigParser, object):
         else:
             return fallback
 
-config = FallbackConfigParser(defaults={'active': 'False', 'log': 'False'})
-config.read('config')
+config = FallbackConfigParser(defaults={'active': 'False', 'log': 'False',
+                                        'profile': 'simubot'})
+read = config.read('config')
+if 'config' not in read:
+    with open('config', 'w+') as fp:
+        del config.defaults()['active']
+        _tmp, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
+        config.write(fp)
+        configparser.DEFAULTSECT = _tmp
+        config.defaults()['active'] = 'False'
+        fp.seek(0)
+        config.readfp(fp)
