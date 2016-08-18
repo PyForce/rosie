@@ -33,7 +33,10 @@ if __name__ == '__main__':
                 thr.join(3)
                 if thr.is_alive():
                     print('\033[33m[*] join timed out, killing thread!!\033[0m')
-                    thr._Thread__stop()
+                    if sys.version_info.major == 3:
+                        thr._stop()
+                    else:
+                        thr._Thread__stop()
             print('[+] closed %s...' % module.__name__)
         event.clear()
 
