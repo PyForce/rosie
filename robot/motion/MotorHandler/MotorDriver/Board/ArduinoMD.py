@@ -48,13 +48,13 @@ class Arduino(DualSpeedMotorDriver):
     # TODO: Implement a function to change encoders per revolution parameter
 
     def set_speeds(self, speed_1, speed_2):
-        if abs(speed1) > abs(self.max_speed):
-            speed1 = self.max_speed
-        if abs(speed2) > abs(self.max_speed):
-            speed2 = self.max_speed
-        self.setpoint1 = speed1
-        self.setpoint2 = speed2
-        package = pack("<Bff", COMMAND_SETPOINT, speed1, speed2)
+        # if abs(speed_1) > abs(self.max_speed):
+        #     speed_1 = self.max_speed
+        # if abs(speed_2) > abs(self.max_speed):
+        #     speed_2 = self.max_speed
+        self.setpoint1 = speed_1
+        self.setpoint2 = speed_2
+        package = pack("<Bff", COMMAND_SETPOINT, speed_1, speed_2)
         try:
             self.serialPort.write(package)
         except:
@@ -84,9 +84,11 @@ class Arduino(DualSpeedMotorDriver):
                 self.pulses1= pulses1
                 self.pulses2= pulses2
                 self.batteryStatus = batteryCharge
+                delta_pulses1 = self.pulses1 - self.lastPulses1
+                delta_pulses2 = self.pulses2 - self.lastPulses2
         except:
             print ("      Error using the serial port")
-        return self.pulses1, self.pulses2, self.batteryStatus, 0, 0
+        return delta_pulses1, delta_pulses2, self.batteryStatus, 0, 0
 
     def set_constants(self, kc, ki, kd):
         package = pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)
