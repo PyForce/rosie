@@ -101,6 +101,8 @@ class SettingHandler:
                 return HardSpeedControlledMH(speed_motor_driver)
             if self.settings.FILENAME == 'ArduinoMD.py':
                 speed_motor_driver = Arduino(self.settings.MAX_SPEED)
+                speed_motor_driver.set_constants(self.parameters.constant_kc, self.parameters.constant_ki,
+                                                      self.parameters.constant_kd)
                 return HardSpeedControlledMH(speed_motor_driver)
             elif self.settings.FILENAME == 'MD25.py':
                 speed_controller = PIDSpeedController(self.parameters.constant_kc, self.parameters.constant_ki,
