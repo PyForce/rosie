@@ -10,6 +10,9 @@ Appearance
 # Name of the mobile robot
 MOBILE_ROBOT = 'SIMUBOT'
 
+# Kinematic Model of the Robot
+KINEMATICS = 'DIFFERENTIAL'
+
 # Distance between the wheels (in meters)
 DISTANCE = 0.2995
 
@@ -40,6 +43,22 @@ CONST_KC = 2.0
 CONST_KI = 1.0
 CONST_KD = 1.0
 
+"""
+Movement Controller
+"""
+
+# Trajectory planner interpolation method
+INTERPOLATION = 'LINEAR'  # it can be LINEAR or CUBIC (so far)
+
+# Localization method
+LOCALIZER = 'ODOMETRY_RK2'
+
+# Movement Supervisor Behavior
+SUPERVISOR = 'FILE_LOGGER'
+
+# Sample period
+SAMPLE_TIME = 0.05
+
 # Tracking Process constants
 CONST_B = 0.1
 CONST_K1 = 1.0
@@ -55,7 +74,8 @@ ENCODER_STEPS = 360
 # Max speed (in radians by seconds)
 MAX_SPEED = 20.0
 
-
+# Binary for controlling the fraction of power from the supply
+MAX_POWER_BIN = 127.0
 
 """
 Future
