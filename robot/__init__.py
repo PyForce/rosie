@@ -6,6 +6,7 @@ from robot.motion.MotorHandler.Differential import HardSpeedControlledMH
 from robot.motion.MotorHandler.Differential import SoftSpeedControlledMH
 from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
 from robot.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
+from robot.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
 from robot.motion.MovementController.Differential import DifferentialDriveRobotParameters, \
     DifferentialDriveMovementController, \
     DifferentialDriveRobotLocation
