@@ -8,40 +8,40 @@ Appearance
 """
 
 # Name of the mobile robot
-MOBILE_ROBOT = 'SIMUBOT'
+MOBILE_ROBOT = 'RoverT'
 
 # Kinematic Model of the Robot
 KINEMATICS = 'DIFFERENTIAL'
 
 # Distance between the wheels (in meters)
-DISTANCE = 0.2995
+DISTANCE = 0.307
 
 # Radius of the wheels (in meters)
 RADIUS = 0.05
 
 # Distance between the rear and the front part of the robot (in meters)
-LARGE = 0.20
+LARGE = 0.292
 
 # Distance between left and the right part of the robot (in meters)
-WIDTH = 0.42
+WIDTH = 0.33
 
 # Distance between the floor and the highest part of the robot (in meters)
-HEIGHT = 0
+HEIGHT = 0.15
 
 """
 Motor Controller
 """
 
 # Filename of the controller board (this file is located in the folder: robot/board)
-FILENAME = 'VirtualMD.py'
+FILENAME = 'MD25.py'
 
 # PID settings (Set it True if your hardware support speed control)
-PID = True
+PID = False
 
 # PID constants
-CONST_KC = 2.0
-CONST_KI = 1.0
-CONST_KD = 1.0
+CONST_KC = 3.75
+CONST_KI = 1.25
+CONST_KD = 1.25
 
 """
 Movement Controller
@@ -72,10 +72,11 @@ Motors
 ENCODER_STEPS = 360
 
 # Max speed (in radians by seconds)
-MAX_SPEED = 20.0
+MAX_SPEED = 10.0
 
-# Binary for controlling the fraction of power from the supply
+# Binary bound for the power in PWM
 MAX_POWER_BIN = 127.0
+
 
 """
 Future

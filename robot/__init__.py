@@ -105,7 +105,7 @@ class SettingHandler:
                 power_motor_driver = MD25MotorDriver(1, 0x58)
                 return SoftSpeedControlledMH(speed_controller, power_motor_driver)
             else:
-                print("    ERROR! Localizer Not Supported>")
+                print("    ERROR! Motor Driver Not Supported>")
                 return None
         else:
             print("    ERROR! Kinematic Model Not Supported>")
