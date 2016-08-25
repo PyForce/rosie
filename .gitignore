@@ -5,6 +5,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Matlab Generated files
+*.m
+
 # Windows batch files
 *.bat
 

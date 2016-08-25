@@ -3,9 +3,6 @@ Settings
 """
 # Configure the way rOSi handles your robot.
 
-
-
-
 """
 Appearance
 """
@@ -13,7 +10,6 @@ Appearance
 # Name of the mobile robot
 MOBILE_ROBOT = 'SIMUBOT'
 
-# NEW!
 # Kinematic Model of the Robot
 KINEMATICS = 'DIFFERENTIAL'
 
@@ -47,23 +43,19 @@ CONST_KC = 2.0
 CONST_KI = 1.0
 CONST_KD = 1.0
 
-# NEW!
 """
 Movement Controller
 """
-# NEW!
+
 # Trajectory planner interpolation method
 INTERPOLATION = 'LINEAR'  # it can be LINEAR or CUBIC (so far)
 
-# NEW!
 # Localization method
 LOCALIZER = 'ODOMETRY_RK2'
 
-# NEW!
 # Movement Supervisor Behavior
 SUPERVISOR = 'FILE_LOGGER'
 
-# NEW!
 # Sample period
 SAMPLE_TIME = 0.05
 
@@ -82,7 +74,7 @@ ENCODER_STEPS = 360
 # Max speed (in radians by seconds)
 MAX_SPEED = 20.0
 
-# NEW!
+# Binary for controlling the fraction of power from the supply
 MAX_POWER_BIN = 127.0
 
 """
