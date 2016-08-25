@@ -1,6 +1,6 @@
 from flask import render_template, request
-from WebHUD import app
-from WebHUD.utils import allow_origin
+from . import app
+from .utils import allow_origin
 
 
 @app.route('/', methods=['GET'])
