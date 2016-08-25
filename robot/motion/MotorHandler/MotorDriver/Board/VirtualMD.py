@@ -3,9 +3,6 @@ import math
 
 from robot.motion.MotorHandler.MotorDriver.Dual import DualSpeedMotorDriver
 
-__author__ = 'Silvio'
-
-
 class VirtualMotorDriver(DualSpeedMotorDriver):
     """
     A class to represent a virtual robot
