@@ -98,6 +98,9 @@ class SettingHandler:
             if self.settings.FILENAME == 'VirtualMD.py':
                 speed_motor_driver = VirtualMotorDriver(self.parameters.steps_per_revolution, self.parameters.max_speed)
                 return HardSpeedControlledMH(speed_motor_driver)
+            if self.settings.FILENAME == 'ArduinoMD.py':
+                speed_motor_driver = Arduino(self.settings.MAX_SPEED)
+                return HardSpeedControlledMH(speed_motor_driver)
             elif self.settings.FILENAME == 'MD25.py':
                 speed_controller = PIDSpeedController(self.parameters.constant_kc, self.parameters.constant_ki,
                                                       self.parameters.constant_kd, self.parameters.max_value_power,
