@@ -60,7 +60,6 @@ def set_path(path=[]):
 
 
 def set_position_notifier(notifier):
-    print("connecting robot with server notifier")
     kernel.ROBOT.controller.SEND_POSITION = notifier
 
 
