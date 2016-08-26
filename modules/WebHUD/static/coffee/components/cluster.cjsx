@@ -4,26 +4,32 @@ class ClusterMenu extends React.Component
       name: 'local'
       host: document.domain
       port: location.port
-    ]
+    ], loading: yes
     super @props
 
   click: ->
     dropdownNode = ReactDOM.findDOMNode @refs.dropdown
     $(dropdownNode).dropdown()
 
-  render: ->
+  refresh: ->
     settings =
       crossDomain: true
       url: "http://#{document.domain}:#{location.port}/clusters"
       method: 'GET'
-    # $.ajax(settings).done (response) ->
-    #   console.log response
+    $.ajax(settings).done (response) =>
+      console.log response
+      @setState loading: no
 
-    <div className='ui dropdown item' onClick={@click.bind @}
-      ref='dropdown'>
+  componentDidMount: -> @refresh()
+
+  render: ->
+    loading = @state.loading
+
+    <div className="ui#{if loading then ' loading' else ''} floating dropdown
+      item" onClick={@click.bind @} ref='dropdown'>
       Cluster
-      <i className='dropdown icon'></i>
-      <div className='menu'>
+      <i className='dropdown icon'/>
+      <div className='menu' style={'min-width': 'calc(200%)'}>
         {<ClusterItem {...cluster}/> for cluster in @state.clusters}
       </div>
     </div>
@@ -34,8 +40,8 @@ class ClusterItem extends React.Component
 
   render: ->
     <div onClick={@select.bind @} className='item'>
-      {@props.name} <div className="ui small basic label">
-        {@props.host}:{@props.port} </div>
+      {@props.name}
+      <span className='description'>{@props.host}:{@props.port}</span>
     </div>
 
 ReactDOM.render <ClusterMenu/>, document.getElementById 'clusters'
