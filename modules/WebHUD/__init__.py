@@ -23,7 +23,11 @@ def init():
     debug = config.getboolean('WebHUD', 'debug', False)
     use_reloader = config.getboolean('WebHUD', 'reloader', False)
 
-    st.runall()
+    if debug:
+        st.watch(['static/coffee/**/*.coffee', 'static/coffee/**/*.cjsx',
+                  'static/less/**/*.less'], 'cjsx', 'coffee', 'less')
+    else:
+        st.runall()
 
     sio.run(app, host=host, port=port, debug=debug, use_reloader=use_reloader)
     #app.run(host=myhost, port=myport, debug=debug, use_reloader=use_reloader)
