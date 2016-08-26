@@ -1,28 +1,32 @@
 # -*- coding: utf-8 -*-
+import importlib
+import os
 
-__all__=['SETTINGS','load_global_settings']
+from settings import config as global_settings
+
+
+__all__ = ['SETTINGS', 'load_global_settings']
 
 #### IMPORT ####
 
-import os
-import settings as global_settings
 
-SETTINGS=None
+SETTINGS = None
+
 
 def load_global_settings():
     """
     Load the robot's profile defined in the global settings.
     """
     global SETTINGS
-    if os.path.exists(os.path.join(os.getcwd(),'profiles',global_settings.PROFILE)):
+    profile = global_settings.get('general', 'profile')
+    if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
         try:
             # substitute dirty exec call
-            _temp = __import__("profiles.%s" % (global_settings.PROFILE),
-                               globals(), locals(), ['settings'], -1)
-            SETTINGS = _temp.settings
-            print('    PROFILE: '+global_settings.PROFILE)
+            SETTINGS = importlib.import_module("profiles.%s.settings" %
+                                               (profile))
+            print('    PROFILE: ' + profile)
         except:
-            SETTINGS=None
-            print("    ERROR! In <"+global_settings.PROFILE+">")
+            SETTINGS = None
+            print("    ERROR! In <"+profile+">")
     else:
-        print("    WARNING! Directory <"+global_settings.PROFILE+"> do not exist")
+        print("    WARNING! Directory <"+profile+"> do not exist")
