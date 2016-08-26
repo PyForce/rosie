@@ -1,5 +1,5 @@
 import os
-import settings as global_settings
+from settings import config as global_settings
 
 from robotNew.motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
 from robotNew.motion.MotorHandler.Differential import HardSpeedControlledMH
@@ -21,18 +21,19 @@ from tools.FileNameProvider import FileNameProviderByTime
 
 class SettingHandler:
     def __init__(self):
-        if os.path.exists(os.path.join(os.getcwd(), 'profiles', global_settings.PROFILE)):
+        profile = global_settings.get('general', 'profile')
+        if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
             try:
-                _temp = __import__("profiles.%s" % (global_settings.PROFILE),
+                _temp = __import__("profiles.%s" % (profile),
                                    globals(), locals(), ['settings'], -1)
                 self.settings = _temp.settings
                 self.parameters = self.buildRobotParameters()
-                print('    PROFILE: ' + global_settings.PROFILE)
+                print('    PROFILE: ' + profile)
             except:
                 self.settings = None
-                print("    ERROR! In <" + global_settings.PROFILE + ">")
+                print("    ERROR! In <" + profile + ">")
         else:
-            print("    ERROR! Directory <" + global_settings.PROFILE + "> do not exist")
+            print("    ERROR! Directory <" + profile + "> do not exist")
 
     def buildMovementController(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
