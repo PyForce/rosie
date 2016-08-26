@@ -39,27 +39,6 @@ body{
 	}
 }
 
-#overlay{
-	transition: visibility 0.2s;
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 50px;
-	bottom: 0;
-	background: black;
-	z-index: 980;
-	opacity: 0.4;
-	visibility: hidden;
-	&.visible {
-		visibility: visible;
-	}
-	&.dim {
-		opacity: .9;
-    	top: 0;
-    	z-index: 1001;
-	}
-}
-
 #map{
 	position: fixed;
 	bottom: 0;
