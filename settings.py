@@ -1,17 +1,45 @@
-"""
-Settings
-"""
-# Setup the general settings of rOSi.
+import sys
+if sys.version_info.major == 3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
-__all__=['PROFILE', 'MODULES']
 
-import profiles
+class FallbackConfigParser(configparser.ConfigParser, object):
+    def get(self, section, option, fallback=None):
+        if self.has_section(section) and self.has_option(section, option):
+            return super(FallbackConfigParser, self).get(section, option)
+        else:
+            return fallback
 
-# Name of the robot's profile directory (this directory is located in the folder: profiles)
-PROFILE = 'simubot'
+    def getint(self, section, option, fallback=None):
+        if self.has_section(section) and self.has_option(section, option):
+            return super(FallbackConfigParser, self).getint(section, option)
+        else:
+            return fallback
 
-# Modules to load
-MODULES = profiles.WebHUD | profiles.ordex
+    def getfloat(self, section, option, fallback=None):
+        if self.has_section(section) and self.has_option(section, option):
+            return super(FallbackConfigParser, self).getfloat(section, option)
+        else:
+            return fallback
 
-# Log
-LOG = False
+    def getboolean(self, section, option, fallback=None):
+        if self.has_section(section) and self.has_option(section, option):
+            return super(FallbackConfigParser, self).getboolean(section,
+                                                                option)
+        else:
+            return fallback
+
+config = FallbackConfigParser(defaults={'active': 'False', 'log': 'False',
+                                        'profile': 'simubot'})
+read = config.read('config')
+if 'config' not in read:
+    with open('config', 'w+') as fp:
+        del config.defaults()['active']
+        _tmp, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
+        config.write(fp)
+        configparser.DEFAULTSECT = _tmp
+        config.defaults()['active'] = 'False'
+        fp.seek(0)
+        config.readfp(fp)

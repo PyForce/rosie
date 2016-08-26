@@ -7,6 +7,12 @@ class Robot
         @manual = off
         @path = off
 
+        @sio = io.connect "http://#{@host}:#{@port}"
+        @sio.onclose = () ->
+            alert 'Closed socket.io'
+        @sio.on 'echo reply', (msg) -> console.log msg.text
+        @sio.on 'position', (pos) => @move(pos)
+
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
             @overlay = new RobotOverlay imageUrl, [0, 0], data.size[1], data.size[0]
@@ -14,9 +20,12 @@ class Robot
             $(@overlay._image).click =>
                 # show HUD
                 mountHUD @
+                # set this as the selected robot
+                window.car = @
                 # don't propagate event
                 false
 
+        # fetch initial position
         @getOdometry (data) =>
             @move data
 
@@ -101,3 +110,5 @@ class Robot
             if DEBUG
                 for prop in data
                     console.log "result.#{prop} = #{data[prop]}"
+
+robots = [new Robot()]
