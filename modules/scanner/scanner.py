@@ -6,7 +6,8 @@ import threading
 from collections import namedtuple
 
 from settings import config
-from utils import Singleton
+from tools.sigleton import Singleton
+
 
 if sys.version_info.major == 3:
     from http.client import HTTPConnection
