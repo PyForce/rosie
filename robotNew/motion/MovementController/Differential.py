@@ -268,7 +268,7 @@ class DifferentialDriveMovementController:
         self.trajectory_planner.initialize_track(trajectory_parameters)
         self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
 
-    def movement_control(self, elapsed_time):
+    def movement_control(self):
         """
         Control the movement
 
@@ -276,7 +276,7 @@ class DifferentialDriveMovementController:
         @param elapsed_time: elapsed time since last call
         """
         now = time.time()
-        elapsed = now - self.prev_time
+        elapsed_time = now - self.prev_time
         self.prev_time = now
 
         if self.trajectory_planner.has_finished() or self.ordered_stop:
