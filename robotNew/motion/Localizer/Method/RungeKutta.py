@@ -2,8 +2,6 @@ import math
 
 from robotNew.motion.Localizer.Differential import DifferentialDriveOdometryLocalizer
 
-__author__ = 'Silvio'
-
 
 class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
     """

@@ -1,5 +1,4 @@
 import math
-import signal
 import time
 
 class DifferentialDriveRobotLocation:
@@ -219,7 +218,7 @@ class DifferentialDriveMovementController:
     """
 
     def __init__(self, movement_supervisor, trajectory_planner, odometry_localizer, trajectory_tracker, motor_handler,
-                 robot_parameters):
+                 timer, robot_parameters):
         self.ordered_stop = True
         self.sample_time = robot_parameters.sample_time
         self.movement_supervisor = movement_supervisor
@@ -229,9 +228,11 @@ class DifferentialDriveMovementController:
         self.odometry_localizer = odometry_localizer
         self.trajectory_planner = trajectory_planner
         self.robot_state = DifferentialDriveRobotState()
+        self.timer = timer
 
+
+        self.timer.set_timer_overflow_function(self.movement_control)
         self.prev_time = 0
-        self.timer_init()
 
     def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
         """
@@ -274,6 +275,10 @@ class DifferentialDriveMovementController:
         @type elapsed_time: float
         @param elapsed_time: elapsed time since last call
         """
+        now = time.time()
+        elapsed = now - self.prev_time
+        self.prev_time = now
+
         if self.trajectory_planner.has_finished() or self.ordered_stop:
             self.movement_finish()
             return
@@ -304,7 +309,7 @@ class DifferentialDriveMovementController:
         Finish the movement
 
         """
-        self.timer_stop()
+        self.timer.timer_stop()
         self.movement_stop()
         self.motor_handler.stop_motors()
         self.movement_supervisor.movement_end()
@@ -316,7 +321,7 @@ class DifferentialDriveMovementController:
         """
         self.ordered_stop = False
         self.prev_time = time.time()
-        signal.setitimer(signal.ITIMER_REAL, self.sample_time, self.sample_time)
+        self.timer.timer_init()
 
     def movement_stop(self):
         """
@@ -325,30 +330,5 @@ class DifferentialDriveMovementController:
         """
         self.ordered_stop = True
 
-    def timer_init(self):
-        """
-        Init the timer
 
-        """
-        signal.signal(signal.SIGALRM, self.timer_handler)
-        signal.setitimer(signal.ITIMER_REAL, 0, 0)
 
-    def timer_handler(self, signum, frame):
-        """
-        Handle the time
-
-        @param frame: Stack Frame
-        @param signum: Signal number
-        """
-        now = time.time()
-        elapsed = now - self.prev_time
-        self.prev_time = now
-
-        self.movement_control(elapsed)
-
-    def timer_stop(self):
-        """
-        Stop the timer
-
-        """
-        signal.setitimer(signal.ITIMER_REAL, 0, 0)

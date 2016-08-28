@@ -2,8 +2,6 @@ import thread
 
 from robotNew.motion.MovementSupervisor.Differential import DifferentialDriveMovementSupervisor
 
-__author__ = 'Silvio'
-
 
 class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
     """

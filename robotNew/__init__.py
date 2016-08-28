@@ -1,4 +1,6 @@
 import os
+import sys
+
 from settings import config as global_settings
 
 from robotNew.motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
@@ -16,6 +18,8 @@ from robotNew.motion.TrajectoryPlanner.Differential import DifferentialDriveTraj
 from robotNew.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
 from robotNew.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
 from robotNew.motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
+from robotNew.motion.MovementTimer.Platforms.Unix import UnixTimer
+
 from tools.FileNameProvider import FileNameProviderByTime
 
 
@@ -42,6 +46,7 @@ class SettingHandler:
                                                        self.buildLocalizer(),
                                                        self.buildTrajectoryTracker(),
                                                        self.buildMotorHandler(),
+                                                       self.buildTimer(),
                                                        self.parameters)
         else:
             print("    ERROR! Kinematic Model Not Supported>")
@@ -117,6 +122,14 @@ class SettingHandler:
         else:
             print("    ERROR! Kinematic Model Not Supported>")
             return None
+
+    def buildTimer(self):
+        if sys.platform.startswith("win"):
+            # Use generic driver
+            pass
+        else:
+            # Use Unix based system driver
+            return UnixTimer(self.settings.SAMPLE_TIME)
 
     def buildRobotParameters(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
