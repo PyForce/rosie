@@ -9,7 +9,7 @@ class WindowsTimer(AbstractTimer):
     """
 
     def __init__(self, sample_time):
-        super(GenericTimer, self).__init__(sample_time)
+        super(WindowsTimer, self).__init__(sample_time)
         self.next_call=0
         self.end_timer=False
         self.timer_stop()
