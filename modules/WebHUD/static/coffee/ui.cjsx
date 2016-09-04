@@ -6,10 +6,6 @@ mountHUD = (robot) ->
             -> robot.path = off
         wasd: Command 'game', (-> robot.setManual()),
             -> robot.setAuto()
-        text: Command 'font', (-> robot.setAuto(); ReactDOM.render <TextCommand
-            robot={robot}/>, document.getElementById 'mode-text'),
-            -> ReactDOM.unmountComponentAtNode(
-                document.getElementById 'mode-text')
 
     if not Modernizr.mq '(max-width: 600px)'
         mountInfo robot
@@ -17,6 +13,11 @@ mountHUD = (robot) ->
     cmdList = ReactDOM.render <CommandList/>,
         document.getElementById 'commands'
     cmdList.addCommand k, v for k, v of commands
+
+    text = Command 'font', (-> robot.setAuto(); ReactDOM.render <TextCommand
+        robot={robot} cmdList={cmdList}/>, document.getElementById 'mode-text'),
+        -> ReactDOM.unmountComponentAtNode document.getElementById 'mode-text'
+    cmdList.addCommand 'text', text
 
 mountInfo = (robot) ->
     # show streaming
