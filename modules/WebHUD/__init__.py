@@ -1,5 +1,5 @@
 from flask import Flask
-from flask.ext.static import Static
+from flask.ext.bid import Static
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
