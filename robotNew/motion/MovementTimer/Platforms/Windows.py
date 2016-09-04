@@ -3,9 +3,9 @@ from robotNew.motion.MovementTimer.Timer import AbstractTimer
 import time
 import threading
 
-class GenericTimer(AbstractTimer):
+class WindowsTimer(AbstractTimer):
     """
-    Class to generate sample time for other systems to drive a mobile robot, or anything else
+    Class to generate sample time for Windows Systems to drive a mobile robot, or anything else
     """
 
     def __init__(self, sample_time):
