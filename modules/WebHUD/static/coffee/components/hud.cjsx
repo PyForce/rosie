@@ -56,13 +56,7 @@ Command = (icon, onAction, offAction) ->
 
 class CommandComponent extends React.Component
   run: ->
-    if not @props.active
-      @props.onAction()
-      @props.switchActive @props.name, true
-    else
-      @props.switchActive @props.name, false
-      if @props.offAction
-        @props.offAction()
+    @props.switchActive @props.name, not @props.active
 
   render: ->
     {icon, active} = @props
@@ -81,6 +75,7 @@ class TextCommand extends React.Component
     # send command to robot
     @props.robot.postCommand inputNode.value
     inputNode.value = ''
+    @props.cmdList.switchActive 'text', false
 
   componentDidMount: ->
     inputNode = ReactDOM.findDOMNode @refs.input
@@ -111,6 +106,8 @@ class CommandList extends React.Component
       do (k, cmd) ->
         if k == key
           cmd.active = val
+          # the action depending on activating or deactivating
+          val and cmd.onAction() or cmd.offAction()
         else if val  # deactivate only if activating
           cmd.active = false
           cmd.offAction() if cmd.offAction # invoke off
