@@ -19,6 +19,7 @@ from robotNew.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlann
 from robotNew.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
 from robotNew.motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
 from robotNew.motion.MovementTimer.Platforms.Unix import UnixTimer
+from robotNew.motion.MovementTimer.Platforms.Generic import GenericTimer
 
 from tools.FileNameProvider import FileNameProviderByTime
 
@@ -126,7 +127,7 @@ class SettingHandler:
     def buildTimer(self):
         if sys.platform.startswith("win"):
             # Use generic driver
-            pass
+            return GenericTimer(self.settings.SAMPLE_TIME)
         else:
             # Use Unix based system driver
             return UnixTimer(self.settings.SAMPLE_TIME)
