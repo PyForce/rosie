@@ -17,8 +17,14 @@ class ClusterMenu extends React.Component
       url: "http://#{document.domain}:#{location.port}/clusters"
       method: 'GET'
     $.ajax(settings).done (response) =>
-      console.log response
-      @setState loading: no
+      nClusters = @state.clusters
+      nClusters.splice(1) # keep only the first entry
+      for k, v of response
+        nClusters.append
+          name: v.name
+          host: v.host
+          port: v.port
+      @setState loading: no, clusters: nClusters
 
   componentDidMount: -> @refresh()
 
