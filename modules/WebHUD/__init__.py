@@ -4,7 +4,7 @@ from flask_socketio import SocketIO
 
 app = Flask(__name__)
 
-sio = SocketIO(app)
+sio = SocketIO(app, async_mode='gevent')
 
 st = Static(app)
 
