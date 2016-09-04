@@ -1,7 +1,8 @@
-import smbus
+try:
+    import smbus
+except:
+    print("[IMPORT] smbus unavailable")
 from robotNew.motion.MotorHandler.MotorDriver.Dual import DualPowerMotorDriver
-
-__author__ = 'Silvio'
 
 
 class MD25MotorDriver(DualPowerMotorDriver):
