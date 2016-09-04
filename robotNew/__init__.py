@@ -125,7 +125,7 @@ class SettingHandler:
 
     def buildTimer(self):
         if sys.platform.startswith("win"):
-            # Use generic driver
+            # Use Windows base system driver
             return WindowsTimer(self.settings.SAMPLE_TIME)
         else:
             # Use Unix based system driver
