@@ -7,6 +7,9 @@ from . import app, sio
 from .utils import allow_origin
 from settings import config
 from scanner import scanner_server as scanner
+from robotNew.motion.MovementSupervisor.Differential\
+    import DifferentialDriveMovementSupervisor
+from robotNew import Robot
 
 
 client_count = 0
@@ -124,37 +127,6 @@ def text():
     return 'OK'
 
 
-@sio.on('manual')  # key press
-def drive_manual(data):
-    """
-    {
-        "keys": [87, 65, 83, 68, 81, 69]
-    }
-    """
-    keys = data['keys']
-    robot_handler.set_keys(keys)
-
-
-@app.route('/manual_mode', methods=['PUT'])
-@allow_origin
-def manual_mode():
-    """
-    {}
-    """
-    robot_handler.set_mode('manual')
-    return 'OK'
-
-
-@app.route('/auto_mode', methods=['PUT'])
-@allow_origin
-def auto_mode():
-    """
-    {}
-    """
-    robot_handler.set_mode('auto')
-    return 'OK'
-
-
 @app.route('/maps', methods=['PUT'])
 @allow_origin
 def maps():
@@ -177,28 +149,46 @@ def clusters():
     return jsonify(**data)
 
 
-def send_position(x, y, theta):
-    sio.emit('position', {"x": x, "y": y, 'theta': theta})
+class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
+    def __init__(self, sio):
+        self.sio = sio
+        self.keys = []
 
+    def movement_update(self, state):
+        if self.manual:
+            # update keys
+            pass
+        self.sio.emit('position', {'x': state.global_location.x_position,
+                                   'y': state.global_location.y_position,
+                                   'theta': state.global_location.z_location})
 
-@sio.on('connect')
-def connect():
-    global client_count
-    if client_count == 0:
-        robot_handler.set_position_notifier(send_position)
+    @sio.on('manual')  # key press
+    def drive_manual(self, data):
+        """
+        {
+            "keys": [87, 65, 83, 68, 81, 69]
+        }
+        """
+        self.keys = data['keys']
 
-    client_count += 1
+    @app.route('/manual_mode', methods=['PUT'])
+    @allow_origin
+    def manual_mode(self):
+        """
+        {}
+        """
+        self.manual = True
+        return 'OK'
 
+    @app.route('/auto_mode', methods=['PUT'])
+    @allow_origin
+    def auto_mode(self):
+        """
+        {}
+        """
+        self.manual = False
+        return 'OK'
 
-@sio.on('disconnect')
-def disconnect():
-    global client_count
-    client_count -= 1
-
-    if client_count == 0:
-        robot_handler.set_position_notifier(None)
-
-
-@sio.on('echo')
-def echo_reply(data):
-    sio.emit('echo reply', 'hello at server side')
+r = Robot()
+# add WebHUDMovementSupervisor to working supervisors
+r.supervisor().append(WebHUDMovementSupervisor(sio))
