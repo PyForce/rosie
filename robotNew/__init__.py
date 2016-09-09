@@ -10,7 +10,7 @@ from robotNew.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMoto
 from robotNew.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
 from robotNew.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
 from robotNew.motion.MovementController.Differential import DifferentialDriveRobotParameters, \
-    DifferentialDriveClosedLoopMovementController, \
+    DifferentialDriveMovementController, \
     DifferentialDriveRobotLocation
 from robotNew.motion.MotorHandler.SpeedController.Controller.PID import PIDSpeedController
 from robotNew.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
@@ -48,7 +48,7 @@ class SettingHandler:
             motror_handler = self.buildMotorHandler()
             timer = self.buildTimer()
 
-            return DifferentialDriveClosedLoopMovementController(supervisor,
+            return DifferentialDriveMovementController(supervisor,
                                                        planner,
                                                        localizer,
                                                        tracker,
@@ -167,6 +167,16 @@ class Robot:
     def track(self, trajectory_parameters):
         self.motion.movement_init(trajectory_parameters)
         self.motion.movement_start()
+
+    def start_open_loop_control(self):
+        self.motion.movement_init(None)
+        self.motion.movement_start()
+
+    def add_key_list(self, keys):
+        self.motion.keys = keys
+
+    def stop_open_loop_control(self):
+        self.motion.movement_finish()
 
     def position(self,x=None,y=None,theta=None):
         """

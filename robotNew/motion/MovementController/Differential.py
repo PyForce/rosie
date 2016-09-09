@@ -197,7 +197,7 @@ class DifferentialDriveRobotState:
         self.location = location
 
 
-class DifferentialDriveClosedLoopMovementController:
+class DifferentialDriveMovementController:
     """
     Class to control the movement of a differential drive mobile robotNew
 
@@ -231,8 +231,10 @@ class DifferentialDriveClosedLoopMovementController:
         self.timer = timer
 
 
-        self.timer.set_timer_overflow_function(self.movement_control)
+        self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
         self.prev_time = 0
+
+        self.keys = []
 
     def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
         """
@@ -262,13 +264,52 @@ class DifferentialDriveClosedLoopMovementController:
         @type trajectory_parameters: motion.TrajectoryParameters.DifferentialDriveTrajectoryParameters
         @param trajectory_parameters: Parameters for the movement's trajectory
         """
+        if trajectory_parameters:
+            self.trajectory_planner.initialize_track(trajectory_parameters)
+        else:
+            self.timer.set_timer_overflow_function(self.open_loop_movement_control)
         self.motor_handler.reset()
         self.trajectory_tracker.reset()
         self.odometry_localizer.reset_location()
-        self.trajectory_planner.initialize_track(trajectory_parameters)
         self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
 
-    def movement_control(self):
+    def open_loop_movement_control(self):
+        """
+        Control the movement
+
+        @type elapsed_time: float
+        @param elapsed_time: elapsed time since last call
+        """
+        now = time.time()
+        elapsed_time = now - self.prev_time
+        self.prev_time = now
+
+        if self.ordered_stop:
+            self.movement_finish()
+            return
+
+        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = self.motor_handler. \
+            read_delta_encoders_count_state()
+        angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,
+                                                               elapsed_time)
+        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
+
+        location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
+                                                                            delta_encoder_count_2)
+
+        x, y, z = self.get_movement_direction_vector(self.keys)
+
+        set_point_1, set_point_2 = self.follow(x, y, z)
+
+        self.motor_handler.set_speeds(set_point_1, set_point_2)
+
+        self.robot_state.update(location, global_position, None, None, None, None, angular_speed_1,
+                                set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
+                                elapsed_time)
+
+        self.movement_supervisor.movement_update(self.robot_state)
+
+    def closed_loop_movement_control(self):
         """
         Control the movement
 
@@ -304,102 +345,7 @@ class DifferentialDriveClosedLoopMovementController:
 
         self.movement_supervisor.movement_update(self.robot_state)
 
-    def movement_finish(self):
-        """
-        Finish the movement
-
-        """
-        self.timer.timer_stop()
-        self.movement_stop()
-        self.motor_handler.stop_motors()
-        self.movement_supervisor.movement_end()
-
-    def movement_start(self):
-        """
-        Start the movement
-
-        """
-        self.ordered_stop = False
-        self.prev_time = time.time()
-        self.timer.timer_init()
-
-    def movement_stop(self):
-        """
-        Order to stop the movement
-
-        """
-        self.ordered_stop = True
-
-
-
-
-class DifferentialDriveOpenLoopMovementController:
-    """
-    Class to control the movement of a differential drive mobile robotNew with a keyboard
-
-    @param movement_supervisor: Object to supervise the movement
-    @param trajectory_planner: Object to make the trajectory planning
-    @param odometry_localizer: Object to make odometry localization
-    @param trajectory_tracker: Object to make the trajectory tracking
-    @param motor_handler: Object to handle the motors
-    @param robot_parameters: Parameters of the robotNew
-    @param sample_time: Sample time of the control system
-    @type sample_time: float
-    @type movement_supervisor: motion.MovementSupervisor.DifferentialDriveMovementSupervisor
-    @type trajectory_planner: motion.TrajectoryPlanner.DifferentialDriveTrajectoryPlanner
-    @type trajectory_tracker: motion.TrajectoryTracker.DifferentialDriveTrajectoryTracker
-    @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
-    @type motor_handler: motion.MotorHandler.DifferentialDriveMotorHandler
-    @type odometry_localizer: motion.OdometryLocalizer.DifferentialDriveOdometryLocalizer
-    """
-
-    def __init__(self, movement_supervisor, trajectory_planner, odometry_localizer, trajectory_tracker, motor_handler,
-                 timer, robot_parameters):
-        self.ordered_stop = True
-        self.sample_time = robot_parameters.sample_time
-        self.movement_supervisor = movement_supervisor
-        self.robot_parameters = robot_parameters
-        self.motor_handler = motor_handler
-        self.trajectory_tracker = trajectory_tracker
-        self.odometry_localizer = odometry_localizer
-        self.trajectory_planner = trajectory_planner
-        self.robot_state = DifferentialDriveRobotState()
-        self.timer = timer
-
-
-        self.timer.set_timer_overflow_function(self.movement_control)
-        self.prev_time = 0
-
-    def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
-        """
-        Measure speeds of both motors of the robotNew
-
-        @param delta_encoder_count_1: encoder count for motor 1 since last measure
-        @param delta_encoder_count_2: encoder count for motor 2 since last measure
-        @param elapsed_time: time elapsed since last measure
-        @type elapsed_time: float
-        @type delta_encoder_count_2: int
-        @type delta_encoder_count_1: int
-        @rtype : tuple
-        @return: The actual speeds of the motors(2 floats)
-        """
-        steps_per_sec_1 = delta_encoder_count_1 / elapsed_time
-        angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
-
-        steps_per_sec_2 = delta_encoder_count_2 / elapsed_time
-        angular_speed_2 = steps_per_sec_2 * 2 * math.pi / self.robot_parameters.steps_per_revolution
-
-        return angular_speed_1, angular_speed_2
-
-    def movement_init(self):
-        """
-        Initialize the movement
-        """
-        self.motor_handler.reset()
-        self.odometry_localizer.reset_location()
-        self.movement_supervisor.movement_begin(-1)
-
-    def async_speed(self, x, y, z):
+    def follow(self, x, y, z):
         """
         calculate the wheel speeds for an asynchronous event.
 
@@ -423,7 +369,7 @@ class DifferentialDriveOpenLoopMovementController:
         elif z:
             return z, -z
 
-    def get_xyz_from_list(self, keys):
+    def get_movement_direction_vector(self, keys):
         x, y, z = 0, 0, 0
         dx, dy, dz = 0, 0, 0
         if 87 in keys:  # W
@@ -444,43 +390,7 @@ class DifferentialDriveOpenLoopMovementController:
         z = (z+dz)/2.0
 
 
-        return x,y,z
-
-    def movement_control(self):
-        """
-        Control the movement
-
-        @type elapsed_time: float
-        @param elapsed_time: elapsed time since last call
-        """
-        now = time.time()
-        elapsed_time = now - self.prev_time
-        self.prev_time = now
-
-        if self.ordered_stop:
-            self.movement_finish()
-            return
-
-        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = self.motor_handler. \
-            read_delta_encoders_count_state()
-        angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,
-                                                               elapsed_time)
-        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
-
-        location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
-                                                                            delta_encoder_count_2)
-
-        x, y, z = self.get_xyz_from_list(keys)
-
-        set_point_1, set_point_2 = self.async_speed(x,y,z)
-
-        self.motor_handler.set_speeds(set_point_1, set_point_2)
-
-        self.robot_state.update(location, global_position, reference_location, reference_speed, u1, u2, angular_speed_1,
-                                set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
-                                elapsed_time)
-
-        self.movement_supervisor.movement_update(self.robot_state)
+        return x, y, z
 
     def movement_finish(self):
         """
@@ -488,6 +398,7 @@ class DifferentialDriveOpenLoopMovementController:
 
         """
         self.timer.timer_stop()
+        self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
         self.movement_stop()
         self.motor_handler.stop_motors()
         self.movement_supervisor.movement_end()
