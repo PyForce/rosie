@@ -231,8 +231,10 @@ class DifferentialDriveMovementController:
         self.timer = timer
 
 
-        self.timer.set_timer_overflow_function(self.movement_control)
+        self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
         self.prev_time = 0
+
+        self.keys = []
 
     def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
         """
@@ -262,13 +264,52 @@ class DifferentialDriveMovementController:
         @type trajectory_parameters: motion.TrajectoryParameters.DifferentialDriveTrajectoryParameters
         @param trajectory_parameters: Parameters for the movement's trajectory
         """
+        if trajectory_parameters:
+            self.trajectory_planner.initialize_track(trajectory_parameters)
+        else:
+            self.timer.set_timer_overflow_function(self.open_loop_movement_control)
         self.motor_handler.reset()
         self.trajectory_tracker.reset()
         self.odometry_localizer.reset_location()
-        self.trajectory_planner.initialize_track(trajectory_parameters)
         self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
 
-    def movement_control(self):
+    def open_loop_movement_control(self):
+        """
+        Control the movement
+
+        @type elapsed_time: float
+        @param elapsed_time: elapsed time since last call
+        """
+        now = time.time()
+        elapsed_time = now - self.prev_time
+        self.prev_time = now
+
+        if self.ordered_stop:
+            self.movement_finish()
+            return
+
+        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = self.motor_handler. \
+            read_delta_encoders_count_state()
+        angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,
+                                                               elapsed_time)
+        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
+
+        location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
+                                                                            delta_encoder_count_2)
+
+        x, y, z = self.get_movement_direction_vector(self.keys)
+
+        set_point_1, set_point_2 = self.follow(x, y, z)
+
+        self.motor_handler.set_speeds(set_point_1, set_point_2)
+
+        self.robot_state.update(location, global_position, None, None, None, None, angular_speed_1,
+                                set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
+                                elapsed_time)
+
+        self.movement_supervisor.movement_update(self.robot_state)
+
+    def closed_loop_movement_control(self):
         """
         Control the movement
 
@@ -304,12 +345,60 @@ class DifferentialDriveMovementController:
 
         self.movement_supervisor.movement_update(self.robot_state)
 
+    def follow(self, x, y, z):
+        """
+        calculate the wheel speeds for an asynchronous event.
+
+        :param x: value of displacement in X axis
+        :type x: float
+        :param y: value of displacement in Y axis
+        :type y: float
+        :return: wheel speeds
+        :type: tuple
+
+        """
+        if not (x, y) == (0, 0):
+            left = right = y
+            ratio = abs(x / self.robot_parameters.max_speed)
+            if x > 0:
+                right *= (1 - ratio)
+            elif x < 0:
+                left *= (1 - ratio)
+            return right, left
+
+        elif z:
+            return z, -z
+
+    def get_movement_direction_vector(self, keys):
+        x, y, z = 0, 0, 0
+        dx, dy, dz = 0, 0, 0
+        if 87 in keys:  # W
+            dy += 8
+        if 65 in keys:  # A
+            dx -= 8
+        if 83 in keys:  # S
+            dy -= 8
+        if 68 in keys:  # D
+            dx += 8
+        if 81 in keys:  # Q
+            dz -= 8
+        if 69 in keys:  # E
+            dz += 8
+
+        x = (x+dx)/2.0
+        y = (y+dy)/2.0
+        z = (z+dz)/2.0
+
+
+        return x, y, z
+
     def movement_finish(self):
         """
         Finish the movement
 
         """
         self.timer.timer_stop()
+        self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
         self.movement_stop()
         self.motor_handler.stop_motors()
         self.movement_supervisor.movement_end()
@@ -329,6 +418,5 @@ class DifferentialDriveMovementController:
 
         """
         self.ordered_stop = True
-
 
 

@@ -41,14 +41,21 @@ class SettingHandler:
         else:
             print("    ERROR! Directory <" + profile + "> do not exist")
 
-    def buildMovementController(self):
+    def buildMovementControllers(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            return DifferentialDriveMovementController(self.buildMovementSupervisor(),
-                                                       self.buildTrajectoryPlanner(),
-                                                       self.buildLocalizer(),
-                                                       self.buildTrajectoryTracker(),
-                                                       self.buildMotorHandler(),
-                                                       self.buildTimer(),
+            supervisor = self.buildMovementSupervisor()
+            planner = self.buildTrajectoryPlanner()
+            localizer = self.buildLocalizer()
+            tracker = self.buildTrajectoryTracker()
+            motror_handler = self.buildMotorHandler()
+            timer = self.buildTimer()
+
+            return DifferentialDriveMovementController(supervisor,
+                                                       planner,
+                                                       localizer,
+                                                       tracker,
+                                                       motror_handler,
+                                                       timer,
                                                        self.parameters)
         else:
             print("    ERROR! Kinematic Model Not Supported>")
@@ -162,11 +169,21 @@ class Robot:
 
     def __init__(self):
         self.setting_handler = SettingHandler()
-        self.motion = self.setting_handler.buildMovementController()
+        self.motion = self.setting_handler.buildMovementControllers()
 
     def track(self, trajectory_parameters):
         self.motion.movement_init(trajectory_parameters)
         self.motion.movement_start()
+
+    def start_open_loop_control(self):
+        self.motion.movement_init(None)
+        self.motion.movement_start()
+
+    def add_key_list(self, keys):
+        self.motion.keys = keys
+
+    def stop_open_loop_control(self):
+        self.motion.movement_finish()
 
     def position(self,x=None,y=None,theta=None):
         """
