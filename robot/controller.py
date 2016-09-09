@@ -399,7 +399,7 @@ class Controller:
 
     def async_speed(self, x, y):
         """
-        calculate the wheel speeds for a asynchronous event.
+        calculate the wheel speeds for an asynchronous event.
 
         :param x: value of displacement in X axis
         :type x: float
