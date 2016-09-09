@@ -21,6 +21,7 @@ from robotNew.motion.TrajectoryTracker.Tracker.IOLinearization import IOLineariz
 from robotNew.motion.MovementTimer import UnixTimer, WindowsTimer
 
 from tools.FileNameProvider import FileNameProviderByTime
+from tools.singleton import Singleton
 
 
 class SettingHandler:
@@ -153,6 +154,8 @@ class SettingHandler:
 
 
 class Robot:
+    __metaclass__ = Singleton
+
     def __init__(self):
         self.setting_handler = SettingHandler()
         self.motion = self.setting_handler.buildMovementController()
