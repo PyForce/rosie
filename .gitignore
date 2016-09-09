@@ -110,4 +110,4 @@ modules/WebHUD/static/js/
 modules/WebHUD/static/css/
 
 # ignore settings
-config
+config.ini
