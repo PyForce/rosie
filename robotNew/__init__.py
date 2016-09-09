@@ -10,7 +10,7 @@ from robotNew.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMoto
 from robotNew.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
 from robotNew.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
 from robotNew.motion.MovementController.Differential import DifferentialDriveRobotParameters, \
-    DifferentialDriveMovementController, \
+    DifferentialDriveClosedLoopMovementController, \
     DifferentialDriveRobotLocation
 from robotNew.motion.MotorHandler.SpeedController.Controller.PID import PIDSpeedController
 from robotNew.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
@@ -39,14 +39,21 @@ class SettingHandler:
         else:
             print("    ERROR! Directory <" + profile + "> do not exist")
 
-    def buildMovementController(self):
+    def buildMovementControllers(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            return DifferentialDriveMovementController(self.buildMovementSupervisor(),
-                                                       self.buildTrajectoryPlanner(),
-                                                       self.buildLocalizer(),
-                                                       self.buildTrajectoryTracker(),
-                                                       self.buildMotorHandler(),
-                                                       self.buildTimer(),
+            supervisor = self.buildMovementSupervisor()
+            planner = self.buildTrajectoryPlanner()
+            localizer = self.buildLocalizer()
+            tracker = self.buildTrajectoryTracker()
+            motror_handler = self.buildMotorHandler()
+            timer = self.buildTimer()
+
+            return DifferentialDriveClosedLoopMovementController(supervisor,
+                                                       planner,
+                                                       localizer,
+                                                       tracker,
+                                                       motror_handler,
+                                                       timer,
                                                        self.parameters)
         else:
             print("    ERROR! Kinematic Model Not Supported>")
@@ -155,7 +162,7 @@ class SettingHandler:
 class Robot:
     def __init__(self):
         self.setting_handler = SettingHandler()
-        self.motion = self.setting_handler.buildMovementController()
+        self.motion = self.setting_handler.buildMovementControllers()
 
     def track(self, trajectory_parameters):
         self.motion.movement_init(trajectory_parameters)
