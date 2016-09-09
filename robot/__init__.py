@@ -19,7 +19,7 @@ load.load_global_settings()
 
 from robot import planner
 from robot import controller as Controller
-from tools.sigleton import Singleton
+from tools.singleton import Singleton
 
 #### GLOBAL VARIABLES ####
 

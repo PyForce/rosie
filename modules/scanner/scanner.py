@@ -6,7 +6,7 @@ import threading
 from collections import namedtuple
 
 from settings import config
-from tools.sigleton import Singleton
+from tools.singleton import Singleton
 
 
 if sys.version_info.major == 3:
