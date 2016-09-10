@@ -1,4 +1,5 @@
 import os
+import math
 
 from flask import request, jsonify, json, url_for, send_file
 from kernel import handler as robot_handler
@@ -9,6 +10,12 @@ from settings import config
 from scanner import scanner_server as scanner
 from robotNew.motion.MovementSupervisor.Differential\
     import DifferentialDriveMovementSupervisor
+from robotNew.motion.MovementController.Differential import\
+    DifferentialDriveRobotLocation
+from robotNew.motion.TrajectoryPlanner.Differential import\
+    DifferentialDriveTrajectoryParameters
+from robotNew.motion.TrajectoryPlanner.Planner.Linear import\
+    LinearTrajectoryPlanner
 from robotNew import Robot
 
 
@@ -108,9 +115,33 @@ def path():
         "path": [(x, y), (x, y), ... ]
     }
     """
-    path = request.values['path']
-    path = json.loads(path)
-    robot_handler.set_path(path)
+    path = json.loads(request.values['path'])
+
+    r = Robot()
+    # convert from web client coordinates
+    x, y, t = path[0][0], -path[0][1], 10
+
+    x0, y0, z0 = r.position()
+
+    delta_x = x - x0
+    delta_y = y - y0
+
+    beta = math.atan2(delta_y, delta_x)
+    theta_n = math.atan2(math.sin(z0), math.cos(z0))
+    alpha = beta - theta_n
+    l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
+    xf_p = l * math.cos(alpha)
+    yf_p = l * math.sin(alpha)
+
+    trajectory_parameters = DifferentialDriveTrajectoryParameters(
+        (DifferentialDriveRobotLocation(0., 0., 0.),
+         DifferentialDriveRobotLocation(xf_p, yf_p, 0.)),
+        t, r.motion.robot_parameters.sample_time)
+
+    r.motion.trajectory_tracker.smooth_flag = True
+    lineal_trajectory_planner = LinearTrajectoryPlanner()
+    r.change_trajectory_planner(lineal_trajectory_planner)
+    r.track(trajectory_parameters)
     return 'OK'
 
 
@@ -172,6 +203,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             self.robot.add_key_list(self.keys)
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
+        # convert to web client coordinates
         self.sio.emit('position', {'x': -y, 'y': x, 'theta': theta})
 
     def drive_manual(self, data):
