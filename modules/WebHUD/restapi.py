@@ -172,7 +172,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             self.robot.add_key_list(self.keys)
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
-        self.sio.emit('position', {'x': y, 'y': x, 'theta': theta})
+        self.sio.emit('position', {'x': -y, 'y': x, 'theta': theta})
 
     def drive_manual(self, data):
         """
