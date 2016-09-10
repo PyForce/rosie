@@ -150,19 +150,30 @@ def clusters():
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
-    def __init__(self, sio):
+    def __init__(self, sio, robot):
+        self.robot = robot
         self.sio = sio
         self.keys = []
+        # use old-style decorators to subscribe bounded methods
+        sio.on('manual')(self.drive_manual)  # key press
+        app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
+        app.route('/manual_mode', methods=['PUT'])(allow_origin(
+            self.manual_mode))
+
+    def movement_begin(self, *args, **kwargs):
+        pass
+
+    def movement_end(self, *args, **kwargs):
+        pass
 
     def movement_update(self, state):
         if self.manual:
             # update keys
-            pass
-        self.sio.emit('position', {'x': state.global_location.x_position,
-                                   'y': state.global_location.y_position,
-                                   'theta': state.global_location.z_location})
+            self.robot.add_key_list(self.keys)
+        x, y, theta = state.global_location.x_position,\
+            state.global_location.y_position, state.global_location.z_position
+        self.sio.emit('position', {'x': y, 'y': x, 'theta': theta})
 
-    @sio.on('manual')  # key press
     def drive_manual(self, data):
         """
         {
@@ -171,24 +182,22 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.keys = data['keys']
 
-    @app.route('/manual_mode', methods=['PUT'])
-    @allow_origin
     def manual_mode(self):
         """
         {}
         """
         self.manual = True
+        self.robot.start_open_loop_control()
         return 'OK'
 
-    @app.route('/auto_mode', methods=['PUT'])
-    @allow_origin
     def auto_mode(self):
         """
         {}
         """
         self.manual = False
+        self.robot.stop_open_loop_control()
         return 'OK'
 
 r = Robot()
 # add WebHUDMovementSupervisor to working supervisors
-r.supervisor().append(WebHUDMovementSupervisor(sio))
+r.supervisor().append(WebHUDMovementSupervisor(sio, r))
