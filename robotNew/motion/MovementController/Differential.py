@@ -365,9 +365,10 @@ class DifferentialDriveMovementController:
             elif x < 0:
                 left *= (1 - ratio)
             return right, left
-
         elif z:
-            return z, -z
+            return -z, z
+        else:
+            return 0, 0
 
     def get_movement_direction_vector(self, keys):
         x, y, z = 0, 0, 0
