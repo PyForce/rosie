@@ -32,7 +32,7 @@ def odometry():
         "theta": 3.21
     }
     """
-    x, y, theta = robot_handler.get_odometry()
+    x, y, theta = Robot().position()
     return jsonify(x=x, y=y, theta=theta)
 
 
