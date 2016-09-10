@@ -48,59 +48,16 @@ class SupervisorContainer(DifferentialDriveMovementSupervisor, list):
         Class that groups multiple supervisors
     """
     def __init__(self, *supervisors):
-        self.__supervisors = [supervisor for supervisor in supervisors]
+        self.extend(supervisors)
 
     def movement_begin(self, updates):
-        for supervisor in self.__supervisors:
+        for supervisor in self:
             supervisor.movement_begin(updates)
 
     def movement_update(self, state):
-        for supervisor in self.__supervisors:
+        for supervisor in self:
             supervisor.movement_update(state)
 
     def movement_end(self):
-        for supervisor in self.__supervisors:
+        for supervisor in self:
             supervisor.movement_end()
-
-    # Implement list functions for supervisor operattions
-    def __add__(self, *args, **kwargs):
-        super(list, self.__supervisors).__add__(*args, **kwargs)
-
-    def __contains__(self, *args, **kwargs):
-        super(list, self.__supervisors).__contains__(*args, **kwargs)
-
-    def __getitem__(self, *args, **kwargs):
-        super(list, self.__supervisors).__getitem__(*args, **kwargs)
-
-    def __len__(self, *args, **kwargs):
-        super(list, self.__supervisors).__len__(*args, **kwargs)
-
-    def __setitem__(self, *args, **kwargs):
-        super(list, self.__supervisors).__setitem__(*args, **kwargs)
-
-    def append(self, *args, **kwargs):
-        super(list, self.__supervisors).append(*args, **kwargs)
-
-    def clear(self, *args, **kwargs):
-        super(list, self.__supervisors).clear(*args, **kwargs)
-
-    def copy(self, *args, **kwargs):
-        super(list, self.__supervisors).copy(*args, **kwargs)
-
-    def count(self, *args, **kwargs):
-        super(list, self.__supervisors).count(*args, **kwargs)
-
-    def extend(self, *args, **kwargs):
-        super(list, self.__supervisors).extend(*args, **kwargs)
-
-    def index(self, *args, **kwargs):
-        super(list, self.__supervisors).index(*args, **kwargs)
-
-    def insert(self, *args, **kwargs):
-        super(list, self.__supervisors).insert(*args, **kwargs)
-
-    def pop(self, *args, **kwargs):
-        super(list, self.__supervisors).pop(*args, **kwargs)
-
-    def remove(self, *args, **kwargs):
-        super(list, self.__supervisors).remove(*args, **kwargs)
