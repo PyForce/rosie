@@ -15,13 +15,15 @@ import threading
 
 from modules import kernel
 from settings import config
-
+from robot import Robot
 
 # allows for all modules to be imported as `import <module_name>`
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), 'modules')))
 
 
 if __name__ == '__main__':
+    # create the robot
+    Robot()
     modules = []
 
     def close_modules(signum, frame):
