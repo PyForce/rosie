@@ -1,5 +1,6 @@
 # HUD control
 mountHUD = (robot) ->
+    robot.setAuto()
     # commands
     commands =
         path: Command 'line chart', (-> robot.setAuto(); robot.path = on),
@@ -42,7 +43,8 @@ unmountInfo = ->
         document.getElementById 'robot-info-wrapper')
 
 map.on 'click', (e) ->
-    car  = window.car
+    car = window.car
+    console.debug e.latlng.lat, e.latlng.lng
     if car and car.path
         car.setPath [[e.latlng.lat, e.latlng.lng]]
     else unmountHUD()
