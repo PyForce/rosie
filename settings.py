@@ -33,9 +33,9 @@ class FallbackConfigParser(configparser.ConfigParser, object):
 
 config = FallbackConfigParser(defaults={'active': 'False', 'log': 'False',
                                         'profile': 'simubot'})
-read = config.read('config')
-if 'config' not in read:
-    with open('config', 'w+') as fp:
+read = config.read('config.ini')
+if 'config.ini' not in read:
+    with open('config.ini', 'w+') as fp:
         del config.defaults()['active']
         _tmp, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
         config.write(fp)
