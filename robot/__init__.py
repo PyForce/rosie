@@ -1,68 +1,191 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 13 21:32:24 2015
+import os
+import sys
 
-@author: Toni
-"""
+from settings import config as global_settings
 
-__all__ = ['Master', '__version__']
+from robot.motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
+from robot.motion.MotorHandler.Differential import HardSpeedControlledMH
+from robot.motion.MotorHandler.Differential import SoftSpeedControlledMH
+from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
+from robot.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
+from robot.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
+from robot.motion.MovementController.Differential import DifferentialDriveRobotParameters, \
+    DifferentialDriveMovementController, \
+    DifferentialDriveRobotLocation
+from robot.motion.MotorHandler.SpeedController.Controller.PID import PIDSpeedController
+from robot.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
+from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
+from robot.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
+from robot.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
+from robot.motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
+from robot.motion.MovementTimer import UnixTimer, WindowsTimer
+from robot.motion.MovementSupervisor.Differential import SupervisorContainer
 
-###### INFORMATION ######
-
-__version__ = '1.12'
-
-#### IMPORT ####
-
-#---- rOSi import ----
-from robot import load
-load.load_global_settings()
-
-from robot import planner
-from robot import controller as Controller
-from utils import Singleton
-
-#### GLOBAL VARIABLES ####
-
-PATH_METHOD = "Lineal Smooth"
-            # "Cubic"
-            # None
-
-#### CLASS ####
+from tools.FileNameProvider import FileNameProviderByTime
+from tools.singleton import Singleton
 
 
-class Master:
+class SettingHandler:
+    def __init__(self):
+        profile = global_settings.get('general', 'profile')
+        if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
+            try:
+                _temp = __import__("profiles.%s" % (profile),
+                                   globals(), locals(), ['settings'], -1)
+                self.settings = _temp.settings
+                self.parameters = self.buildRobotParameters()
+                print('    PROFILE: ' + profile)
+            except:
+                self.settings = None
+                print("    ERROR! In <" + profile + ">")
+        else:
+            print("    ERROR! Directory <" + profile + "> do not exist")
+
+    def buildMovementControllers(self):
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            supervisor = self.buildMovementSupervisor()
+            planner = self.buildTrajectoryPlanner()
+            localizer = self.buildLocalizer()
+            tracker = self.buildTrajectoryTracker()
+            motror_handler = self.buildMotorHandler()
+            timer = self.buildTimer()
+
+            return DifferentialDriveMovementController(supervisor,
+                                                       planner,
+                                                       localizer,
+                                                       tracker,
+                                                       motror_handler,
+                                                       timer,
+                                                       self.parameters)
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+
+    def buildLocalizer(self):
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            if self.settings.LOCALIZER == 'ODOMETRY_RK2':
+                return RungeKutta2OdometryLocalizer(self.parameters)
+            else:
+                print("    ERROR! Localizer Not Supported>")
+                return None
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+
+    def buildTrajectoryPlanner(self):
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            if self.settings.INTERPOLATION == 'LINEAR':
+                return LinearTrajectoryPlanner()
+            elif self.settings.INTERPOLATION == 'CUBIC':
+                return CubicTrajectoryPlanner()
+            else:
+                print("    ERROR! Trajectory Planner Not Supported>")
+                return None
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+
+    def buildMovementSupervisor(self):
+        supervisor = SupervisorContainer()
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            # TODO:Add if for selecting tracker
+            if self.settings.SUPERVISOR == 'FILE_LOGGER':
+                supervisor.append(FileLoggerMovementSupervisor(self.parameters,
+                                  FileNameProviderByTime()))
+            else:
+                print("    ERROR! Movement Supervisor Not Supported>")
+                return None
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+        return supervisor
+
+    def buildTrajectoryTracker(self):
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            # TODO:Add if for selecting tracker
+            if True:
+                return IOLinearizationTrajectoryTracker(self.parameters)
+            else:
+                print("    ERROR! Trajectory Tracker Not Supported>")
+                return None
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+
+    def buildMotorHandler(self):
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            if self.settings.FILENAME == 'VirtualMD.py':
+                speed_motor_driver = VirtualMotorDriver(self.parameters.steps_per_revolution, self.parameters.max_speed)
+                return HardSpeedControlledMH(speed_motor_driver)
+            if self.settings.FILENAME == 'ArduinoMD.py':
+                speed_motor_driver = Arduino(self.settings.MAX_SPEED)
+                speed_motor_driver.set_constants(self.parameters.constant_kc, self.parameters.constant_ki,
+                                                      self.parameters.constant_kd)
+                return HardSpeedControlledMH(speed_motor_driver)
+            elif self.settings.FILENAME == 'MD25.py':
+                speed_controller = PIDSpeedController(self.parameters.constant_kc, self.parameters.constant_ki,
+                                                      self.parameters.constant_kd, self.parameters.max_value_power,
+                                                      self.parameters.min_value_power)
+                power_motor_driver = MD25MotorDriver(1, 0x58)
+                return SoftSpeedControlledMH(speed_controller, power_motor_driver)
+            else:
+                print("    ERROR! Motor Driver Not Supported>")
+                return None
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+
+    def buildTimer(self):
+        if sys.platform.startswith("win"):
+            # Use Windows base system driver
+            return WindowsTimer(self.settings.SAMPLE_TIME)
+        else:
+            # Use Unix based system driver
+            return UnixTimer(self.settings.SAMPLE_TIME)
+
+    def buildRobotParameters(self):
+        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+            return DifferentialDriveRobotParameters(self.settings.RADIUS,
+                                                    self.settings.DISTANCE,
+                                                    self.settings.ENCODER_STEPS,
+                                                    self.settings.CONST_B,
+                                                    self.settings.CONST_K1,
+                                                    self.settings.CONST_K2,
+                                                    self.settings.CONST_KI,
+                                                    self.settings.CONST_KD,
+                                                    self.settings.CONST_KC,
+                                                    self.settings.MAX_POWER_BIN,
+                                                    -self.settings.MAX_POWER_BIN,
+                                                    self.settings.SAMPLE_TIME,
+                                                    self.settings.MAX_SPEED)
+
+        else:
+            print("    ERROR! Kinematic Model Not Supported>")
+            return None
+
+
+class Robot:
     __metaclass__ = Singleton
 
     def __init__(self):
-        self.controller = Controller.Controller()
-        self.position(-0.3, 0.3, 0)
+        self.setting_handler = SettingHandler()
+        self.motion = self.setting_handler.buildMovementControllers()
 
-    #==== PRIVATE FUNCTIONS ====
-    def _track_switcher(self, track):
-        """
-        Path controller switcher.
+    def track(self, trajectory_parameters):
+        self.motion.movement_init(trajectory_parameters)
+        self.motion.movement_start()
 
-        :param track: trace to follow
-        :type track: dict
-        """
-        #---- Cubic ----
-        if PATH_METHOD == "Cubic":
-            track['z_planning'] = track['t_planning']
-            track['constant_t'] = 10
-            track['constant_k'] = 5
-            track['cubic'] = True
-        #---- Lineal Smooth ----
-        elif PATH_METHOD == "Lineal Smooth":
-            if self.controller.finished:
-                self.controller.move(track)
-            return
-        #---- None ----
-        if self.controller.finished:
-            self.controller.move(track, False)
+    def start_open_loop_control(self):
+        self.motion.movement_init(None)
+        self.motion.movement_start()
 
-    #==== PUBLIC FUNCTIONS ====
+    def add_key_list(self, keys):
+        self.motion.keys = keys
 
-    def position(self, x=None, y=None, theta=None):
+    def stop_open_loop_control(self):
+        self.motion.movement_finish()
+
+    def position(self,x=None,y=None,theta=None):
         """
         Get or set the position of the robot
 
@@ -75,109 +198,29 @@ class Master:
         :return: current position (when ``x``, ``y`` and ``theta`` are None)
         :type: tuple
 
-        >>> master=Master()
-        >>> master.position(2,3,0.5)
-        >>> master.position()
+        >>> r = Robot()
+        >>> r.position(2,3,0.5)
+        >>> r.position()
         (2, 3, 0.5)
         """
         #---- get position ----
-        if x is None and y is None and theta is None:
-            return (self.controller.y_position,
-                    self.controller.x_position,
-                    self.controller.z_position)
+        if x == None and y == None and theta == None:
+            x = self.motion.odometry_localizer.globalLocation.x_position
+            y = self.motion.odometry_localizer.globalLocation.y_position
+            z = self.motion.odometry_localizer.globalLocation.z_position
+            return x, y, z
+
+        # TODO: Check the invertion
         #---- set position ----
-        self.controller.y_position = x
-        self.controller.x_position = y
-        self.controller.z_position = theta
+        self.motion.odometry_localizer.globalLocation.y_position = x
+        self.motion.odometry_localizer.globalLocation.x_position = y
+        self.motion.odometry_localizer.globalLocation.z_position = theta
 
-    def profile(self, p={}):
-        """
-        Get or set the profile of the robot
+    def supervisor(self):
+        return self.motion.movement_supervisor
 
-        :param p: robot's profiles to setup
-        :type p: dict
-        :return: current profile
-        :type: dict
+    def change_supervisor(self, newsupervisor):
+        self.motion.movement_supervisor = newsupervisor
 
-        >>> master=Master()
-        >>> master.profile({'MOBILE_ROBOT': 'ROBOT'})
-        >>> master.profile()
-        {'MOBILE_ROBOT': 'ROBOT', 'FILENAME': 'robot.py'}
-        """
-        if p:
-            pass
-        #---- get profile ----
-        else:
-            settings = vars(load.SETTINGS)
-            return {i: settings[i] for i in settings if not i.startswith('__')}
-
-    def is_ended(self):
-        """
-        Get task status of the robot.
-
-        :return: current task status
-        :type: bool
-
-        >>> master=Master()
-        >>> master.is_ended()
-        True
-        """
-        return self.controller.finished
-
-    def end_current_task(self):
-        """
-        End current task of the robot.
-
-        >>> master=Master()
-        >>> master.end_current_task()
-        """
-        self.controller.end_move()
-
-    def sync_request(self, request):
-        """
-        Process the request of the synchronous handler.
-
-        :param request: synchronous request
-        :type request: dict
-
-        >>> cmd={'place': [(0,0),(1,1)]}
-        >>> master=Master()
-        >>> master.sync_request(cmd)
-        """
-        if request:
-            #---- set action ----
-            self.controller.request = request
-            try:
-                self.controller.action = request['action']
-            except KeyError:
-                self.controller.action = 'stop'
-            #---- process path (place) ----
-            path = planner.path_xyt(self.position(), request)
-            if path:
-                self._track_switcher(path)
-            #---- execute action ----
-            else:
-                self.controller.action_exec()
-
-    def async_request(self, request, z=0):
-        """
-        Process the request of the asynchronous handler.
-
-        :param request: asynchronous request
-        :type request: tuple
-
-        >>> cmd=(2.0,5.0)
-        >>> master=Master()
-        >>> master.async_request(cmd)
-        """
-        #XXX check for generic request
-        if not request == (0, 0):
-            right, left = self.controller.async_speed(request[0], request[1])
-            if right or left:
-                encoder1, encoder2, _ = self.controller.get_state()
-                self.controller.navigation(encoder1, encoder2)
-                self.controller.set_speed(right, left)
-        elif z:
-            encoder1, encoder2, _ = self.controller.get_state()
-            self.controller.navigation(encoder1, encoder2)
-            self.controller.set_speed(-z, z)
+    def change_trajectory_planner(self, newplanner):
+        self.motion.trajectory_planner = newplanner

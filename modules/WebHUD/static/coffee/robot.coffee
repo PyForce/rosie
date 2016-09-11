@@ -10,8 +10,11 @@ class Robot
         @sio = io.connect "http://#{@host}:#{@port}"
         @sio.onclose = () ->
             alert 'Closed socket.io'
-        @sio.on 'echo reply', (msg) -> console.log msg.text
         @sio.on 'position', (pos) => @move(pos)
+        # for some reason, socketio doesn't receive if not sending
+        setInterval () =>
+            @sio.emit 'refresh'
+        , 150
 
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
@@ -111,4 +114,4 @@ class Robot
                 for prop in data
                     console.log "result.#{prop} = #{data[prop]}"
 
-robots = [new Robot()]
+window.robots = [new Robot()]
