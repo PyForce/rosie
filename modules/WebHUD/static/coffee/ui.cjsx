@@ -18,6 +18,8 @@ mountHUD = (robot) ->
         robot={robot} cmdList={cmdList}/>, document.getElementById 'mode-text'),
         -> ReactDOM.unmountComponentAtNode document.getElementById 'mode-text'
     cmdList.addCommand 'text', text
+    # use auto mode as default
+    robot.setAuto()
 
 mountInfo = (robot) ->
     # show streaming

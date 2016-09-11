@@ -5,6 +5,7 @@ class Robot
         @port = if port == undefined then location.port else port
         @streamPort = if streamPort == undefined then 8080 else streamPort
         @manual = off
+        @pressed = new Set()
         @path = off
 
         @sio = io.connect "http://#{@host}:#{@port}"
@@ -75,10 +76,36 @@ class Robot
 
         @setRequest 'manual_mode', callback
 
+        # add key handling events
+        $(document.body).on 'keydown.robot', (e) =>
+            # 87 -> W
+            # 65 -> A
+            # 83 -> S
+            # 68 -> D
+
+            # 81 -> Q
+            # 69 -> E
+
+            @pressed.add e.which if e.which in [87, 65, 83, 68, 81, 69]
+            @sendKeys()
+
+        $(document.body).on 'keyup.robot', (e) =>
+            @pressed.delete e.which
+            @sendKeys()
+
+    sendKeys: ->
+        if @manual
+            l = []
+            @pressed.forEach (e) -> l.push e
+            @sio.emit 'manual', {'keys': l}
+
     setAuto: (callback) ->
         @manual = off
         if @info
             @info.setState manual: @manual
+
+        $(document.body).off 'keydown.robot'
+        $(document.body).off 'keyup.robot'
 
         @setRequest 'auto_mode', callback
 
