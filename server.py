@@ -1,13 +1,13 @@
 import Queue
 import socket
 import math
-from robotNew import Robot
+from robot import Robot
 
-from robotNew.motion.MovementController.Differential import DifferentialDriveRobotLocation
-from robotNew.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
-from robotNew.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
-from robotNew.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
-from robotNew.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
+from robot.motion.MovementController.Differential import DifferentialDriveRobotLocation
+from robot.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
+from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
+from robot.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
+from robot.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
 from tools.FileNameProvider import FileNameProviderByTime
 
 

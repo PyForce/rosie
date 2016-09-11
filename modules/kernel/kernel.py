@@ -9,7 +9,7 @@ import time
 import datetime
 import threading
 
-import robot
+import robotOLD
 
 
 __all__ = ['mode', 'sync_exec', 'async_exec', '__version__']
@@ -39,7 +39,7 @@ ROBOT_THREAD = False
 CURRENT_COMMAND = None
 PREVIOUS_TIMER_NAME = None
 
-ROBOT = robot.Master()
+ROBOT = robotOLD.Master()
 
 #XXX find another way
 KEYS = []
@@ -69,7 +69,7 @@ def mode(mode=None):
         #---- kill kernel thread ----
         if ROBOT_THREAD:
             ROBOT_THREAD = False
-            #---- waiting for finishing (robot-thread) ----
+            #---- waiting for finishing (robotOLD-thread) ----
             while CURRENT_COMMAND:
                 time.sleep(0.1)
         #---- start user thread ----
@@ -282,9 +282,9 @@ def _user():
 
 def _robot_thread(cmd, cmd_type):
     """
-    Start the thread of the robot (synchronous).
+    Start the thread of the robotOLD (synchronous).
 
-    This function controls the access to the only thread of the robot.
+    This function controls the access to the only thread of the robotOLD.
 
     :param cmd: temporal or non-temporal command
     :type cmd: dict
@@ -300,13 +300,13 @@ def _robot_thread(cmd, cmd_type):
             Q_NON_TEMPORAL.put_nowait(CURRENT_COMMAND[1])
         elif CURRENT_COMMAND[0] == 'TEMPORAL':
             pass
-        #---- waiting for finishing (robot-thread) ----
+        #---- waiting for finishing (robotOLD-thread) ----
         while CURRENT_COMMAND:
             time.sleep(0.1)
     #---- kill all thread (when USER mode is set) ----
     if MODE == 'USER':
         return
-    #---- start robot thread ----
+    #---- start robotOLD thread ----
     ROBOT_THREAD = True
     CURRENT_COMMAND = (cmd_type, cmd)
     robot_t = threading.Thread(target=_robot, name='KERNEL', args=([cmd]))
@@ -324,7 +324,7 @@ def _robot(cmd):
     print("\n   THREAD: " + str(cmd))
     #---- master request process ----
     ROBOT.sync_request(cmd)
-    #---- waiting for finishing (robot-process) ----
+    #---- waiting for finishing (robotOLD-process) ----
     while not ROBOT.is_ended():
         time.sleep(0.5)
         #==== BREAK CODE ====

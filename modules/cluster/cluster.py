@@ -67,7 +67,7 @@ class ClusterHandler(http_client.BaseHTTPRequestHandler):
                 self.send_response(204)
             else:
                 self.send_error(404,
-                                "The host doesn't match any registered robot")
+                                "The host doesn't match any registered robotOLD")
 
 
 if config.getboolean('cluster', 'visible', True):
