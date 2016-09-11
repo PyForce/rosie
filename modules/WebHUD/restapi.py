@@ -6,15 +6,15 @@ from flask import request, jsonify, json, url_for, send_file
 from . import app, sio
 from .utils import allow_origin
 from scanner import scanner_server as scanner
-from robotNew.motion.MovementSupervisor.Differential\
+from robot.motion.MovementSupervisor.Differential\
     import DifferentialDriveMovementSupervisor
-from robotNew.motion.MovementController.Differential import\
+from robot.motion.MovementController.Differential import\
     DifferentialDriveRobotLocation
-from robotNew.motion.TrajectoryPlanner.Differential import\
+from robot.motion.TrajectoryPlanner.Differential import\
     DifferentialDriveTrajectoryParameters
-from robotNew.motion.TrajectoryPlanner.Planner.Linear import\
+from robot.motion.TrajectoryPlanner.Planner.Linear import\
     LinearTrajectoryPlanner
-from robotNew import Robot
+from robot import Robot
 
 
 client_count = 0
