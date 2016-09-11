@@ -111,4 +111,4 @@ class Robot
                 for prop in data
                     console.log "result.#{prop} = #{data[prop]}"
 
-robots = [new Robot()]
+window.robots = [new Robot()]
