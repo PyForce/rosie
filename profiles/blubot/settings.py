@@ -1,13 +1,13 @@
 """
 Settings
 """
-# Configure the way rOSi handles your robot.
+# Configure the way rOSi handles your robotOLD.
 
 """
 Appearance
 """
 
-# Name of the mobile robot
+# Name of the mobile robotOLD
 MOBILE_ROBOT = 'Bluebot'
 
 # Kinematic Model of the Robot
@@ -19,20 +19,20 @@ DISTANCE = 0.30
 # Radius of the wheels (in meters)
 RADIUS = 0.05
 
-# Distance between the rear and the front part of the robot (in meters)
+# Distance between the rear and the front part of the robotOLD (in meters)
 LARGE = 0.3
 
-# Distance between left and the right part of the robot (in meters)
+# Distance between left and the right part of the robotOLD (in meters)
 WIDTH = 0.3
 
-# Distance between the floor and the highest part of the robot (in meters)
+# Distance between the floor and the highest part of the robotOLD (in meters)
 HEIGHT = 0.20
 
 """
 Motor Controller
 """
 
-# Filename of the controller board (this file is located in the folder: robot/board)
+# Filename of the controller board (this file is located in the folder: robotOLD/board)
 FILENAME = 'MD25.py'
 
 # PID settings (Set it True if your hardware support speed control)
