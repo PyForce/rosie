@@ -219,4 +219,22 @@ def generate(jsonfile):
 
 
 if __name__ == '__main__':
-    generate('map.json')
+    from map import Map
+
+    m = Map('../maps/map.json')
+
+    for room in m.rooms:
+        room_points = []
+        for border in room.borders:
+            room_points.extend(border)
+        x = [p[0] for p in room_points]
+        y = [p[1] for p in room_points]
+        plt.plot(x, y)
+
+    plt.gca().axis('off')
+    plt.gca().set_aspect(1)
+    plt.xlim([-1, 9.2])
+    plt.ylim([-1, 3.2])
+    plt.show()
+
+    # generate('../maps/map.json')
