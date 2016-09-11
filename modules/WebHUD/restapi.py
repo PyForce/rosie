@@ -2,11 +2,9 @@ import os
 import math
 
 from flask import request, jsonify, json, url_for, send_file
-from kernel import handler as robot_handler
 
 from . import app, sio
 from .utils import allow_origin
-from settings import config
 from scanner import scanner_server as scanner
 from robotNew.motion.MovementSupervisor.Differential\
     import DifferentialDriveMovementSupervisor
@@ -33,7 +31,7 @@ def odometry():
     }
     """
     x, y, theta = Robot().position()
-    return jsonify(x=x, y=y, theta=theta)
+    return jsonify(x=y, y=-x, theta=theta)
 
 
 @app.route('/profile', methods=['GET'])
@@ -46,19 +44,19 @@ def profile():
         "theta": 3.21
     }
     """
-    prof = robot_handler.get_profile()
+    prof = Robot().setting_handler.profile
     return jsonify(prof=prof)
 
 
 @app.route('/metadata', methods=['GET'])
 @allow_origin
 def metadata():
-    settings = robot_handler.kernel.ROBOT.profile()
+    settings = Robot().setting_handler.settings
     data = {
-        "name": settings['MOBILE_ROBOT'],
+        "name": settings.MOBILE_ROBOT,
         "thumbnail": url_for('.thumbnail'),
         "vector": url_for('.vector'),
-        "size": [settings['LARGE'], settings['WIDTH'], settings['HEIGHT']]
+        "size": [settings.LARGE, settings.WIDTH, settings.HEIGHT]
     }
     return jsonify(**data)
 
@@ -66,7 +64,7 @@ def metadata():
 @app.route('/thumbnail', methods=['GET'])
 @allow_origin
 def thumbnail():
-    profile = config.get('general', 'profile')
+    profile = Robot().setting_handler.profile
     filePath = os.path.join(os.getcwd(), 'profiles', profile, 'thumbnail.png')
     return send_file(filePath)
 
@@ -74,7 +72,7 @@ def thumbnail():
 @app.route('/vector', methods=['GET'])
 @allow_origin
 def vector():
-    profile = config.get('general', 'profile')
+    profile = Robot().setting_handler.profile
     filePath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
     return send_file(filePath)
 
@@ -103,7 +101,7 @@ def position():
     x = request.values['x']
     y = request.values['y']
     theta = request.values['theta']
-    robot_handler.set_position(x, y, theta)
+    Robot().position(y, -x, theta)
     return 'OK'
 
 
