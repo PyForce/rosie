@@ -157,6 +157,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         y_speed_vector[updates_done - 1] = y_speed_vector[updates_done - 2]
         z_speed_vector[updates_done - 1] = z_speed_vector[updates_done - 2]
 
+        #TODO: Toni, change the place where the logs are saved to modules/FileLogger/logs
         save_file = open(file_name, 'w')
 
         save_file.write("close all;\r\n")

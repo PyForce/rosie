@@ -13,7 +13,6 @@ from robot.motion.MovementController.Differential import DifferentialDriveRobotP
     DifferentialDriveMovementController, \
     DifferentialDriveRobotLocation
 from robot.motion.MotorHandler.SpeedController.Controller.PID import PIDSpeedController
-from robot.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
 from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTrajectoryParameters
 from robot.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
 from robot.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
@@ -21,7 +20,7 @@ from robot.motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizati
 from robot.motion.MovementTimer import UnixTimer, WindowsTimer
 from robot.motion.MovementSupervisor.Differential import SupervisorContainer
 
-from tools.FileNameProvider import FileNameProviderByTime
+
 from tools.singleton import Singleton
 
 
@@ -87,17 +86,17 @@ class SettingHandler:
 
     def buildMovementSupervisor(self):
         supervisor = SupervisorContainer()
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            # TODO:Add if for selecting tracker
-            if self.settings.SUPERVISOR == 'FILE_LOGGER':
-                supervisor.append(FileLoggerMovementSupervisor(self.parameters,
-                                  FileNameProviderByTime()))
-            else:
-                print("    ERROR! Movement Supervisor Not Supported>")
-                return None
-        else:
-            print("    ERROR! Kinematic Model Not Supported>")
-            return None
+        # if self.settings.KINEMATICS == 'DIFFERENTIAL':
+        #     # TODO:Add if for selecting tracker
+        #     if self.settings.SUPERVISOR == 'FILE_LOGGER':
+        #         supervisor.append(FileLoggerMovementSupervisor(self.parameters,
+        #                           FileNameProviderByTime()))
+        #     else:
+        #         print("    ERROR! Movement Supervisor Not Supported>")
+        #         return None
+        # else:
+        #     print("    ERROR! Kinematic Model Not Supported>")
+        #     return None
         return supervisor
 
     def buildTrajectoryTracker(self):
