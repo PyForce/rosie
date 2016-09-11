@@ -119,7 +119,7 @@ def path():
 
     r = Robot()
     # convert from web client coordinates
-    x, y, t = path[0][0], -path[0][1], 10
+    x, y, t = path[0][1], -path[0][0], 10
 
     x0, y0, z0 = r.position()
 
