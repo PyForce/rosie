@@ -27,19 +27,19 @@ from tools.singleton import Singleton
 
 class SettingHandler:
     def __init__(self):
-        profile = global_settings.get('general', 'profile')
-        if os.path.exists(os.path.join(os.getcwd(), 'profiles', profile)):
+        self.profile = global_settings.get('general', 'profile')
+        if os.path.exists(os.path.join(os.getcwd(), 'profiles', self.profile)):
             try:
-                _temp = __import__("profiles.%s" % (profile),
+                _temp = __import__("profiles.%s" % (self.profile),
                                    globals(), locals(), ['settings'], -1)
                 self.settings = _temp.settings
                 self.parameters = self.buildRobotParameters()
-                print('    PROFILE: ' + profile)
+                print('    PROFILE: ' + self.profile)
             except:
                 self.settings = None
-                print("    ERROR! In <" + profile + ">")
+                print("    ERROR! In <" + self.profile + ">")
         else:
-            print("    ERROR! Directory <" + profile + "> do not exist")
+            print("    ERROR! Directory <" + self.profile + "> do not exist")
 
     def buildMovementControllers(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
