@@ -14,7 +14,7 @@ class Robot
         # for some reason, socketio doesn't receive if not sending
         setInterval () =>
             @sio.emit 'refresh'
-        , 100
+        , 150
 
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
