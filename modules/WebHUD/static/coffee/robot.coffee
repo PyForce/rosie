@@ -30,10 +30,10 @@ class Robot
                 window.car = @
                 # don't propagate event
                 false
-
-        # fetch initial position
-        @getOdometry (data) =>
-            @move data
+            # fetch initial position
+            # overlay needs to be already loaded
+            @getOdometry (data) =>
+                @move data
 
         if not window.mapped
             @getRequest 'map', (data) ->
