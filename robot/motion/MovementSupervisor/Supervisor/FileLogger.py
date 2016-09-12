@@ -1,4 +1,5 @@
 import thread
+from string import Template
 
 from robot.motion.MovementSupervisor.Differential import DifferentialDriveMovementSupervisor
 
@@ -156,134 +157,179 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         x_speed_vector[updates_done - 1] = x_speed_vector[updates_done - 2]
         y_speed_vector[updates_done - 1] = y_speed_vector[updates_done - 2]
         z_speed_vector[updates_done - 1] = z_speed_vector[updates_done - 2]
-
+        
+        
         #TODO: Toni, change the place where the logs are saved to modules/FileLogger/logs
+
+        dict_current_log={}
+        
+        dict_current_log['s_angular_speed_1_vector'] = " ".join([str(i) for i in angular_speed_1_vector])
+        dict_current_log['s_angular_speed_2_vector'] = " ".join([str(i) for i in angular_speed_2_vector])
+        dict_current_log['s_current_1_vector'] = " ".join([str(i) for i in current_1_vector])
+        dict_current_log['s_current_2_vector'] = " ".join([str(i) for i in current_2_vector])
+        dict_current_log['s_time_vector'] = " ".join([str(i) for i in time_vector])
+        dict_current_log['s_sample_time_vector'] = " ".join([str(i) for i in sample_time_vector])
+        dict_current_log['s_angular_1_ref_vector'] = " ".join([str(i) for i in angular_1_ref_vector])
+        dict_current_log['s_angular_2_ref_vector'] = " ".join([str(i) for i in angular_2_ref_vector])
+        dict_current_log['s_x_position_vector'] = " ".join([str(i) for i in x_position_vector])
+        dict_current_log['s_y_position_vector'] = " ".join([str(i) for i in y_position_vector])
+        dict_current_log['s_z_position_vector'] = " ".join([str(i) for i in z_position_vector])
+        dict_current_log['s_x_ref_vector'] = " ".join([str(i) for i in x_ref_vector])
+        dict_current_log['s_y_ref_vector'] = " ".join([str(i) for i in y_ref_vector])
+        dict_current_log['s_z_ref_vector'] = " ".join([str(i) for i in z_ref_vector])
+        dict_current_log['s_x_speed_vector'] = " ".join([str(i) for i in x_speed_vector])
+        dict_current_log['s_y_speed_vector'] = " ".join([str(i) for i in y_speed_vector])
+        dict_current_log['s_z_speed_vector'] = " ".join([str(i) for i in z_speed_vector])
+        dict_current_log['s_x_ref_speed_vector'] = " ".join([str(i) for i in x_ref_speed_vector])
+        dict_current_log['s_y_ref_speed_vector'] = " ".join([str(i) for i in y_ref_speed_vector])
+        dict_current_log['s_z_ref_speed_vector'] = " ".join([str(i) for i in z_ref_speed_vector])
+        dict_current_log['s_speed_x_ref_vector'] = " ".join([str(i) for i in speed_x_ref_vector])
+        dict_current_log['s_speed_y_ref_vector'] = " ".join([str(i) for i in speed_y_ref_vector])
+
+        dict_current_log['updates_done'] = str(updates_done)
+        dict_current_log['wheel_radius'] = str(wheel_radius)
+        dict_current_log['wheel_distance'] = str(wheel_distance)
+        dict_current_log['constant_b'] = str(constant_b)
+        dict_current_log['constant_k1'] = str(constant_k1)
+        dict_current_log['constant_k2'] = str(constant_k2)
+        dict_current_log['constant_ki'] = str(constant_ki)
+        dict_current_log['constant_kd'] = str(constant_kd)
+        dict_current_log['constant_kc'] = str(constant_kc)
+        
         save_file = open(file_name, 'w')
 
-        save_file.write("close all;\r\n")
-        save_file.write("clear all;\r\n")
-        save_file.write("clc;\r\n\r\n")
+        current_log = \
+        """
+        close all
+        clear all
+        clc
+        
+        count = $updates_done ;
+        radius = $wheel_radius ;
+        distance = $wheel_distance ;
+        constant_b = $constant_b ;
+        constant_k1 = $constant_k1 ;
+        constant_k2 = $constant_k2 ;
+        constant_ki = $constant_ki ;
+        constant_kd = $constant_kd ;
+        constant_kc = $constant_kc ;
+        
+        speed1 = [ $s_angular_speed_1_vector ] ;
+        speed2 = [ $s_angular_speed_2_vector ] ;
+        current1 = [ $s_current_1_vector ] ;
+        current2 = [ $s_current_2_vector ] ;
+        time = [ $s_time_vector ] ;
+        sample_time = [ $s_sample_time_vector ] ;
+        ref1 = [ $s_angular_1_ref_vector ] ;
+        ref2 = [ $s_angular_2_ref_vector ] ;
+        x = [ $s_x_position_vector ] ;
+        y = [ $s_y_position_vector ] ;
+        z = [ $s_z_position_vector ] ;
+        xd = [ $s_x_ref_vector ] ;
+        yd = [ $s_y_ref_vector ] ;
+        zd = [ $s_z_ref_vector ] ;
+        dx = [ $s_x_speed_vector ] ;
+        dy = [ $s_y_speed_vector ] ;
+        dz = [ $s_z_speed_vector ] ;
+        dxd = [ $s_x_ref_speed_vector ] ;
+        dyd = [ $s_y_ref_speed_vector ] ;
+        dzd = [ $s_z_ref_speed_vector ] ;
+        dxr = [ $s_speed_x_ref_vector ] ;
+        dyr = [ $s_speed_y_ref_vector ] ;
 
-        save_file.write("count=%f;\r\n" % updates_done)
-        save_file.write("radius=%f;\r\n" % wheel_radius)
-        save_file.write("distance=%f;\r\n" % wheel_distance)
-        save_file.write("constant_b=%f;\r\n" % constant_b)
-        save_file.write("constant_k1=%f;\r\n" % constant_k1)
-        save_file.write("constant_k2=%f;\r\n" % constant_k2)
-        save_file.write("constant_ki=%f;\r\n" % constant_ki)
-        save_file.write("constant_kd=%f;\r\n" % constant_kd)
-        save_file.write("constant_kc=%f;\r\n" % constant_kc)
+        
+        figure;
+        plot(time,x,time,xd) ;
+        title('X Position vs Time.') ;
+        legend('X','X - Reference') ;
+        xlabel('Time (s)') ;
+        ylabel('X Position (m)') ;
+        grid on
 
-        for i in range(updates_done):
-            save_file.write("speed1(%d) = %f ;\r\n" % (i + 1, angular_speed_1_vector[i]))
-            save_file.write("speed2(%d) = %f ;\r\n" % (i + 1, angular_speed_2_vector[i]))
-            save_file.write("current1(%d) = %f ;\r\n" % (i + 1, current_1_vector[i]))
-            save_file.write("current2(%d) = %f ;\r\n" % (i + 1, current_2_vector[i]))
-            save_file.write("time(%d) = %f ;\r\n" % (i + 1, time_vector[i]))
-            save_file.write("sample_time(%d) = %f ;\r\n" % (i + 1, sample_time_vector[i]))
-            save_file.write("ref1(%d) = %f ;\r\n" % (i + 1, angular_1_ref_vector[i]))
-            save_file.write("ref2(%d) = %f ;\r\n" % (i + 1, angular_2_ref_vector[i]))
-            save_file.write("x(%d) = %f ;\r\n" % (i + 1, x_position_vector[i]))
-            save_file.write("y(%d) = %f ;\r\n" % (i + 1, y_position_vector[i]))
-            save_file.write("z(%d) = %f ;\r\n" % (i + 1, z_position_vector[i]))
-            save_file.write("xd(%d) = %f ;\r\n" % (i + 1, x_ref_vector[i]))
-            save_file.write("yd(%d) = %f ;\r\n" % (i + 1, y_ref_vector[i]))
-            save_file.write("zd(%d) = %f ;\r\n" % (i + 1, z_ref_vector[i]))
-            save_file.write("dx(%d) = %f ;\r\n" % (i + 1, x_speed_vector[i]))
-            save_file.write("dy(%d) = %f ;\r\n" % (i + 1, y_speed_vector[i]))
-            save_file.write("dz(%d) = %f ;\r\n" % (i + 1, z_speed_vector[i]))
-            save_file.write("dxd(%d) = %f ;\r\n" % (i + 1, x_ref_speed_vector[i]))
-            save_file.write("dyd(%d) = %f ;\r\n" % (i + 1, y_ref_speed_vector[i]))
-            save_file.write("dzd(%d) = %f ;\r\n" % (i + 1, z_ref_speed_vector[i]))
-            save_file.write("dxr(%d) = %f ;\r\n" % (i + 1, speed_x_ref_vector[i]))
-            save_file.write("dyr(%d) = %f ;\r\n" % (i + 1, speed_y_ref_vector[i]))
+        figure;
+        plot(time,y,time,yd) ;
+        title('Y Position vs Time.') ;
+        legend('Y','Y - Reference') ;
+        xlabel('Time (s)') ;
+        ylabel('Y Position (m)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,x,time,xd) ;\r\n")
-        save_file.write("title(\'X Position vs Time.\') ;\r\n")
-        save_file.write("legend(\'X\',\'X - Reference\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'X Position (m)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,z,time,zd) ;
+        title('Orientation vs Time.') ;
+        legend('Z','Z - Reference') ;
+        xlabel('Time (s)') ;
+        ylabel('Z Position (rad)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,y,time,yd) ;\r\n")
-        save_file.write("title(\'Y Position vs Time.\') ;\r\n")
-        save_file.write("legend(\'Y\',\'Y - Reference\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Y Position (m)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(x,y,xd,yd) ;
+        title('Y Position vs X Position (Path).') ;
+        legend('Path','Path - Reference') ;
+        xlabel('X Position (m)') ;
+        ylabel('Y Position (m)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,z,time,zd) ;\r\n")
-        save_file.write("title(\'Orientation vs Time.\') ;\r\n")
-        save_file.write("legend(\'Z\',\'Z - Reference\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Z Position (rad)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,speed1,time,ref1) ;
+        title('WL vs Time.') ;
+        legend('WL','WL - Reference') ;
+        xlabel('Time (s)') ;
+        ylabel('Angular Speed (rad/s)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(x,y,xd,yd) ;\r\n")
-        save_file.write("title(\'Y Position vs X Position (Path).\') ;\r\n")
-        save_file.write("legend(\'Path\',\'Path - Reference\') ;\r\n")
-        save_file.write("xlabel(\'X Position (m)') ;\r\n")
-        save_file.write("ylabel(\'Y Position (m)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,speed2,time,ref2) ;
+        title('WR vs Time.') ;
+        legend('WR','WR - Reference') ;
+        xlabel('Time (s)') ;
+        ylabel('Angular Speed (rad/s)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,speed1,time,ref1) ;\r\n")
-        save_file.write("title(\'WL vs Time.\') ;\r\n")
-        save_file.write("legend(\'WL\',\'WL - Reference\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Angular Speed (rad/s)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,current1,time,current2) ;
+        title('Currents vs Time.') ;
+        legend('Left Motor','Right Motor') ;
+        xlabel('Time (s)') ;
+        ylabel('Current (A)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,speed2,time,ref2) ;\r\n")
-        save_file.write("title(\'WR vs Time.\') ;\r\n")
-        save_file.write("legend(\'WR\',\'WR - Reference\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Angular Speed (rad/s)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,dx,time,dxr,time,dxd) ;
+        title('X Speed vs Time.') ;
+        legend('DX','DXR - Reference','DXD - Planning') ;
+        xlabel('Time (s)') ;
+        ylabel('X Speed (m/s)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,current1,time,current2) ;\r\n")
-        save_file.write("title(\'Currents vs Time.\') ;\r\n")
-        save_file.write("legend(\'Left Motor\',\'Right Motor\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Current (A)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,dy,time,dyr,time,dyd) ;
+        title('Y Speed vs Time.') ;
+        legend('DY','DYR - Reference','DYD - Planning') ;
+        xlabel('Time (s)') ;
+        ylabel('Y Speed (m/s)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,dx,time,dxr,time,dxd) ;\r\n")
-        save_file.write("title(\'X Speed vs Time.\') ;\r\n")
-        save_file.write("legend(\'DX\',\'DXR - Reference\',\'DXD - Planning\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'X Speed (m/s)') ;\r\n")
-        save_file.write("grid on\r\n")
+        figure;
+        plot(time,dz,time,dzd) ;
+        title('Z Speed vs Time.') ;
+        legend('DZ','DZD - Planning') ;
+        xlabel('Time (s)') ;
+        ylabel('Z Speed (rad/s)') ;
+        grid on
 
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,dy,time,dyr,time,dyd) ;\r\n")
-        save_file.write("title(\'Y Speed vs Time.\') ;\r\n")
-        save_file.write("legend(\'DY\',\'DYR - Reference\',\'DYD - Planning\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Y Speed (m/s)') ;\r\n")
-        save_file.write("grid on\r\n")
-
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(time,dz,time,dzd) ;\r\n")
-        save_file.write("title(\'Z Speed vs Time.\') ;\r\n")
-        save_file.write("legend(\'DZ\',\'DZD - Planning\') ;\r\n")
-        save_file.write("xlabel(\'Time (s)') ;\r\n")
-        save_file.write("ylabel(\'Z Speed (rad/s)') ;\r\n")
-        save_file.write("grid on\r\n")
-
-        save_file.write("\r\nfigure;\r\n")
-        save_file.write("plot(sample_time*1000);\r\n")
-        save_file.write("title('Sample Time.');\r\n")
-        save_file.write("ylabel ( 'Sample Time (ms)' ) ;\r\n")
-        save_file.write("xlabel ( 'Sample (k)' ) ;\r\n")
-        save_file.write("grid on\r\n")
-
+        figure;
+        plot(sample_time*1000);
+        title('Sample Time.');
+        ylabel ( 'Sample Time (ms)' ) ;
+        xlabel ( 'Sample (k)' ) ;
+        grid on
+        """
+        
+        template_current_log = Template(current_log)
+        current_log=template_current_log.substitute(dict_current_log)
+        
+        save_file.write(current_log)
+        
         save_file.flush()
         save_file.close()
