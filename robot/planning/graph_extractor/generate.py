@@ -3,10 +3,10 @@ import json
 from collections import namedtuple
 
 import numpy as np
-
 import matplotlib.pyplot as plt
+from shapely.geometry import Polygon
 
-from map_tools import Map, get_all_points
+from map_tools import Map
 
 
 H = 0.2
@@ -167,12 +167,15 @@ def get_walls(room):
 
 
 def generate(jsonfile):
-
     m = Map(jsonfile)
 
-    # Obtain a list which has for every room
-    # the points of it's bounds
-    all_points = get_all_points(m)
+    # Get the complete polygon of the union of all rooms
+    p = None
+    for room in m.rooms:
+        p1 = Polygon(room.borders_points)
+        p = p1 if p is None else p.union(p1)
+
+    all_points = np.matrix(list(p.boundary.coords))
 
     suport_points = get_suport_points(all_points)
     #
@@ -208,29 +211,28 @@ def generate(jsonfile):
 
 
 if __name__ == '__main__':
-    from shapely.geometry import Polygon
-    from descartes.patch import PolygonPatch
+    # from descartes.patch import PolygonPatch
+    #
+    # m = Map('../maps/map.json')
+    #
+    # p = None
+    #
+    # for room in m.rooms:
+    #     room_points = room.borders_points
+    #     p1 = Polygon(room_points)
+    #     p = p1 if p is None else p.union(p1)
+    #
+    #     x, y = room_points[:, 0], room_points[:, 1]
+    #     plt.plot(x, y, 'r')
+    #
+    # p = np.matrix(list(p.boundary.coords))
+    # x, y = p[:, 0], p[:, 1]
+    # plt.plot(x, y, 'b')
+    #
+    # plt.gca().axis('off')
+    # plt.gca().set_aspect(1)
+    # plt.xlim([-1, 9.2])
+    # plt.ylim([-1, 3.2])
+    # plt.show()
 
-    m = Map('../maps/map.json')
-
-    p = None
-
-    for room in m.rooms:
-        room_points = room.borders_points
-        p1 = Polygon(room_points)
-        p = p1 if p is None else p.union(p1)
-
-        x, y = room_points[:, 0], room_points[:, 1]
-        plt.plot(x, y, 'r')
-
-    p = np.matrix(list(p.boundary.coords))
-    x, y = p[:, 0], p[:, 1]
-    plt.plot(x, y, 'b')
-
-    plt.gca().axis('off')
-    plt.gca().set_aspect(1)
-    plt.xlim([-1, 9.2])
-    plt.ylim([-1, 3.2])
-    plt.show()
-
-    # generate('../maps/map.json')
+    generate('../maps/map.json')
