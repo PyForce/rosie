@@ -266,12 +266,14 @@ class DifferentialDriveMovementController:
         """
         if trajectory_parameters:
             self.trajectory_planner.initialize_track(trajectory_parameters)
+            self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
         else:
             self.timer.set_timer_overflow_function(self.open_loop_movement_control)
+            self.movement_supervisor.movement_begin(None)
         self.motor_handler.reset()
         self.trajectory_tracker.reset()
         self.odometry_localizer.reset_location()
-        self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
+
 
     def open_loop_movement_control(self):
         """
