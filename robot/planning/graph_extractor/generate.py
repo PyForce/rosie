@@ -6,6 +6,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+from map_tools import Map, get_all_points
+
 
 H = 0.2
 # RoomPoint = namedtuple('RoomPoint', ['x', 'y', 'room'])
@@ -157,16 +159,6 @@ def get_suport_points(points):
     return support_points
 
 
-def get_all_points(rooms):
-    points = []
-    for room in rooms.items():
-        points.append([])
-        for _points in room[1]['borders']['geometry']['coordinates']:
-            points[-1] += [RoomPoint(point[0], point[1], room[0])
-                            for point in _points]
-    return points
-
-
 def get_walls(room):
     walls = []
     for coors in room['walls']['geometry']['coordinates']:
@@ -175,61 +167,69 @@ def get_walls(room):
 
 
 def generate(jsonfile):
-    rooms_map = None
-    with open(jsonfile) as f:
-        rooms_map = json.load(f)
-    if rooms_map:
-        # Obtain a list which has for every room
-        # the points of it's bounds
-        all_points = get_all_points(rooms_map['rooms'])
 
-        # print(all_points)
+    m = Map(jsonfile)
 
-        suport_points = get_suport_points(all_points)
+    # Obtain a list which has for every room
+    # the points of it's bounds
+    all_points = get_all_points(m)
 
-        print(suport_points)
+    suport_points = get_suport_points(all_points)
+    #
+    # print(suport_points)
 
-        for wps in all_points:
-            if wps: wps.append(wps[0])
-            x = [p[0][0] for p in wps]
-            y = [p[0][1] for p in wps]
-            plt.plot(x, y)
+    for wps in all_points:
+        if wps: wps.append(wps[0])
+        x = [p[0][0] for p in wps]
+        y = [p[0][1] for p in wps]
+        plt.plot(x, y)
 
-        # walls = []
-        # for room in rooms_map['rooms']:
-        #     walls.extend(get_walls(rooms_map['rooms'][room]))
+    # walls = []
+    # for room in rooms_map['rooms']:
+    #     walls.extend(get_walls(rooms_map['rooms'][room]))
 
-        # for wall in walls:
-        #     x = [w[0] for w in wall]
-        #     y = [w[1] for w in wall]
-        #     plt.plot(x, y)
+    # for wall in walls:
+    #     x = [w[0] for w in wall]
+    #     y = [w[1] for w in wall]
+    #     plt.plot(x, y)
 
-        for wps in suport_points:
-            if wps: wps.append(wps[0])
-            x = [p[0] for p in wps]
-            y = [p[1] for p in wps]
-            plt.scatter(x, y)
-            # plt.plot(x, y)
+    # for wps in suport_points:
+    #     if wps: wps.append(wps[0])
+    #     x = [p[0] for p in wps]
+    #     y = [p[1] for p in wps]
+    #     plt.scatter(x, y)
+        # plt.plot(x, y)
 
-        plt.gca().axis('off')
-        plt.gca().set_aspect(1)
-        plt.xlim([-1, 9.2])
-        plt.ylim([-1, 3.2])
-        plt.show()
+    plt.gca().axis('off')
+    plt.gca().set_aspect(1)
+    plt.xlim([-1, 9.2])
+    plt.ylim([-1, 3.2])
+    plt.show()
 
 
 if __name__ == '__main__':
-    from map import Map
+    from shapely.geometry import Polygon
+    from descartes.patch import PolygonPatch
 
     m = Map('../maps/map.json')
+
+    p = None
 
     for room in m.rooms:
         room_points = []
         for border in room.borders:
             room_points.extend(border)
-        x = [p[0] for p in room_points]
-        y = [p[1] for p in room_points]
+        if room_points:
+            p1 = Polygon(room_points)
+
+        p = p1 if p is None else p.union(p1)
+
+        x = [point[0] for point in room_points]
+        y = [point[1] for point in room_points]
         plt.plot(x, y)
+
+    patch = PolygonPatch(p)
+    plt.gca().add_patch(patch)
 
     plt.gca().axis('off')
     plt.gca().set_aspect(1)
