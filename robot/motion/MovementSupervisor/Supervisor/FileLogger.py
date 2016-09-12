@@ -18,6 +18,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         super(FileLoggerMovementSupervisor, self).__init__()
         self.robot_parameters = robot_parameters
         self.file_name_provider = file_name_provider
+
         self.time_vector = list()
         self.sample_time_vector = list()
         self.x_position_vector = list()
@@ -42,7 +43,9 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.angular_speed_2_vector = list()
         self.current_2_vector = list()
         self.angular_2_ref_vector = list()
+
         self.updates_done = 0
+        self.expected_updates = None
 
     def movement_begin(self, expected_updates):
         """
@@ -52,30 +55,8 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         @type expected_updates: int
         """
         self.updates_done = 0
-        self.time_vector = range(expected_updates)
-        self.sample_time_vector = range(expected_updates)
-        self.x_position_vector = range(expected_updates)
-        self.x_speed_vector = range(expected_updates)
-        self.y_position_vector = range(expected_updates)
-        self.y_speed_vector = range(expected_updates)
-        self.z_position_vector = range(expected_updates)
-        self.z_speed_vector = range(expected_updates)
+        self.expected_updates = expected_updates
 
-        self.x_ref_vector = range(expected_updates)
-        self.x_ref_speed_vector = range(expected_updates)
-        self.y_ref_vector = range(expected_updates)
-        self.y_ref_speed_vector = range(expected_updates)
-        self.z_ref_vector = range(expected_updates)
-        self.z_ref_speed_vector = range(expected_updates)
-
-        self.speed_x_ref_vector = range(expected_updates)
-        self.speed_y_ref_vector = range(expected_updates)
-        self.angular_speed_1_vector = range(expected_updates)
-        self.current_1_vector = range(expected_updates)
-        self.angular_1_ref_vector = range(expected_updates)
-        self.angular_speed_2_vector = range(expected_updates)
-        self.current_2_vector = range(expected_updates)
-        self.angular_2_ref_vector = range(expected_updates)
 
     def movement_update(self, robot_state):
         """
@@ -84,33 +65,35 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         @type robot_state: motion.RobotState.DifferentialDriveRobotState
         @param robot_state: the new state of the robot
         """
-        if self.updates_done >= len(self.x_position_vector):
+        if self.expected_updates == None:
+            return
+        elif self.updates_done >= self.expected_updates:
             return
 
-        self.sample_time_vector[self.updates_done] = robot_state.elapsed_time
+        self.sample_time_vector.append(robot_state.elapsed_time)
 
-        self.x_position_vector[self.updates_done] = robot_state.location.x_position
-        self.y_position_vector[self.updates_done] = robot_state.location.y_position
-        self.z_position_vector[self.updates_done] = robot_state.location.z_position
+        self.x_position_vector.append(robot_state.location.x_position)
+        self.y_position_vector.append(robot_state.location.y_position)
+        self.z_position_vector.append(robot_state.location.z_position)
 
-        self.x_ref_vector[self.updates_done] = robot_state.reference_location.x_position
-        self.y_ref_vector[self.updates_done] = robot_state.reference_location.y_position
-        self.z_ref_vector[self.updates_done] = robot_state.reference_location.z_position
+        self.x_ref_vector.append(robot_state.reference_location.x_position)
+        self.y_ref_vector.append(robot_state.reference_location.y_position)
+        self.z_ref_vector.append(robot_state.reference_location.z_position)
 
-        self.x_ref_speed_vector[self.updates_done] = robot_state.reference_speed.x_speed
-        self.y_ref_speed_vector[self.updates_done] = robot_state.reference_speed.y_speed
-        self.z_ref_speed_vector[self.updates_done] = robot_state.reference_speed.z_speed
+        self.x_ref_speed_vector.append(robot_state.reference_speed.x_speed)
+        self.y_ref_speed_vector.append(robot_state.reference_speed.y_speed)
+        self.z_ref_speed_vector.append(robot_state.reference_speed.z_speed)
 
-        self.speed_x_ref_vector[self.updates_done] = robot_state.x_speed_ref
-        self.speed_y_ref_vector[self.updates_done] = robot_state.y_speed_ref
+        self.speed_x_ref_vector.append(robot_state.x_speed_ref)
+        self.speed_y_ref_vector.append(robot_state.y_speed_ref)
 
-        self.angular_speed_1_vector[self.updates_done] = robot_state.angular_speed_1
-        self.angular_1_ref_vector[self.updates_done] = robot_state.set_point_1
-        self.current_1_vector[self.updates_done] = robot_state.current_1
+        self.angular_speed_1_vector.append(robot_state.angular_speed_1)
+        self.angular_1_ref_vector.append(robot_state.set_point_1)
+        self.current_1_vector.append(robot_state.current_1)
 
-        self.angular_speed_2_vector[self.updates_done] = robot_state.angular_speed_2
-        self.angular_2_ref_vector[self.updates_done] = robot_state.set_point_2
-        self.current_2_vector[self.updates_done] = robot_state.current_2
+        self.angular_speed_2_vector.append(robot_state.angular_speed_2)
+        self.angular_2_ref_vector.append(robot_state.set_point_2)
+        self.current_2_vector.append(robot_state.current_2)
 
         self.updates_done += 1
 
@@ -119,7 +102,10 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         Method to be called when the movement ends
 
         """
+        if self.expected_updates == None:
+            return
         file_name = self.file_name_provider.get_file_name() + ".m"
+
         thread.start_new_thread(FileLoggerMovementSupervisor.file_writer_thread,
                                 (file_name, self.updates_done, self.x_position_vector, self.y_position_vector,
                                  self.z_position_vector, self.x_speed_vector, self.y_speed_vector, self.z_speed_vector,
@@ -144,22 +130,21 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
                            wheel_distance, constant_b, constant_k1, constant_k2, constant_kc, constant_ki,
                            constant_kd):
 
-        time_vector[0] = 0.
+        time_vector = [0.]
         for i in range(updates_done - 1):
-            time_vector[i + 1] = time_vector[i] + sample_time_vector[i]
-            x_speed_vector[i] = (x_position_vector[i + 1] - x_position_vector[i]) / \
-                                (sample_time_vector[i])
-            y_speed_vector[i] = (y_position_vector[i + 1] - y_position_vector[i]) / \
-                                (sample_time_vector[i])
-            z_speed_vector[i] = (z_position_vector[i + 1] - z_position_vector[i]) / \
-                                (sample_time_vector[i])
+            time_vector.append(time_vector[-1] + sample_time_vector[i])
+            x_speed_vector.append((x_position_vector[i + 1] - x_position_vector[i]) / \
+                                (sample_time_vector[i]))
+            y_speed_vector.append((y_position_vector[i + 1] - y_position_vector[i]) / \
+                                (sample_time_vector[i]))
+            z_speed_vector.append((z_position_vector[i + 1] - z_position_vector[i]) / \
+                                (sample_time_vector[i]))
 
-        x_speed_vector[updates_done - 1] = x_speed_vector[updates_done - 2]
-        y_speed_vector[updates_done - 1] = y_speed_vector[updates_done - 2]
-        z_speed_vector[updates_done - 1] = z_speed_vector[updates_done - 2]
+        x_speed_vector.append(x_speed_vector[-1])
+        y_speed_vector.append(y_speed_vector[-1])
+        z_speed_vector.append(z_speed_vector[-1])
         
         
-        #TODO: Toni, change the place where the logs are saved to modules/FileLogger/logs
 
         dict_current_log={}
         
@@ -195,7 +180,9 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         dict_current_log['constant_ki'] = str(constant_ki)
         dict_current_log['constant_kd'] = str(constant_kd)
         dict_current_log['constant_kc'] = str(constant_kc)
-        
+
+        #TODO: Toni, change the place where the logs are saved to modules/FileLogger/logs
+
         save_file = open(file_name, 'w')
 
         current_log = \
@@ -327,7 +314,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         
         template_current_log = Template(current_log)
-        current_log=template_current_log.substitute(dict_current_log)
+        current_log = template_current_log.substitute(dict_current_log)
         
         save_file.write(current_log)
         
