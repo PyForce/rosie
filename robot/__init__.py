@@ -87,17 +87,6 @@ class SettingHandler:
 
     def buildMovementSupervisor(self):
         supervisor = SupervisorContainer()
-        # if self.settings.KINEMATICS == 'DIFFERENTIAL':
-        #     # TODO:Add if for selecting tracker
-        #     if self.settings.SUPERVISOR == 'FILE_LOGGER':
-        #         supervisor.append(FileLoggerMovementSupervisor(self.parameters,
-        #                           FileNameProviderByTime()))
-        #     else:
-        #         print("    ERROR! Movement Supervisor Not Supported>")
-        #         return None
-        # else:
-        #     print("    ERROR! Kinematic Model Not Supported>")
-        #     return None
         return supervisor
 
     def buildTrajectoryTracker(self):
