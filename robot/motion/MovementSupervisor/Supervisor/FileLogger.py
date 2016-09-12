@@ -1,5 +1,6 @@
 import thread
 from string import Template
+import os
 
 from robot.motion.MovementSupervisor.Differential import DifferentialDriveMovementSupervisor
 
@@ -18,6 +19,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         super(FileLoggerMovementSupervisor, self).__init__()
         self.robot_parameters = robot_parameters
         self.file_name_provider = file_name_provider
+        self.output_directory = os.path.join('modules', 'FileLogger', 'logs')
 
         self.time_vector = list()
         self.sample_time_vector = list()
@@ -105,7 +107,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         if self.expected_updates == None:
             return
         file_name = self.file_name_provider.get_file_name() + ".m"
-
+        file_name = os.path.join(self.output_directory, file_name)
         thread.start_new_thread(FileLoggerMovementSupervisor.file_writer_thread,
                                 (file_name, self.updates_done, self.x_position_vector, self.y_position_vector,
                                  self.z_position_vector, self.x_speed_vector, self.y_speed_vector, self.z_speed_vector,
@@ -180,8 +182,6 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         dict_current_log['constant_ki'] = str(constant_ki)
         dict_current_log['constant_kd'] = str(constant_kd)
         dict_current_log['constant_kc'] = str(constant_kc)
-
-        #TODO: Toni, change the place where the logs are saved to modules/FileLogger/logs
 
         save_file = open(file_name, 'w')
 
