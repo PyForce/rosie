@@ -22,6 +22,7 @@ from robot.motion.MovementSupervisor.Differential import SupervisorContainer
 
 
 from tools.singleton import Singleton
+from planning.planner import Planner
 
 
 class SettingHandler:
@@ -162,6 +163,11 @@ class SettingHandler:
             print("    ERROR! Kinematic Model Not Supported>")
             return None
 
+    def buildPlanner(self):
+        planner = Planner()
+        planner.map = "Gustavo's House"
+        return planner
+
 
 class Robot:
     __metaclass__ = Singleton
@@ -169,6 +175,7 @@ class Robot:
     def __init__(self):
         self.setting_handler = SettingHandler()
         self.motion = self.setting_handler.buildMovementControllers()
+        self.planner = self.setting_handler.buildPlanner()
 
     def track(self, trajectory_parameters):
         self.motion.movement_init(trajectory_parameters)
