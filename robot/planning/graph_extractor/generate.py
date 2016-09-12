@@ -216,20 +216,16 @@ if __name__ == '__main__':
     p = None
 
     for room in m.rooms:
-        room_points = []
-        for border in room.borders:
-            room_points.extend(border)
-        if room_points:
-            p1 = Polygon(room_points)
-
+        room_points = room.borders_points
+        p1 = Polygon(room_points)
         p = p1 if p is None else p.union(p1)
 
-        x = [point[0] for point in room_points]
-        y = [point[1] for point in room_points]
-        plt.plot(x, y)
+        x, y = room_points[:, 0], room_points[:, 1]
+        plt.plot(x, y, 'r')
 
-    patch = PolygonPatch(p)
-    plt.gca().add_patch(patch)
+    p = np.matrix(list(p.boundary.coords))
+    x, y = p[:, 0], p[:, 1]
+    plt.plot(x, y, 'b')
 
     plt.gca().axis('off')
     plt.gca().set_aspect(1)

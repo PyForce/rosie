@@ -35,8 +35,9 @@ class Room(object):
         self._walls = room['walls']['geometry']['coordinates']
         self._doors = room['doors']['geometry']['coordinates']
         self._items = [Item(item) for item in room['items'].values()]
+        self._borders_points = self._get_borders_points()
 
-    def get_border_points(self):
+    def _get_borders_points(self):
         '''
         Get all border points in matrix form
         :return: m `np.matrix` m[i] = [x_i, y_i]
@@ -46,8 +47,9 @@ class Room(object):
             points.extend(border)
         return np.matrix(points)
 
-    def get_items_points(self):
-        points = []
+    @property
+    def borders_points(self):
+        return self._borders_points
 
     @property
     def borders(self):
