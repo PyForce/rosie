@@ -6,9 +6,6 @@ from settings import config as global_settings
 from robot.motion.Localizer.Method.RungeKutta import RungeKutta2OdometryLocalizer
 from robot.motion.MotorHandler.Differential import HardSpeedControlledMH
 from robot.motion.MotorHandler.Differential import SoftSpeedControlledMH
-from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
-from robot.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
-from robot.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
 from robot.motion.MovementController.Differential import DifferentialDriveRobotParameters, \
     DifferentialDriveMovementController, \
     DifferentialDriveRobotLocation
@@ -101,17 +98,22 @@ class SettingHandler:
             print("    ERROR! Kinematic Model Not Supported>")
             return None
 
+
+
     def buildMotorHandler(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
             if self.settings.FILENAME == 'VirtualMD.py':
+                from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
                 speed_motor_driver = VirtualMotorDriver(self.parameters.steps_per_revolution, self.parameters.max_speed)
                 return HardSpeedControlledMH(speed_motor_driver)
             if self.settings.FILENAME == 'ArduinoMD.py':
+                from robot.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
                 speed_motor_driver = Arduino(self.settings.MAX_SPEED)
                 speed_motor_driver.set_constants(self.parameters.constant_kc, self.parameters.constant_ki,
                                                       self.parameters.constant_kd)
                 return HardSpeedControlledMH(speed_motor_driver)
             elif self.settings.FILENAME == 'MD25.py':
+                from robot.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
                 speed_controller = PIDSpeedController(self.parameters.constant_kc, self.parameters.constant_ki,
                                                       self.parameters.constant_kd, self.parameters.max_value_power,
                                                       self.parameters.min_value_power)
