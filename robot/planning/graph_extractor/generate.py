@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 # from robot.planner.maps.graph import AdjacencyMatrixGraph as Graph
 import json
 from collections import namedtuple
@@ -43,16 +45,16 @@ def point_in_poly(point, polygon):
     Asume the next segment is (xn, yn), (x0, y0)
     """
     x, y = point
-    n = len(polygon)
+    n = polygon.shape[0]
     c = 0
     for i in range(n):
         inf = i
         sup = (i + 1) % n
         # Considering the y's order. Put inf down and sup up.
-        if polygon[inf][1] > polygon[sup][1]:
+        if polygon[inf, 1] > polygon[sup, 1]:
             inf, sup = sup, inf
-        (x_inf, y_inf), r = polygon[inf]
-        (x_sup, y_sup), r = polygon[sup]
+        x_inf, y_inf = polygon[inf, :].T
+        x_sup, y_sup = polygon[sup, :].T
         # The y in inf must be less or equal than the y of the point and.
         # the y in sup must be greate than the y of the point.
         # Considering the y order, the point must be in the midle of
@@ -89,10 +91,12 @@ def intersection(r1, r2):
     return p1 + x[0,0] * v1
 
 
-def compute_direction(poly):
-    A, _ = poly[0]
-    B, _ = poly[1]
-    C, _ = poly[2]
+def compute_direction(points):
+    A = points[0, :]
+    B = points[1, :]
+    C = points[2, :]
+
+    A, B, C = map(lambda P: np.array(P).reshape(2), [A, B, C])
 
     # Director vector of first rect
     v = B - A
@@ -112,51 +116,52 @@ def compute_direction(poly):
     r1 = Rect(v, _A)
     r2 = Rect(w, _B)
 
-    if point_in_poly(intersection(r1, r2), poly):
+    if point_in_poly(intersection(r1, r2), points):
         return 1
     return -1
 
 
 def get_suport_points(points):
     support_points = []
-    for ps in points:
-        try:
-            direction = compute_direction(ps)
-        except Exception as e:
-            print(e)
+    n = points.shape[0]
+
+    direction = 1
+
+    if points.shape[0] < 3:
+        return None
+    # Check witch is the directions of the polygon
+    direction = compute_direction(points)
+
+    for i in range(n):
+        # Three points for every step (two segments)
+        A = points[direction * i, :]
+        B = points[(direction * (i + 1)) % (direction * n), :]
+        C = points[(direction * (i + 2)) % (direction * n), :]
+
+        A, B, C = map(lambda P: np.array(P).reshape(2), [A, B, C])
+
+        # Director vector of first rect
+        v = B - A
+        v /= np.linalg.norm(v)
+        # Director vector of second rect
+        w = C - B
+        w /= np.linalg.norm(w)
+
+        if np.isclose(np.abs(v.dot(w)), 1):
             continue
 
-        support_points.append([])
-        n = len(ps)
+        # Rotate 90 grades
+        _v = Point(v[1], -v[0])
+        _w = Point(w[1], -w[0])
 
-        for i in range(n):
-            # Three points for every step (two segments)
-            A, _ = ps[direction * i]
-            B, _ = ps[(direction * (i + 1)) % (direction * n)]
-            C, _ = ps[(direction * (i + 2)) % (direction * n)]
+        _A = A + H * _v
+        _B = B + H * _w
 
-            # Director vector of first rect
-            v = B - A
-            v /= np.linalg.norm(v)
+        r1 = Rect(v, _A)
+        r2 = Rect(w, _B)
 
-            # Director vector of second rect
-            w = C - B
-            w /= np.linalg.norm(w)
-
-            # Rotate 90 grades
-            _v = Point(v[1], -v[0])
-            _w = Point(w[1], -w[0])
-
-            _A = A + H * _v
-            _B = B + H * _w
-
-            # plt.scatter(*_A)
-
-            r1 = Rect(v, _A)
-            r2 = Rect(w, _B)
-
-            support_points[-1].append(intersection(r1, r2))
-    return support_points
+        support_points.append(intersection(r1, r2))
+    return np.matrix(support_points)
 
 
 def get_walls(room):
@@ -175,38 +180,31 @@ def generate(jsonfile):
         p1 = Polygon(room.borders_points)
         p = p1 if p is None else p.union(p1)
 
-    all_points = np.matrix(list(p.boundary.coords))
+    points = list(p.exterior.coords)
+    if points:
+        filtered_points = [points[0]]
+        for i in range(1, len(points) - 1):
+            if points[i][0] == filtered_points[-1][0] and points[i][1] == filtered_points[-1][1]:
+                continue
+            else:
+                filtered_points.append(points[i])
 
+    all_points = np.matrix(filtered_points)
     suport_points = get_suport_points(all_points)
-    #
+    # print(all_points.shape, suport_points.shape)
     # print(suport_points)
 
-    for wps in all_points:
-        if wps: wps.append(wps[0])
-        x = [p[0][0] for p in wps]
-        y = [p[0][1] for p in wps]
-        plt.plot(x, y)
+    x, y = all_points[:, 0], all_points[:, 1]
+    plt.plot(x, y)
 
-    # walls = []
-    # for room in rooms_map['rooms']:
-    #     walls.extend(get_walls(rooms_map['rooms'][room]))
-
-    # for wall in walls:
-    #     x = [w[0] for w in wall]
-    #     y = [w[1] for w in wall]
-    #     plt.plot(x, y)
-
-    # for wps in suport_points:
-    #     if wps: wps.append(wps[0])
-    #     x = [p[0] for p in wps]
-    #     y = [p[1] for p in wps]
-    #     plt.scatter(x, y)
-        # plt.plot(x, y)
+    x, y = suport_points[:, 0], suport_points[:, 1]
+    plt.scatter(x, y)
+    plt.plot(x, y)
 
     plt.gca().axis('off')
     plt.gca().set_aspect(1)
-    plt.xlim([-1, 9.2])
-    plt.ylim([-1, 3.2])
+    # plt.xlim([-1, 9.2])
+    # plt.ylim([-1, 3.2])
     plt.show()
 
 
