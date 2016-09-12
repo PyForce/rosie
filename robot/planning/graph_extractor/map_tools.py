@@ -78,13 +78,3 @@ class Map(object):
     @property
     def rooms(self):
         return self._rooms
-
-
-def get_all_points(m):
-    points = []
-    for i, room in enumerate(m.rooms):
-        points.append([])
-        for border in room.borders:
-            points[-1] += [RoomPoint(point[0], point[1], i)
-                            for point in border]
-    return points
