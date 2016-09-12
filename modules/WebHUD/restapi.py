@@ -1,7 +1,7 @@
 import os
 import math
 
-from flask import request, jsonify, json, url_for, send_file
+from flask import request, jsonify, json, url_for, send_file, abort
 
 from . import app, sio
 from .utils import allow_origin
@@ -156,7 +156,7 @@ def text():
     return 'OK'
 
 
-@app.route('/maps', methods=['PUT'])
+@app.route('/maps')
 @allow_origin
 def maps():
     """
@@ -164,8 +164,24 @@ def maps():
         "map": "map_name"
     }
     """
-    map = request.values['map']
-    return 'OK'
+    return jsonify([map['name'] for map in Robot().planner.maps()])
+
+
+@app.route('/map', defaults={'name': ''})
+@app.route('/map/<string:name>')
+@allow_origin
+def map(name):
+    """
+    {
+        "map": "map_name"
+    }
+    """
+    r = Robot()
+    if name:
+        map = r.planner.get_map(name)
+    else:
+        map = r.planner.map
+    return jsonify(map) if map else abort(404)
 
 
 @app.route('/clusters')
