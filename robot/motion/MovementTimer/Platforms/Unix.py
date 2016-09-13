@@ -1,10 +1,13 @@
 from robot.motion.MovementTimer.Timer import AbstractTimer
 import signal
 
+__all__ = ['UnixTimer', 'DefaultTimer']
+
 
 class UnixTimer(AbstractTimer):
     """
-    Class to generate sample time for Unix Systems to drive a mobile robotOLD, or anything else
+    Class to generate sample time for Unix Systems to drive a mobile robotOLD,
+    or anything else
     """
 
     def __init__(self, sample_time):
@@ -12,12 +15,12 @@ class UnixTimer(AbstractTimer):
         signal.signal(signal.SIGALRM, self.timer_handler)
         self.timer_stop()
 
-
     def timer_init(self):
         """
         Init the timer
         """
-        signal.setitimer(signal.ITIMER_REAL, self.sample_time, self.sample_time)
+        signal.setitimer(signal.ITIMER_REAL, self.sample_time,
+                         self.sample_time)
 
     def timer_handler(self, signum, frame):
         """
@@ -33,3 +36,5 @@ class UnixTimer(AbstractTimer):
         Stop the timer
         """
         signal.setitimer(signal.ITIMER_REAL, 0, 0)
+
+DefaultTimer = UnixTimer
