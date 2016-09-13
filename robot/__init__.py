@@ -177,7 +177,7 @@ class Robot:
     def stop_open_loop_control(self):
         self.motion.movement_finish()
 
-    def position(self,x=None,y=None,theta=None):
+    def position(self, x=None, y=None, theta=None):
         """
         Get or set the position of the robot
 
@@ -196,7 +196,7 @@ class Robot:
         (2, 3, 0.5)
         """
         #---- get position ----
-        if x == None and y == None and theta == None:
+        if x is y is theta is None:
             x = self.motion.odometry_localizer.globalLocation.x_position
             y = self.motion.odometry_localizer.globalLocation.y_position
             z = self.motion.odometry_localizer.globalLocation.z_position
@@ -208,11 +208,18 @@ class Robot:
         self.motion.odometry_localizer.globalLocation.x_position = y
         self.motion.odometry_localizer.globalLocation.z_position = theta
 
+    @property
     def supervisor(self):
         return self.motion.movement_supervisor
 
+    @supervisor.setter
     def change_supervisor(self, newsupervisor):
         self.motion.movement_supervisor = newsupervisor
 
+    @property
+    def trajectory_planner(self):
+        return self.motion.trajectory_planner
+
+    @trajectory_planner.setter
     def change_trajectory_planner(self, newplanner):
         self.motion.trajectory_planner = newplanner
