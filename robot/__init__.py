@@ -1,5 +1,4 @@
 import os
-import sys
 
 from settings import config as global_settings
 
@@ -14,7 +13,7 @@ from robot.motion.TrajectoryPlanner.Differential import DifferentialDriveTraject
 from robot.motion.TrajectoryPlanner.Planner.Cubic import CubicTrajectoryPlanner
 from robot.motion.TrajectoryPlanner.Planner.Linear import LinearTrajectoryPlanner
 from robot.motion.TrajectoryTracker.Tracker.IOLinearization import IOLinearizationTrajectoryTracker
-from robot.motion.MovementTimer import UnixTimer, WindowsTimer
+from robot.motion.MovementTimer import DefaultTimer
 from robot.motion.MovementSupervisor.Differential import SupervisorContainer
 
 
@@ -127,12 +126,8 @@ class SettingHandler:
             return None
 
     def buildTimer(self):
-        if sys.platform.startswith("win"):
-            # Use Windows base system driver
-            return WindowsTimer(self.settings.SAMPLE_TIME)
-        else:
-            # Use Unix based system driver
-            return UnixTimer(self.settings.SAMPLE_TIME)
+        # load platform specific timer
+        return DefaultTimer(self.settings.SAMPLE_TIME)
 
     def buildRobotParameters(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
