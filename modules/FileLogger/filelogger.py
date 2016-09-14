@@ -19,7 +19,10 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         super(FileLoggerMovementSupervisor, self).__init__()
         self.robot_parameters = robot_parameters
         self.file_name_provider = file_name_provider
-        self.output_directory = os.path.join('modules', 'FileLogger', 'logs')
+        self.output_directory = os.path.join(os.path.dirname(__file__), 'logs')
+        # create output directory
+        if not os.path.exists(self.output_directory):
+            os.mkdir(self.output_directory)
 
         self.time_vector = list()
         self.sample_time_vector = list()
@@ -59,7 +62,6 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.updates_done = 0
         self.expected_updates = expected_updates
 
-
     def movement_update(self, robot_state):
         """
         Method to be called when the state of the robot changes during the movement
@@ -67,7 +69,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         @type robot_state: motion.RobotState.DifferentialDriveRobotState
         @param robot_state: the new state of the robot
         """
-        if self.expected_updates == None:
+        if self.expected_updates is None:
             return
         elif self.updates_done >= self.expected_updates:
             return
@@ -104,7 +106,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         Method to be called when the movement ends
 
         """
-        if self.expected_updates == None:
+        if self.expected_updates is None:
             return
         file_name = self.file_name_provider.get_file_name() + ".m"
         file_name = os.path.join(self.output_directory, file_name)
