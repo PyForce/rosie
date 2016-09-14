@@ -1,6 +1,6 @@
 from robot import Robot
 from tools.FileNameProvider import FileNameProviderByTime
-from robot.motion.MovementSupervisor.Supervisor.FileLogger import FileLoggerMovementSupervisor
+from .filelogger import FileLoggerMovementSupervisor
 
 def init():
     r = Robot()
