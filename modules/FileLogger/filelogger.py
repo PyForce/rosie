@@ -147,52 +147,48 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         x_speed_vector.append(x_speed_vector[-1])
         y_speed_vector.append(y_speed_vector[-1])
         z_speed_vector.append(z_speed_vector[-1])
-        
-        
 
-        dict_current_log={}
-        
-        dict_current_log['s_angular_speed_1_vector'] = " ".join([str(i) for i in angular_speed_1_vector])
-        dict_current_log['s_angular_speed_2_vector'] = " ".join([str(i) for i in angular_speed_2_vector])
-        dict_current_log['s_current_1_vector'] = " ".join([str(i) for i in current_1_vector])
-        dict_current_log['s_current_2_vector'] = " ".join([str(i) for i in current_2_vector])
-        dict_current_log['s_time_vector'] = " ".join([str(i) for i in time_vector])
-        dict_current_log['s_sample_time_vector'] = " ".join([str(i) for i in sample_time_vector])
-        dict_current_log['s_angular_1_ref_vector'] = " ".join([str(i) for i in angular_1_ref_vector])
-        dict_current_log['s_angular_2_ref_vector'] = " ".join([str(i) for i in angular_2_ref_vector])
-        dict_current_log['s_x_position_vector'] = " ".join([str(i) for i in x_position_vector])
-        dict_current_log['s_y_position_vector'] = " ".join([str(i) for i in y_position_vector])
-        dict_current_log['s_z_position_vector'] = " ".join([str(i) for i in z_position_vector])
-        dict_current_log['s_x_ref_vector'] = " ".join([str(i) for i in x_ref_vector])
-        dict_current_log['s_y_ref_vector'] = " ".join([str(i) for i in y_ref_vector])
-        dict_current_log['s_z_ref_vector'] = " ".join([str(i) for i in z_ref_vector])
-        dict_current_log['s_x_speed_vector'] = " ".join([str(i) for i in x_speed_vector])
-        dict_current_log['s_y_speed_vector'] = " ".join([str(i) for i in y_speed_vector])
-        dict_current_log['s_z_speed_vector'] = " ".join([str(i) for i in z_speed_vector])
-        dict_current_log['s_x_ref_speed_vector'] = " ".join([str(i) for i in x_ref_speed_vector])
-        dict_current_log['s_y_ref_speed_vector'] = " ".join([str(i) for i in y_ref_speed_vector])
-        dict_current_log['s_z_ref_speed_vector'] = " ".join([str(i) for i in z_ref_speed_vector])
-        dict_current_log['s_speed_x_ref_vector'] = " ".join([str(i) for i in speed_x_ref_vector])
-        dict_current_log['s_speed_y_ref_vector'] = " ".join([str(i) for i in speed_y_ref_vector])
-
-        dict_current_log['updates_done'] = str(updates_done)
-        dict_current_log['wheel_radius'] = str(wheel_radius)
-        dict_current_log['wheel_distance'] = str(wheel_distance)
-        dict_current_log['constant_b'] = str(constant_b)
-        dict_current_log['constant_k1'] = str(constant_k1)
-        dict_current_log['constant_k2'] = str(constant_k2)
-        dict_current_log['constant_ki'] = str(constant_ki)
-        dict_current_log['constant_kd'] = str(constant_kd)
-        dict_current_log['constant_kc'] = str(constant_kc)
+        dict_current_log = {
+            's_angular_speed_1_vector': " ".join((str(i) for i in angular_speed_1_vector)),
+            's_angular_speed_2_vector': " ".join((str(i) for i in angular_speed_2_vector)),
+            's_current_1_vector': " ".join((str(i) for i in current_1_vector)),
+            's_current_2_vector': " ".join((str(i) for i in current_2_vector)),
+            's_time_vector': " ".join((str(i) for i in time_vector)),
+            's_sample_time_vector': " ".join((str(i) for i in sample_time_vector)),
+            's_angular_1_ref_vector': " ".join((str(i) for i in angular_1_ref_vector)),
+            's_angular_2_ref_vector': " ".join((str(i) for i in angular_2_ref_vector)),
+            's_x_position_vector': " ".join((str(i) for i in x_position_vector)),
+            's_y_position_vector': " ".join((str(i) for i in y_position_vector)),
+            's_z_position_vector': " ".join((str(i) for i in z_position_vector)),
+            's_x_ref_vector': " ".join((str(i) for i in x_ref_vector)),
+            's_y_ref_vector': " ".join((str(i) for i in y_ref_vector)),
+            's_z_ref_vector': " ".join((str(i) for i in z_ref_vector)),
+            's_x_speed_vector': " ".join((str(i) for i in x_speed_vector)),
+            's_y_speed_vector': " ".join((str(i) for i in y_speed_vector)),
+            's_z_speed_vector': " ".join((str(i) for i in z_speed_vector)),
+            's_x_ref_speed_vector': " ".join((str(i) for i in x_ref_speed_vector)),
+            's_y_ref_speed_vector': " ".join((str(i) for i in y_ref_speed_vector)),
+            's_z_ref_speed_vector': " ".join((str(i) for i in z_ref_speed_vector)),
+            's_speed_x_ref_vector': " ".join((str(i) for i in speed_x_ref_vector)),
+            's_speed_y_ref_vector': " ".join((str(i) for i in speed_y_ref_vector)),
+            'updates_done': str(updates_done),
+            'wheel_radius': str(wheel_radius),
+            'wheel_distance': str(wheel_distance),
+            'constant_b': str(constant_b),
+            'constant_k1': str(constant_k1),
+            'constant_k2': str(constant_k2),
+            'constant_ki': str(constant_ki),
+            'constant_kd': str(constant_kd),
+            'constant_kc': str(constant_kc)
+        }
 
         save_file = open(file_name, 'w')
 
-        current_log = \
-        """
+        current_log = """
         close all
         clear all
         clc
-        
+
         count = $updates_done ;
         radius = $wheel_radius ;
         distance = $wheel_distance ;
@@ -202,7 +198,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         constant_ki = $constant_ki ;
         constant_kd = $constant_kd ;
         constant_kc = $constant_kc ;
-        
+
         speed1 = [ $s_angular_speed_1_vector ] ;
         speed2 = [ $s_angular_speed_2_vector ] ;
         current1 = [ $s_current_1_vector ] ;
@@ -226,7 +222,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         dxr = [ $s_speed_x_ref_vector ] ;
         dyr = [ $s_speed_y_ref_vector ] ;
 
-        
+
         figure;
         plot(time,x,time,xd) ;
         title('X Position vs Time.') ;
@@ -314,11 +310,9 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
         xlabel ( 'Sample (k)' ) ;
         grid on
         """
-        
+
         template_current_log = Template(current_log)
         current_log = template_current_log.substitute(dict_current_log)
-        
+
         save_file.write(current_log)
-        
-        save_file.flush()
         save_file.close()
