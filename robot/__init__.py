@@ -208,18 +208,11 @@ class Robot:
         self.motion.odometry_localizer.globalLocation.x_position = y
         self.motion.odometry_localizer.globalLocation.z_position = theta
 
-    @property
     def supervisor(self):
         return self.motion.movement_supervisor
 
-    @supervisor.setter
     def change_supervisor(self, newsupervisor):
         self.motion.movement_supervisor = newsupervisor
 
-    @property
-    def trajectory_planner(self):
-        return self.motion.trajectory_planner
-
-    @trajectory_planner.setter
     def change_trajectory_planner(self, newplanner):
         self.motion.trajectory_planner = newplanner
