@@ -182,7 +182,7 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
             'constant_kc': str(constant_kc)
         }
 
-        save_file = open(file_name, 'w')
+        save_file = open(file_name, 'Uw+')
 
         current_log = """
         close all
