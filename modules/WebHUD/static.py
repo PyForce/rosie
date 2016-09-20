@@ -43,7 +43,6 @@ def browserify(resources):
 
     command = "%s " % executable
     command += ' '.join((filename for filename, _ in resources))
-    command += ' -o'
 
     process = subprocess.Popen(command, stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, shell=True)
