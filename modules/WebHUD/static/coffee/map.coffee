@@ -113,3 +113,8 @@ drawMap = (lmap) ->
                 else
                     L.geoJson(lmap.rooms[room][elements],
                               style: map_style[elements]).addTo map
+
+module.exports =
+  RobotOverlay: RobotOverlay
+  map: map
+  drawMap: drawMap

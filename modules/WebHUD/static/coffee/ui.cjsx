@@ -1,3 +1,8 @@
+{map} = require './map.js'
+{Command, CommandList, TextCommand,
+ RobotCard, RobotVideo} = require './hud.js'
+
+
 # HUD control
 mountHUD = (robot) ->
     robot.setAuto()
@@ -55,3 +60,6 @@ $(window).resize ->
     else if Modernizr.mq '(max-width: 3000px)'
         # mountInfo car
         false
+
+module.exports =
+  mountHUD: mountHUD

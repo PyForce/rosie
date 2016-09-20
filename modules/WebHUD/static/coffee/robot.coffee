@@ -1,4 +1,7 @@
 DEBUG = true
+{RobotOverlay, drawMap, map} = require './map.js'
+{mountHUD} = require './ui.js'
+
 
 # Class that wraps robot communication
 class Robot
@@ -21,7 +24,8 @@ class Robot
 
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
-            @overlay = new RobotOverlay imageUrl, [0, 0], data.size[1], data.size[0]
+            @overlay = new RobotOverlay imageUrl, [0, 0], data.size[1],
+                                        data.size[0]
             @overlay.addTo map
             $(@overlay._image).click =>
                 # show HUD

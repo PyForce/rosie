@@ -125,3 +125,11 @@ class CommandList extends React.Component
           switchActive={@switchActive.bind @}/> for k, cmd of @state.commands}
       </ul>
     </div>
+
+
+module.exports =
+  Command: Command
+  CommandList: CommandList
+  TextCommand: TextCommand
+  RobotCard: RobotCard
+  RobotVideo: RobotVideo
