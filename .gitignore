@@ -108,6 +108,7 @@ jspm_packages
 # ignore js and css, use coffee and less instead
 modules/WebHUD/static/js/
 modules/WebHUD/static/css/
+modules/WebHUD/static/bundle/
 
 # ignore settings
 config.ini
