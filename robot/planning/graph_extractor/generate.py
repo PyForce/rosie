@@ -12,30 +12,8 @@ from map_tools import Map
 
 
 H = 0.2
-# RoomPoint = namedtuple('RoomPoint', ['x', 'y', 'room'])
-# Point = namedtuple('Point', ['x', 'y'])
-
-Vector = namedtuple('Vector', ['x', 'y'])
 Rect = namedtuple('Rect', ['v', 'p0'])
-
 Point = lambda x, y: np.array([x, y])
-RoomPoint = lambda x, y, room: (np.array([x, y]), room)
-
-def vector(A, B):
-    return Vector(B.x - A.x, B.y - A.y)
-
-
-def length(v):
-    return (v.x ** 2 + v.y ** 2) ** 0.5
-
-
-def norm(v):
-    l = length(v)
-    return Vector(v.x / l, v.y / l)
-
-def point(r, p):
-    pnt = Point(r.p0.x + r.v.x * p, r.p0.y + r.v.y * p)
-    return Point(r.p0.x + r.v.x * p, r.p0.y + r.v.y * p)
 
 
 def point_in_poly(point, polygon):
@@ -68,6 +46,7 @@ def point_in_poly(point, polygon):
             if A_x * B_y > A_y * B_x:
                 c += 1
     return c % 2 == 1
+
 
 def intersection(r1, r2):
     """
@@ -191,8 +170,6 @@ def generate(jsonfile):
 
     all_points = np.matrix(filtered_points)
     suport_points = get_suport_points(all_points)
-    # print(all_points.shape, suport_points.shape)
-    # print(suport_points)
 
     x, y = all_points[:, 0], all_points[:, 1]
     plt.plot(x, y)
@@ -203,34 +180,8 @@ def generate(jsonfile):
 
     plt.gca().axis('off')
     plt.gca().set_aspect(1)
-    # plt.xlim([-1, 9.2])
-    # plt.ylim([-1, 3.2])
     plt.show()
 
 
 if __name__ == '__main__':
-    # from descartes.patch import PolygonPatch
-    #
-    # m = Map('../maps/map.json')
-    #
-    # p = None
-    #
-    # for room in m.rooms:
-    #     room_points = room.borders_points
-    #     p1 = Polygon(room_points)
-    #     p = p1 if p is None else p.union(p1)
-    #
-    #     x, y = room_points[:, 0], room_points[:, 1]
-    #     plt.plot(x, y, 'r')
-    #
-    # p = np.matrix(list(p.boundary.coords))
-    # x, y = p[:, 0], p[:, 1]
-    # plt.plot(x, y, 'b')
-    #
-    # plt.gca().axis('off')
-    # plt.gca().set_aspect(1)
-    # plt.xlim([-1, 9.2])
-    # plt.ylim([-1, 3.2])
-    # plt.show()
-
     generate('../maps/map.json')
