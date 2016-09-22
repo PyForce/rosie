@@ -90,6 +90,10 @@ class Item(object):
         """
         return self.__item_name
 
+    @property
+    def item_name(self):
+        return self._item_name
+
 
 class Room(object):
 
