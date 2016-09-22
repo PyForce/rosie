@@ -1,3 +1,6 @@
+React = require 'react'
+ReactDOM = require 'react-dom'
+
 class ClusterMenu extends React.Component
   constructor: (@props) ->
     @state = clusters: [
@@ -35,8 +38,9 @@ class ClusterMenu extends React.Component
       item" onClick={@click.bind @} ref='dropdown'>
       Cluster
       <i className='dropdown icon'/>
-      <div className='menu' style={'min-width': 'calc(200%)'}>
-        {<ClusterItem {...cluster}/> for cluster in @state.clusters}
+      <div className='menu' style={minWidth: 'calc(200%)'}>
+        {for cluster in @state.clusters
+          <ClusterItem key={cluster.name} {...cluster}/>}
       </div>
     </div>
 
