@@ -20,6 +20,8 @@ class Robot
         @sio = io "http://#{@host}:#{@port}"
         @sio.on 'disconnect', () =>
             alert 'Closed socket.io'
+            @setAuto()
+            delete @sio
         @sio.on 'position', (pos) => @move(pos)
 
         @getMetadata (data) =>
