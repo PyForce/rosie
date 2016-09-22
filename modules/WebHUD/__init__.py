@@ -25,7 +25,8 @@ def init():
 
     if debug:
         st.watch(['static/coffee/**/*.coffee', 'static/coffee/**/*.cjsx',
-                  'static/less/**/*.less'], 'cjsx', 'coffee', 'less')
+                  'static/less/**/*.less'], 'cjsx', 'coffee', 'less',
+                 'browserify')
     else:
         st.runall()
 
