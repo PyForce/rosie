@@ -1,3 +1,6 @@
+React = require 'react'
+ReactDOM = require 'react-dom'
+
 {map} = require './map.js'
 {Command, CommandList, TextCommand,
  RobotCard, RobotVideo} = require './hud.js'

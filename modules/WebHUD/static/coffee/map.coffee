@@ -1,3 +1,6 @@
+L = require 'leaflet'
+
+
 map = L.map('map',
     crs: L.CRS.Simple
     zoomAnimation: false).setView [0, 0], 9

@@ -1,6 +1,10 @@
-DEBUG = true
+io = require('socket.io-client')
+
 {RobotOverlay, drawMap, map} = require './map.js'
 {mountHUD} = require './ui.js'
+
+
+DEBUG = true
 
 
 # Class that wraps robot communication
@@ -13,14 +17,10 @@ class Robot
         @pressed = new Set()
         @path = off
 
-        @sio = io.connect "http://#{@host}:#{@port}"
-        @sio.onclose = () ->
+        @sio = io "http://#{@host}:#{@port}"
+        @sio.on 'disconnect', () =>
             alert 'Closed socket.io'
         @sio.on 'position', (pos) => @move(pos)
-        # for some reason, socketio doesn't receive if not sending
-        setInterval () =>
-            @sio.emit 'refresh'
-        , 150
 
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"

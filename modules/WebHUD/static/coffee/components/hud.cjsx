@@ -1,3 +1,6 @@
+React = require 'react'
+ReactDOM = require 'react-dom'
+
 
 class RobotCard extends React.Component
   constructor: (@props) ->
