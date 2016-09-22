@@ -140,7 +140,7 @@ def get_suport_points(points):
         r2 = Rect(w, _B)
 
         support_points.append(intersection(r1, r2))
-    return np.matrix(support_points)
+    return support_points
 
 
 def get_walls(room):
@@ -171,12 +171,31 @@ def generate(jsonfile):
     all_points = np.matrix(filtered_points)
     suport_points = get_suport_points(all_points)
 
+    # suport_points = [[s[0], s[1]] for s in suport_points]
+    # print(suport_points)
+
+    lines = [[i, (i+1) % len(suport_points)] for i in range(len(suport_points))]
+    points = [[s[0], s[1]] for s in suport_points]
+
+    from find_graph import find_graph
+    vg = find_graph(points, lines, [[0, 0, [-np.Inf, -np.Inf, np.Inf, np.Inf]]])
+
+    # Plot test
     x, y = all_points[:, 0], all_points[:, 1]
     plt.plot(x, y)
 
+    suport_points = np.matrix(suport_points)
+
     x, y = suport_points[:, 0], suport_points[:, 1]
     plt.scatter(x, y)
-    plt.plot(x, y)
+    plt.plot(x, y, 'b')
+
+    for i in range(vg.shape[0]):
+        for j in range(vg.shape[1]):
+            if vg[i, j]:
+                x = suport_points[i, 0], suport_points[j, 0]
+                y = suport_points[i, 1], suport_points[j, 1]
+                plt.plot(x, y, 'r')
 
     plt.gca().axis('off')
     plt.gca().set_aspect(1)
