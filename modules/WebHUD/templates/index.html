@@ -68,26 +68,12 @@
         </div>
     </div>
 
-    <!-- Load libs -->
-    <script src="static/lib/js/jquery-1.10.2.js"></script>
-    <script src="static/lib/js/semantic.min.js"></script>
-    <script src="static/lib/js/modernizr.min.js"></script>
-
-    <script type="text/javascript">
-        $('.ui.menu>.item.options').click(function(){
-            $('.ui.sidebar').sidebar('toggle');
-        });
-        $('.ui.menu>.right.menu>.item').click(function(){
-            $('.ui.basic.modal').modal('show');
-        });
-        $('.ui.sidebar>.item.settings').click(function(){
-            $('.ui.settings.modal').modal('show');
-        });
-    </script>
-
     <!-- App specific libraries -->
     {{ js('browserify') }}
 
+    <!-- Load libs -->
+    <script src="static/lib/js/semantic.min.js"></script>
+    <script src="static/lib/js/modernizr.min.js"></script>
 </body>
 
 </html>
