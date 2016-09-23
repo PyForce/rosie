@@ -1,11 +1,10 @@
 import math
 import os
 
-import blinker
 from flask import request, jsonify, json, url_for, send_file, abort
 from scanner import scanner_server as scanner
 
-from . import app
+from . import app, ws
 from .utils import allow_origin
 from robot import Robot
 from robot.motion.MovementController.Differential import\
@@ -200,25 +199,22 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot = robot
         self.keys = []
 
-        # register websocket signal with 'keys' sender
-        sig = blinker.signal('ws')
-
-        sig.connect(self.manual, sender='keys', weak=False)
-
-        sig.connect(self.change_ws, sender='websocket', weak=False)
-        self.ws = None
+        # register websockets under '/websockets'
+        @ws.route('/websocket')
+        def websocket(ws):
+            self.ws = ws
+            message = ws.receive()
+            while not ws.closed and message:
+                data = json.loads(message)
+                if data[0] == 'keys':
+                    self.keys = data[1]
+                message = ws.receive()
+            self.ws = None
 
         # use old-style decorators to subscribe bounded methods
         app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
         app.route('/manual_mode', methods=['PUT'])(allow_origin(
             self.manual_mode))
-
-    def change_ws(self, sender, ws):
-        self.ws = ws
-
-    def manual(self, sender, data):
-        # break list of arguments
-        self.keys = data[0]
 
     def movement_begin(self, *args, **kwargs):
         pass
@@ -253,23 +249,6 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot.stop_open_loop_control()
         return 'OK'
 
-
-def handle_wsgi_request(environ, start_response):
-    # emit websocket related signals
-    signal = blinker.signal('ws')
-    path = environ["PATH_INFO"]
-    if path == '/websocket':
-        ws = environ['wsgi.websocket']
-        signal.send('websocket', ws=ws)
-        msg = ws.receive()
-        while msg:
-            data = json.loads(msg)
-            # send a signal with the message name sender
-            signal.send(str(data[0]), data=data[1:])
-            msg = ws.receive()
-        signal.send('websocket', ws=None)
-    else:
-        return app(environ, start_response)
 
 r = Robot()
 # add WebHUDMovementSupervisor to working supervisors
