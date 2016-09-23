@@ -17,8 +17,13 @@ mountHUD = (robot) ->
         wasd: Command 'game', (-> robot.setManual()),
             -> robot.setAuto()
 
-    if not Modernizr.mq '(max-width: 600px)'
-        mountInfo robot
+    # show streaming
+    ReactDOM.render <RobotVideo robot={robot}/>,
+        document.getElementById 'streaming'
+    # show info
+    ReactDOM.render <RobotCard robot={robot}/>,
+        document.getElementById 'robot-info-wrapper'
+
     #load commands
     cmdList = ReactDOM.render <CommandList/>,
         document.getElementById 'commands'
@@ -31,25 +36,15 @@ mountHUD = (robot) ->
     # use auto mode as default
     robot.setAuto()
 
-mountInfo = (robot) ->
-    # show streaming
-    ReactDOM.render <RobotVideo robot={robot}/>,
-        document.getElementById 'streaming'
-    # show info
-    ReactDOM.render <RobotCard robot={robot}/>,
-        document.getElementById 'robot-info-wrapper'
-
 unmountHUD = ->
     # destroy HUD components
-    unmountInfo()
-    ReactDOM.unmountComponentAtNode document.getElementById 'commands'
-    delete window.car
-
-unmountInfo = ->
     ReactDOM.unmountComponentAtNode(
         document.getElementById 'streaming')
     ReactDOM.unmountComponentAtNode(
         document.getElementById 'robot-info-wrapper')
+
+    ReactDOM.unmountComponentAtNode document.getElementById 'commands'
+    delete window.car
 
 map.on 'click', (e) ->
     car = window.car
@@ -57,13 +52,6 @@ map.on 'click', (e) ->
     if car and car.path
         car.setPath [[e.latlng.lat, e.latlng.lng]]
     else unmountHUD()
-
-$(window).resize ->
-    if Modernizr.mq '(max-width: 600px)'
-        unmountInfo()
-    else if Modernizr.mq '(max-width: 3000px)'
-        # mountInfo car
-        false
 
 module.exports =
   mountHUD: mountHUD
