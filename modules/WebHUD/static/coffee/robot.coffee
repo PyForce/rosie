@@ -1,3 +1,5 @@
+$ = jQuery = require 'jquery'
+
 {RobotOverlay, drawMap, map} = require './map.js'
 {mountHUD} = require './ui.js'
 
