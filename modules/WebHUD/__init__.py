@@ -1,12 +1,11 @@
 from flask import Flask
 from flask_gulp import Static
-from flask_socketio import SocketIO
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 
 app = Flask(__name__)
-
-sio = SocketIO(app, async_mode='gevent')
-
 st = Static(app)
+server = None
 
 from . import restapi
 from . import views
@@ -21,7 +20,7 @@ def init():
     host = config.get('WebHUD', 'host', '0.0.0.0')
     port = config.getint('WebHUD', 'port', 5000)
     debug = config.getboolean('WebHUD', 'debug', False)
-    use_reloader = config.getboolean('WebHUD', 'reloader', False)
+    app.debug = debug
 
     if debug:
         st.watch(['static/coffee/**/*.coffee', 'static/coffee/**/*.cjsx',
@@ -30,9 +29,11 @@ def init():
     else:
         st.runall()
 
-    sio.run(app, host=host, port=port, debug=debug, use_reloader=use_reloader)
-    #app.run(host=myhost, port=myport, debug=debug, use_reloader=use_reloader)
+    global server
+    server = WSGIServer((host, port), restapi.handle_wsgi_request,
+                        handler_class=WebSocketHandler)
+    server.serve_forever()
 
 
 def end():
-    sio.stop()
+    server.stop()

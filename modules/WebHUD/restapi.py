@@ -1,20 +1,21 @@
-import os
 import math
+import os
 
+import blinker
 from flask import request, jsonify, json, url_for, send_file, abort
-
-from . import app, sio
-from .utils import allow_origin
 from scanner import scanner_server as scanner
-from robot.motion.MovementSupervisor.Differential\
-    import DifferentialDriveMovementSupervisor
+
+from . import app
+from .utils import allow_origin
+from robot import Robot
 from robot.motion.MovementController.Differential import\
     DifferentialDriveRobotLocation
+from robot.motion.MovementSupervisor.Differential\
+    import DifferentialDriveMovementSupervisor
 from robot.motion.TrajectoryPlanner.Differential import\
     DifferentialDriveTrajectoryParameters
 from robot.motion.TrajectoryPlanner.Planner.Linear import\
     LinearTrajectoryPlanner
-from robot import Robot
 
 
 client_count = 0
@@ -195,15 +196,29 @@ def clusters():
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
-    def __init__(self, sio, robot):
+    def __init__(self, robot):
         self.robot = robot
-        self.sio = sio
         self.keys = []
+
+        # register websocket signal with 'keys' sender
+        sig = blinker.signal('ws')
+
+        sig.connect(self.manual, sender='keys', weak=False)
+
+        sig.connect(self.change_ws, sender='websocket', weak=False)
+        self.ws = None
+
         # use old-style decorators to subscribe bounded methods
-        sio.on('manual')(self.drive_manual)  # key press
         app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
         app.route('/manual_mode', methods=['PUT'])(allow_origin(
             self.manual_mode))
+
+    def change_ws(self, sender, ws):
+        self.ws = ws
+
+    def manual(self, sender, data):
+        # break list of arguments
+        self.keys = data[0]
 
     def movement_begin(self, *args, **kwargs):
         pass
@@ -218,15 +233,9 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
         # convert to web client coordinates
-        self.sio.emit('position', {'x': -y, 'y': x, 'theta': theta})
-
-    def drive_manual(self, data):
-        """
-        {
-            "keys": [87, 65, 83, 68, 81, 69]
-        }
-        """
-        self.keys = data['keys']
+        if self.ws:
+            self.ws.send(json.dumps(('position', {'x': -y, 'y': x,
+                         'theta': theta})))
 
     def manual_mode(self):
         """
@@ -244,6 +253,24 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot.stop_open_loop_control()
         return 'OK'
 
+
+def handle_wsgi_request(environ, start_response):
+    # emit websocket related signals
+    signal = blinker.signal('ws')
+    path = environ["PATH_INFO"]
+    if path == '/websocket':
+        ws = environ['wsgi.websocket']
+        signal.send('websocket', ws=ws)
+        msg = ws.receive()
+        while msg:
+            data = json.loads(msg)
+            # send a signal with the message name sender
+            signal.send(str(data[0]), data=data[1:])
+            msg = ws.receive()
+        signal.send('websocket', ws=None)
+    else:
+        return app(environ, start_response)
+
 r = Robot()
 # add WebHUDMovementSupervisor to working supervisors
-r.supervisor().append(WebHUDMovementSupervisor(sio, r))
+r.supervisor().append(WebHUDMovementSupervisor(r))

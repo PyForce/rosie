@@ -1,5 +1,3 @@
-io = require('socket.io-client')
-
 {RobotOverlay, drawMap, map} = require './map.js'
 {mountHUD} = require './ui.js'
 
@@ -17,12 +15,11 @@ class Robot
         @pressed = new Set()
         @path = off
 
-        @sio = io "http://#{@host}:#{@port}"
-        @sio.on 'disconnect', () =>
-            alert 'Closed socket.io'
-            @setAuto()
-            delete @sio
-        @sio.on 'position', (pos) => @move(pos)
+        @sio = new WebSocket "ws://#{@host}:#{@port}/websocket"
+        @sio.onmessage = (msg) =>
+            data = JSON.parse msg.data
+            if data[0] == 'position'
+                @move data[1]
 
         @getMetadata (data) =>
             imageUrl = "http://#{@host}:#{@port}#{data.vector}"
@@ -110,7 +107,8 @@ class Robot
         if @manual
             l = []
             @pressed.forEach (e) -> l.push e
-            @sio.emit 'manual', {'keys': l}
+            data = JSON.stringify ['keys', l]
+            @sio.send data
 
     setAuto: (callback) ->
         @manual = off
