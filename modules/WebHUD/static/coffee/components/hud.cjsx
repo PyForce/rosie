@@ -1,5 +1,6 @@
 React = require 'react'
 ReactDOM = require 'react-dom'
+MediaQuery = require 'react-responsive'
 
 
 class RobotCard extends React.Component
@@ -25,17 +26,20 @@ class RobotCard extends React.Component
   render: ->
     {thumbnail, name, processor, motor_controller, size, x, y} = @state
     {host, port} = @props.robot
-    <div id='robot-logo' className='ui raised compact segment' ref='root'
-      style={{visibility: 'hidden'}}>
-      <img src={"http://#{host}:#{port}#{thumbnail}"} alt="robot"/>
-      <ul>
-        <li>Robot: {name}</li>
-        <li>SBC: {processor}</li>
-        <li>Service Board: {motor_controller}</li>
-        <li>Dim: {size[1]} x {size[0]} x {size[2]}</li>
-        <li>Pos: ({x.toFixed 3}, {y.toFixed 3})</li>
-      </ul>
-    </div>
+
+    <MediaQuery minWidth={600}>
+      <div id='robot-logo' className='ui raised compact segment' ref='root'
+        style={{visibility: 'hidden'}}>
+        <img src={"http://#{host}:#{port}#{thumbnail}"} alt="robot"/>
+        <ul>
+          <li>Robot: {name}</li>
+          <li>SBC: {processor}</li>
+          <li>Service Board: {motor_controller}</li>
+          <li>Dim: {size[1]} x {size[0]} x {size[2]}</li>
+          <li>Pos: ({x.toFixed 3}, {y.toFixed 3})</li>
+        </ul>
+      </div>
+    </MediaQuery>
 
 
 class RobotVideo extends React.Component
@@ -45,9 +49,11 @@ class RobotVideo extends React.Component
 
   render: ->
     {host, streamPort} = @props.robot
-    <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"}
-      alt="streaming" style={{visibility: 'hidden'}} ref='root'
-      id='video-streaming'/>
+    <MediaQuery minWidth={600}>
+      <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"}
+        alt="streaming" style={{visibility: 'hidden'}} ref='root'
+        id='video-streaming'/>
+    </MediaQuery>
 
 # Wrapper for command object
 Command = (icon, onAction, offAction) ->
