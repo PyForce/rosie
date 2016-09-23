@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_gulp import Static
+from flask_sockets import Sockets
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 
 app = Flask(__name__)
 st = Static(app)
+ws = Sockets(app)
 server = None
 
 from . import restapi
@@ -30,8 +32,7 @@ def init():
         st.runall()
 
     global server
-    server = WSGIServer((host, port), restapi.handle_wsgi_request,
-                        handler_class=WebSocketHandler)
+    server = WSGIServer((host, port), app, handler_class=WebSocketHandler)
     server.serve_forever()
 
 
