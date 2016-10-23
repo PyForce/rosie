@@ -23,6 +23,7 @@ def init():
     port = config.getint('WebHUD', 'port', 5000)
     debug = config.getboolean('WebHUD', 'debug', False)
     app.debug = debug
+    app.config['STATIC_DEBUG'] = debug
 
     if debug:
         st.watch(['static/coffee/**/*.coffee', 'static/coffee/**/*.cjsx',
