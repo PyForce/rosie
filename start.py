@@ -12,6 +12,7 @@ import os
 import signal
 import sys
 import threading
+import traceback
 
 from modules import kernel
 from settings import config
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         try:
             module = importlib.import_module(sect)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             print('\033[31m[*] module %s not loaded\033[0m' % sect)
         # no exception was raised
         else:
