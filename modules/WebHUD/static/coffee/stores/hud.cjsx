@@ -4,7 +4,6 @@ ReactDOM = require 'react-dom'
 
 Dispatcher = require '../dispatcher/dispatcher'
 actionTypes = require '../actions/types'
-mapStore = require './map'
 {RobotCard, RobotVideo} = require '../components/hud'
 
 
