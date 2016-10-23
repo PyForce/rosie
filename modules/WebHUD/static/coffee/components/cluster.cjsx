@@ -1,6 +1,6 @@
 $ = jQuery = require 'jquery'
 React = require 'react'
-ReactDOM = require 'react-dom'
+
 
 class ClusterMenu extends React.Component
   constructor: (@props) ->
@@ -9,11 +9,12 @@ class ClusterMenu extends React.Component
       host: document.domain
       port: location.port
     ], loading: yes
+
+    @click = @click.bind @
     super @props
 
   click: ->
-    dropdownNode = ReactDOM.findDOMNode @refs.dropdown
-    $(dropdownNode).dropdown()
+    $(@refs.dropdown).dropdown()
 
   refresh: ->
     settings =
@@ -36,7 +37,7 @@ class ClusterMenu extends React.Component
     loading = @state.loading
 
     <div className="ui#{if loading then ' loading' else ''} floating dropdown
-      item" onClick={@click.bind @} ref='dropdown'>
+      item" onClick={@click} ref='dropdown'>
       Cluster
       <i className='dropdown icon'/>
       <div className='menu' style={minWidth: 'calc(200%)'}>
@@ -45,14 +46,20 @@ class ClusterMenu extends React.Component
       </div>
     </div>
 
+
 class ClusterItem extends React.Component
+  constructor: (@props) ->
+    @select = @select.bind @
+    super @props
+
   select: ->
     console.log "selected #{@props.name}"
 
   render: ->
-    <div onClick={@select.bind @} className='item'>
+    <div onClick={@select} className='item'>
       {@props.name}
       <span className='description'>{@props.host}:{@props.port}</span>
     </div>
 
-ReactDOM.render <ClusterMenu/>, document.getElementById 'clusters'
+
+module.exports = ClusterMenu: ClusterMenu

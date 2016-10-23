@@ -1,7 +1,6 @@
 $ = jQuery = require 'jquery'
 
-{RobotOverlay, drawMap, map} = require './map.js'
-{mountHUD} = require './ui.js'
+{RobotOverlay, drawMap, map} = require './map'
 
 
 DEBUG = true
@@ -9,13 +8,17 @@ DEBUG = true
 
 # Class that wraps robot communication
 class Robot
-    constructor: (host, port, streamPort) ->
-        @host = host || document.domain
-        @port = if port == undefined then location.port else port
-        @streamPort = if streamPort == undefined then 8080 else streamPort
-        @manual = off
+    constructor: (info) ->
+        @host = document.domain
+        @port = location.port
+        @streamPort = 8080
+
+        if info
+            @host or= info.host
+            @port or= info.port
+            @streamPort or= info.streamPort
+
         @pressed = new Set()
-        @path = off
 
         @sio = new WebSocket "ws://#{@host}:#{@port}/websocket"
         @sio.onmessage = (msg) =>
@@ -29,10 +32,8 @@ class Robot
                                         data.size[0]
             @overlay.addTo map
             $(@overlay._image).click =>
-                # show HUD
-                mountHUD @
-                # set this as the selected robot
-                window.car = @
+                # notify of clicked robot action
+                RobotActions.click @
                 # don't propagate event
                 false
             # fetch initial position
@@ -40,25 +41,8 @@ class Robot
             @getOdometry (data) =>
                 @move data
 
-        if not window.mapped
-            @getRequest 'map', (data) ->
-                drawMap data
-                window.mapped = true
-
-    move: (@pos) ->
-        @overlay.setLatLng [@pos.x, @pos.y]
-        @overlay.setAngle @pos.theta
-        if @info
-            @info.setState @pos
-
-    # attached robot card
-    attachInfo: (@info) ->
-        @getMetadata (data) =>
-            if @info
-                @info.setState data
-
-    dettachInfo: ->
-        @info = undefined
+    move: (pos) ->
+        RobotActions.move @, pos
 
     getSensor: (name, callback) ->
         @getRequest 'sensor', callback, name
@@ -82,10 +66,6 @@ class Robot
         @setRequest 'text', callback, text: command
 
     setManual: (callback) ->
-        @manual = on
-        if @info
-            @info.setState manual: @manual
-
         @setRequest 'manual_mode', callback
 
         # add key handling events
@@ -113,10 +93,6 @@ class Robot
             @sio.send data
 
     setAuto: (callback) ->
-        @manual = off
-        if @info
-            @info.setState manual: @manual
-
         $(document.body).off 'keydown.robot'
         $(document.body).off 'keyup.robot'
 
@@ -154,4 +130,9 @@ class Robot
                 for prop in data
                     console.log "result.#{prop} = #{data[prop]}"
 
-window.robots = [new Robot()]
+
+module.exports = Robot
+
+# crazy hack!!, prevent dependency loop from actions/robot.coffee
+# Robot requirement
+RobotActions = require './actions/robot'

@@ -1,35 +1,24 @@
 React = require 'react'
-ReactDOM = require 'react-dom'
 MediaQuery = require 'react-responsive'
 
 
 class RobotCard extends React.Component
   constructor: (@props) ->
     @state =
-      thumbnail: ''
-      name: ''
-      processor: ''
-      motor_controller: ''
-      size: [0, 0, 0]
       x: 0
       y: 0
-    @props.robot.attachInfo @
     super @props
 
-  componentWillUnmount: ->
-    @props.robot.dettachInfo()
-
   componentDidMount: ->
-    node = ReactDOM.findDOMNode @refs.root
-    $(node).transition 'fade left'
+    $(@refs.root).transition 'fade left'
 
   render: ->
-    {thumbnail, name, processor, motor_controller, size, x, y} = @state
+    {x, y} = @state
+    {thumbnail, name, processor, motor_controller, size} = @props
     {host, port} = @props.robot
 
     <MediaQuery minWidth={600}>
-      <div id='robot-logo' className='ui raised compact segment' ref='root'
-        style={{visibility: 'hidden'}}>
+      <div id='robot-logo' className='ui raised compact segment' ref='root' style={{visibility: 'hidden'}}>
         <img src={"http://#{host}:#{port}#{thumbnail}"} alt="robot"/>
         <ul>
           <li>Robot: {name}</li>
@@ -44,51 +33,40 @@ class RobotCard extends React.Component
 
 class RobotVideo extends React.Component
   componentDidMount: ->
-    node = ReactDOM.findDOMNode @refs.root
-    $(node).transition 'fade up'
+    $(@refs.root).transition 'fade up'
 
   render: ->
     {host, streamPort} = @props.robot
     <MediaQuery minWidth={600}>
-      <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"}
-        alt="streaming" style={{visibility: 'hidden'}} ref='root'
-        id='video-streaming'/>
+      <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"} id='video-streaming'
+        alt="streaming" style={{visibility: 'hidden'}} ref='root'/>
     </MediaQuery>
-
-# Wrapper for command object
-Command = (icon, onAction, offAction) ->
-  icon: icon
-  onAction: onAction
-  offAction: offAction
-  active: false
 
 
 class CommandComponent extends React.Component
-  run: ->
-    @props.switchActive @props.name, not @props.active
-
   render: ->
     {icon, active} = @props
-    <li>
-      <button onClick={@run.bind @}
-        className="blue huge circular ui icon button#{if active then\
-        ' active basic' else ''}">
-        <i className={"icon #{icon}"}></i>
-      </button>
-    </li>
 
-class TextCommand extends React.Component
+    <a onClick={@props.run}
+      className="item#{if active then ' active basic' else ''}">
+      <i className={"icon #{icon}"}></i>
+    </a>
+
+
+class TextOrderInput extends React.Component
+  constructor: (@props) ->
+    @sendCommand = @sendCommand.bind @
+    super @props
+
   sendCommand: (e) ->
     e.preventDefault()
-    inputNode = ReactDOM.findDOMNode @refs.input
     # send command to robot
-    @props.robot.postCommand inputNode.value
-    inputNode.value = ''
+    @props.robot.postCommand @refs.input.value
+    @refs.input.value = ''
     @props.cmdList.switchActive 'text', false
 
   componentDidMount: ->
-    inputNode = ReactDOM.findDOMNode @refs.input
-    inputNode.focus()
+    @refs.input.focus()
 
   render: ->
     style =
@@ -98,47 +76,15 @@ class TextCommand extends React.Component
       right: '30%'
       width: '40%'
 
-    <form onSubmit={@sendCommand.bind @} className='ui form'>
+    <form onSubmit={@sendCommand} className='ui form'>
       <div className="field">
         <input style={style} type='text' ref='input'/>
       </div>
     </form>
 
-class CommandList extends React.Component
-  constructor: (@props) ->
-    @state = commands: {}
-    super @props
-
-  switchActive: (key, val) ->
-    nCommands = {}
-    for k, cmd of @state.commands
-      do (k, cmd) ->
-        if k == key
-          cmd.active = val
-          # the action depending on activating or deactivating
-          val and cmd.onAction() or cmd.offAction()
-        else if val  # deactivate only if activating
-          cmd.active = false
-          cmd.offAction() if cmd.offAction # invoke off
-        nCommands[k] = cmd
-    @setState commands: nCommands
-
-  addCommand: (key, command) ->
-    @state.commands[key] = command
-    @setState commands: @state.commands
-
-  render: ->
-    <div className="commands">
-      <ul className="commands-list">
-        {<CommandComponent key={k} name={k} {...cmd}
-          switchActive={@switchActive.bind @}/> for k, cmd of @state.commands}
-      </ul>
-    </div>
-
 
 module.exports =
-  Command: Command
-  CommandList: CommandList
-  TextCommand: TextCommand
+  CommandComponent: CommandComponent
+  TextOrderInput: TextOrderInput
   RobotCard: RobotCard
   RobotVideo: RobotVideo
