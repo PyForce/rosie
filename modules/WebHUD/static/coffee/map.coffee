@@ -1,5 +1,7 @@
 L = require 'leaflet'
 
+MapActions = require './actions/map'
+
 
 map = L.map('map',
     crs: L.CRS.Simple
@@ -116,6 +118,11 @@ drawMap = (lmap) ->
                 else
                     L.geoJson(lmap.rooms[room][elements],
                               style: map_style[elements]).addTo map
+
+
+map.on 'click', (e) ->
+    MapActions.click e.latlng
+
 
 module.exports =
   RobotOverlay: RobotOverlay

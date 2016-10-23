@@ -9,29 +9,15 @@
     {{ css('less') }}
 
     <!-- Map related -->
-    <!-- <link rel="stylesheet" href="static/lib/css/leaflet.css" /> -->
-    <link rel="stylesheet" href="static/lib/css/leaflet.css" />
+    <link rel="stylesheet" href="static/lib/css/leaflet-1.0.css" />
 
     <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico"/>
 </head>
 
 <body>
-    <div class="ui sidebar left vertical inverted labeled icon menu">
-        <a class="item settings">
-            <i class="settings icon"></i>
-            Settings
-        </a>
-    </div>
+    <div id="sidebar"></div>
     <div class="ui pusher">
-        <div class="ui blue top fixed inverted borderless icon menu">
-            <a class="item options">
-                <i class="options icon"></i>
-            </a>
-            <div id="clusters"></div>
-            <div class="right menu">
-                <a class="ui item">About</a>
-            </div>
-        </div>
+        <div id="menu"></div>
 
         <div class="ui container">
             <div id="map-container" class="column">
@@ -39,33 +25,12 @@
             </div>
 
             <div id="robot-info-wrapper"></div>
-
-            <div id="commands"></div>
             <div id="streaming"></div>
             <div id="mode-text"></div>
         </div>
 
-        <div class="ui modal settings">
-            <i class="close icon"></i>
-            <div class="header">Settings</div>
-            <div class="content">Setup the application</div>
-        </div>
-
-        <div class="ui basic modal">
-            <i class="close icon"></i>
-            <div class="header">About</div>
-            <div class="content">
-                <div class="description">
-                    This application it's designed by the <b>PyForce</b> group
-                </div>
-            </div>
-            <div class="actions">
-                <div class="ui ok green basic inverted button">
-                    <i class="checkmark icon"></i>
-                    Ok
-                </div>
-            </div>
-        </div>
+        <div id="settings"></div>
+        <div id="about"></div>
     </div>
 
     <!-- App specific libraries -->
