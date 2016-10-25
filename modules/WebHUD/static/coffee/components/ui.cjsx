@@ -6,7 +6,6 @@ robotStore = require '../stores/robot'
 HUDActions = require '../actions/hud'
 
 {CommandComponent} = require './hud'
-{ClusterMenu} = require './cluster'
 
 
 class TopMenu extends React.Component
@@ -45,7 +44,6 @@ class TopMenu extends React.Component
           <CommandComponent active={order} run={-> HUDActions.order not order}
             icon='terminal' key="order"/>]
       }
-      <ClusterMenu/>
       <div className="right menu">
         <a className="ui item" onClick={=> $(@props.about).modal 'show'}>
           About
