@@ -2,7 +2,6 @@ mirror = require 'fbjs/lib/keyMirror'
 
 module.exports = mirror
     # Robot actions
-    AUTO_ROBOT: null
     ADD_ROBOT: null
     RM_ROBOT: null
     CLICK_ROBOT: null
