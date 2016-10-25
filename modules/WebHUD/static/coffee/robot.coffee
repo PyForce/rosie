@@ -62,6 +62,9 @@ class Robot
 
         @setRequest 'path', callback, path: JSON.stringify(path)
 
+    setMap: (map, callback) ->
+        return
+
     postCommand: (command, callback) ->
         @setRequest 'text', callback, text: command
 

@@ -3,6 +3,7 @@ FluxStore = require 'flux/lib/FluxStore'
 
 Dispatcher = require '../dispatcher/dispatcher'
 actionTypes = require '../actions/types'
+robotStore = require './robot'
 {drawMap, map} = require '../map'
 
 
@@ -16,7 +17,10 @@ class MapStore extends FluxStore
 
     __onDispatch: (action) ->
         switch action.type
-            when actionTypes.UPDATE_MAP then drawMap action.map
+            when actionTypes.UPDATE_MAP
+                Dispatcher.waitFor [robotStore.getDispatchToken()]
+                drawMap action.map
+
             when actionTypes.CLICK_MAP
                 # show a popup to print coordiantes
                 _popup.setLatLng(action.latlng)
