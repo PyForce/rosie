@@ -16,9 +16,6 @@ class RobotStore extends FluxStore
 
     __onDispatch: (action) ->
         switch action.type
-            when actionTypes.AUTO_ROBOT
-                @__emitChange()
-
             when actionTypes.CLICK_ROBOT
                 _selected = action.robot
                 @__emitChange()

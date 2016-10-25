@@ -9,10 +9,6 @@ class RobotActions
             robot.setAuto()
         else robot.setManual()
 
-        Dispatcher.dispatch
-            type: actionTypes.AUTO_ROBOT
-            value: value
-
     @add: (info) ->
         robot = new Robot info
 
