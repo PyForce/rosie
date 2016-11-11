@@ -18,7 +18,7 @@ class RobotCard extends React.Component
     {host, port} = @props.robot
 
     <MediaQuery minWidth={600}>
-      <div id='robot-logo' className='ui raised compact segment' ref='root' style={{visibility: 'hidden'}}>
+      <div id='robot-card' className='ui raised compact segment' ref='root' style={{visibility: 'hidden'}}>
         <img src={"http://#{host}:#{port}#{thumbnail}"} alt="robot"/>
         <ul>
           <li>Robot: {name}</li>
@@ -38,7 +38,7 @@ class RobotVideo extends React.Component
   render: ->
     {host, streamPort} = @props.robot
     <MediaQuery minWidth={600}>
-      <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"} id='video-streaming'
+      <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"} id='robot-video'
         alt="streaming" style={{visibility: 'hidden'}} ref='root'/>
     </MediaQuery>
 

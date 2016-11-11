@@ -28,14 +28,14 @@ robotStore.addListener ->
         robot = robotStore.selectedRobot()
         # show streaming
         ReactDOM.render <RobotVideo robot={robot}/>,
-            document.getElementById 'streaming'
+            document.getElementById 'right-ui'
         # show info
         robot.getMetadata (data) ->
             ReactDOM.render <RobotCard robot={robot} {...data}/>,
-                document.getElementById 'robot-info-wrapper'
+                document.getElementById 'left-ui'
     else
-        ReactDOM.unmountComponentAtNode document.getElementById 'streaming'
-        ReactDOM.unmountComponentAtNode document.getElementById 'robot-info-wrapper'
+        ReactDOM.unmountComponentAtNode document.getElementById 'left-ui'
+        ReactDOM.unmountComponentAtNode document.getElementById 'right-ui'
 
 
 window.jQuery = window.$ = jQuery
