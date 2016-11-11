@@ -24,7 +24,6 @@ class HUDActions
 
             _singleDispath ORDER_HUD, value
 
-
     @user: (value=true) ->
         robot = robotStore.selectedRobot()
         if robot
