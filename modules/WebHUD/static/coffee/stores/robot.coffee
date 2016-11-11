@@ -17,8 +17,8 @@ class RobotStore extends FluxStore
     __onDispatch: (action) ->
         switch action.type
             when actionTypes.CLICK_ROBOT
+                @__emitChange() if _selected != action.robot
                 _selected = action.robot
-                @__emitChange()
 
             when actionTypes.ADD_ROBOT
                 _robots.push action.robot
@@ -38,9 +38,19 @@ class RobotStore extends FluxStore
                 robot.setMap action.map for robot in _robots
 
             when actionTypes.CLICK_MAP
-                _selected = null unless hudStore.onPath()
+                return if hudStore.onPath()
+                _selected = null
                 @__emitChange()
+
+            when actionTypes.KEYS_ROBOT
+                if not _selected
+                    HUDActions.user off  # reading keys with no robot
+                else
+                    data = JSON.stringify ['keys', action.keys]
+                    _selected.sio.send data
             else return
 
 
 module.exports = new RobotStore Dispatcher
+
+HUDActions = require '../actions/hud'
