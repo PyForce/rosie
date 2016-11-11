@@ -6,6 +6,7 @@ module.exports = mirror
     RM_ROBOT: null
     CLICK_ROBOT: null
     MOVE_ROBOT: null
+    PATH_ROBOT: null
     KEYS_ROBOT: null
     # Map actions
     UPDATE_MAP: null
