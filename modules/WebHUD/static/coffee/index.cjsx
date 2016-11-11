@@ -5,6 +5,7 @@ ReactDOM = require 'react-dom'
 RobotActions = require './actions/robot'
 MapActions = require './actions/map'
 robotStore = require './stores/robot'
+hudStore = require './stores/hud'
 
 {TopMenu, Sidebar, SettingsModal, AboutModal} = require './components/ui'
 {RobotVideo, RobotCard} = require './components/hud'
@@ -36,6 +37,39 @@ robotStore.addListener ->
     else
         ReactDOM.unmountComponentAtNode document.getElementById 'left-ui'
         ReactDOM.unmountComponentAtNode document.getElementById 'right-ui'
+
+
+
+
+class KeyNotifier
+    @pressed = new Set()
+
+    hudStore.addListener ->
+        if hudStore.onUser()
+            # add key handling events
+            $(document.body).on 'keydown.robot', (e) =>
+                # 87 -> W
+                # 65 -> A
+                # 83 -> S
+                # 68 -> D
+
+                # 81 -> Q
+                # 69 -> E
+
+                KeyNotifier.pressed.add e.which if e.which in [87, 65, 83, 68, 81, 69]
+                KeyNotifier.sendKeys()
+
+            $(document.body).on 'keyup.robot', (e) =>
+                KeyNotifier.pressed.delete e.which
+                KeyNotifier.sendKeys()
+        else
+            $(document.body).off 'keydown.robot'
+            $(document.body).off 'keyup.robot'
+
+    @sendKeys: ->
+        l = []
+        KeyNotifier.pressed.forEach (e) -> l.push e
+        RobotActions.keys l
 
 
 window.jQuery = window.$ = jQuery

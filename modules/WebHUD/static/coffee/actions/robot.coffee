@@ -35,4 +35,10 @@ class RobotActions
             position: pos
 
 
+    @keys: (data) ->
+        Dispatcher.dispatch
+            type: actionTypes.KEYS_ROBOT
+            keys: data
+
+
 module.exports = RobotActions

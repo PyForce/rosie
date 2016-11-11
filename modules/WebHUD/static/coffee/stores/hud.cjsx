@@ -23,16 +23,19 @@ class HUDStore extends FluxStore
     __onDispatch: (action) ->
         switch action.type
             when actionTypes.PATH_HUD
+                return if _path == action.value
                 _path = action.value
                 _order = _user = false if _path
                 @__emitChange()
 
             when actionTypes.ORDER_HUD
+                return if _order == action.value
                 _order = action.value
                 _path = _user = false if _order
                 @__emitChange()
 
             when actionTypes.USER_HUD
+                return if _user == action.value
                 _user = action.value
                 _path = _order = false if _user
                 @__emitChange()
