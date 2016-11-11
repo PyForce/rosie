@@ -51,6 +51,13 @@ class RobotActions
             type: actionTypes.KEYS_ROBOT
             keys: data
 
+    @command: (robot, text) ->
+        robot.postCommand text
+
+        Dispatcher.dispatch
+            type: actionTypes.CMD_ROBOT
+            text: text
+
 
 module.exports = RobotActions
 

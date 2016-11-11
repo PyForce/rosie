@@ -9,7 +9,7 @@ hudStore = require './stores/hud'
 mapStore = require './stores/map'
 
 {TopMenu, Sidebar, SettingsModal, AboutModal} = require './components/ui'
-{RobotVideo, RobotCard} = require './components/hud'
+{RobotVideo, RobotCard, TextOrderInput} = require './components/hud'
 
 
 about = ReactDOM.render <AboutModal/>, document.getElementById 'about'
@@ -25,6 +25,7 @@ robot.getRequest 'map', (data) ->
     MapActions.update data
 
 
+# robot info ui handler
 class InfoHandler
     robotStore.addListener ->
         if robotStore.selectedRobot()
@@ -51,6 +52,7 @@ class InfoHandler
         ReactDOM.unmountComponentAtNode document.getElementById 'right-ui'
 
 
+# path mode handler
 hudStore.addListener ->
     return if not hudStore.onPath()
     comp = <button className='ui blue button'
@@ -61,6 +63,17 @@ hudStore.addListener ->
         document.getElementById 'left-ui'
 
 
+# text command handler
+hudStore.addListener ->
+    return if not hudStore.onOrder()
+    ReactDOM.render <TextOrderInput/>, document.getElementById 'center-ui'
+    hudStore.addListener ->
+        return if hudStore.onOrder()
+        ReactDOM.unmountComponentAtNode document.getElementById 'center-ui'
+        hudStore.removeCurrentListener()
+
+
+# key handler
 class KeyHandler
     @pressed = new Set()
 

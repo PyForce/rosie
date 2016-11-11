@@ -1,5 +1,4 @@
-FluxStore = require 'flux/lib/FluxStore'
-
+RosieStore = require './rosie'
 Dispatcher = require '../dispatcher/dispatcher'
 actionTypes = require '../actions/types'
 hudStore = require './hud'
@@ -9,7 +8,7 @@ _robots = []
 _selected = null
 
 
-class RobotStore extends FluxStore
+class RobotStore extends RosieStore
     selectedRobot: -> _selected
 
     allRobots: -> _robots
