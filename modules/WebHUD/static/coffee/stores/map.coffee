@@ -1,6 +1,6 @@
 L = require 'leaflet'
-FluxStore = require 'flux/lib/FluxStore'
 
+RosieStore = require './rosie'
 Dispatcher = require '../dispatcher/dispatcher'
 actionTypes = require '../actions/types'
 robotStore = require './robot'
@@ -13,7 +13,7 @@ _popup = L.popup()
 _path = []
 
 
-class MapStore extends FluxStore
+class MapStore extends RosieStore
     getPath: -> _path
 
     clearPath: -> _path = []
