@@ -25,8 +25,18 @@ robot.getRequest 'map', (data) ->
     MapActions.update data
 
 
-robotStore.addListener ->
-    if robotStore.selectedRobot()
+class InfoHandler
+    robotStore.addListener ->
+        if robotStore.selectedRobot()
+            InfoHandler.mount()
+        else
+            InfoHandler.unmount()
+
+    hudStore.addListener ->
+        return if not hudStore.onDefault()
+        InfoHandler.mount()
+
+    @mount: ->
         robot = robotStore.selectedRobot()
         # show streaming
         ReactDOM.render <RobotVideo robot={robot}/>,
@@ -35,24 +45,23 @@ robotStore.addListener ->
         robot.getMetadata (data) ->
             ReactDOM.render <RobotCard robot={robot} {...data}/>,
                 document.getElementById 'left-ui'
-    else
+
+    @unmount: ->
         ReactDOM.unmountComponentAtNode document.getElementById 'left-ui'
         ReactDOM.unmountComponentAtNode document.getElementById 'right-ui'
 
 
 hudStore.addListener ->
-    if hudStore.onPath()
-        comp = <button className='ui blue button'
-                       onClick={() => RobotActions.path robotStore.selectedRobot()}>
-                    Go
-                </button>
-        ReactDOM.render comp,
-            document.getElementById 'left-ui'
-    else
-        ReactDOM.unmountComponentAtNode document.getElementById 'left-ui'
+    return if not hudStore.onPath()
+    comp = <button className='ui blue button'
+                   onClick={() => RobotActions.path robotStore.selectedRobot()}>
+                Go
+            </button>
+    ReactDOM.render comp,
+        document.getElementById 'left-ui'
 
 
-class KeyNotifier
+class KeyHandler
     @pressed = new Set()
 
     hudStore.addListener ->
@@ -67,19 +76,19 @@ class KeyNotifier
                 # 81 -> Q
                 # 69 -> E
 
-                KeyNotifier.pressed.add e.which if e.which in [87, 65, 83, 68, 81, 69]
-                KeyNotifier.sendKeys()
+                KeyHandler.pressed.add e.which if e.which in [87, 65, 83, 68, 81, 69]
+                KeyHandler.sendKeys()
 
             $(document.body).on 'keyup.robot', (e) =>
-                KeyNotifier.pressed.delete e.which
-                KeyNotifier.sendKeys()
+                KeyHandler.pressed.delete e.which
+                KeyHandler.sendKeys()
         else
             $(document.body).off 'keydown.robot'
             $(document.body).off 'keyup.robot'
 
     @sendKeys: ->
         l = []
-        KeyNotifier.pressed.forEach (e) -> l.push e
+        KeyHandler.pressed.forEach (e) -> l.push e
         RobotActions.keys l
 
 
