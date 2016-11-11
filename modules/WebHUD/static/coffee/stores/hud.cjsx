@@ -1,7 +1,7 @@
-FluxStore = require 'flux/lib/FluxStore'
 React = require 'react'
 ReactDOM = require 'react-dom'
 
+RosieStore = require './rosie'
 Dispatcher = require '../dispatcher/dispatcher'
 actionTypes = require '../actions/types'
 
@@ -11,7 +11,7 @@ _order = false
 _user = false
 
 
-class HUDStore extends FluxStore
+class HUDStore extends RosieStore
     onPath: -> _path
 
     onOrder: -> _order
