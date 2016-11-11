@@ -6,6 +6,7 @@ RobotActions = require './actions/robot'
 MapActions = require './actions/map'
 robotStore = require './stores/robot'
 hudStore = require './stores/hud'
+mapStore = require './stores/map'
 
 {TopMenu, Sidebar, SettingsModal, AboutModal} = require './components/ui'
 {RobotVideo, RobotCard} = require './components/hud'
@@ -39,6 +40,16 @@ robotStore.addListener ->
         ReactDOM.unmountComponentAtNode document.getElementById 'right-ui'
 
 
+hudStore.addListener ->
+    if hudStore.onPath()
+        comp = <button className='ui blue button'
+                       onClick={() => RobotActions.path robotStore.selectedRobot()}>
+                    Go
+                </button>
+        ReactDOM.render comp,
+            document.getElementById 'left-ui'
+    else
+        ReactDOM.unmountComponentAtNode document.getElementById 'left-ui'
 
 
 class KeyNotifier

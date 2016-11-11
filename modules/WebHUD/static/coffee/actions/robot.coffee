@@ -34,6 +34,17 @@ class RobotActions
             robot: robot
             position: pos
 
+    @path: (robot, path=null) ->
+        if path
+            robot.setPath path
+            return
+        path = mapStore.getPath().map (e) -> [e.lat, e.lng]
+        robot.setPath path
+
+        Dispatcher.dispatch
+            type: actionTypes.PATH_ROBOT
+            robot: robot
+            path: path
 
     @keys: (data) ->
         Dispatcher.dispatch
@@ -42,3 +53,5 @@ class RobotActions
 
 
 module.exports = RobotActions
+
+mapStore = require '../stores/map'
