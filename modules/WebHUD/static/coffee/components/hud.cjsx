@@ -1,6 +1,10 @@
 React = require 'react'
 MediaQuery = require 'react-responsive'
 
+RobotActions = require '../actions/robot'
+HUDActions = require '../actions/hud'
+robotStore = require '../stores/robot'
+
 
 class RobotCard extends React.Component
   constructor: (@props) ->
@@ -61,9 +65,9 @@ class TextOrderInput extends React.Component
   sendCommand: (e) ->
     e.preventDefault()
     # send command to robot
-    @props.robot.postCommand @refs.input.value
+    RobotActions.command robotStore.selectedRobot(), @refs.input.value
     @refs.input.value = ''
-    @props.cmdList.switchActive 'text', false
+    HUDActions.order off
 
   componentDidMount: ->
     @refs.input.focus()
