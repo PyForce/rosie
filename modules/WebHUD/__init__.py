@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_gulp import Static
 from flask_sockets import Sockets
-from gevent.pywsgi import WSGIServer
+from geventwebsocket import WebSocketServer
 from geventwebsocket.handler import WebSocketHandler
 
 app = Flask(__name__)
@@ -33,7 +33,7 @@ def init():
         st.runall()
 
     global server
-    server = WSGIServer((host, port), app, handler_class=WebSocketHandler)
+    server = WebSocketServer((host, port), app, handler_class=WebSocketHandler)
     server.serve_forever()
 
 
