@@ -199,17 +199,18 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot = robot
         self.keys = []
 
+        self.ws = []
         # register websockets under '/websockets'
         @ws.route('/websocket')
         def websocket(ws):
-            self.ws = ws
+            self.ws.append(ws)
             message = ws.receive()
             while not ws.closed and message:
                 data = json.loads(message)
                 if data[0] == 'keys':
                     self.keys = data[1]
                 message = ws.receive()
-            self.ws = None
+            # self.ws = None
 
         # use old-style decorators to subscribe bounded methods
         app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
@@ -228,10 +229,15 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             self.robot.add_key_list(self.keys)
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
-        # convert to web client coordinates
-        if self.ws:
-            self.ws.send(json.dumps(('position', {'x': -y, 'y': x,
-                         'theta': theta})))
+
+        # TODO: delete this for please!
+        for i, ws in enumerate(self.ws):
+            if ws.closed:
+                self.ws.pop(i)
+                continue
+            # convert to web client coordinates
+            ws.send(json.dumps(('position', {'x': -y, 'y': x,
+                    'theta': theta})))
 
     def manual_mode(self):
         """
