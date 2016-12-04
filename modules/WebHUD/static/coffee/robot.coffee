@@ -54,11 +54,16 @@ class Robot
     setPos: (x, y, theta, callback) ->
         @setRequest 'position', callback, x: x, y: y, theta: theta
 
-    setPath: (path, callback) ->
+    setPath: (path, smooth, interpolation, k, time, callback) ->
         if path == undefined
             path = trajectory.getLatLngs().map (e) -> [e.lat, e.lng]
 
-        @setRequest 'path', callback, path: JSON.stringify(path)
+        @setRequest 'path', callback,
+            path: JSON.stringify(path)
+            smooth: smooth
+            interpolation: interpolation
+            k: k
+            time: time
 
     setMap: (map, callback) ->
         return

@@ -110,35 +110,62 @@ def position():
 def path():
     """
     {
-        "path": [(x, y), (x, y), ... ]
+        "path": [(x, y, t), (x, y, t), ... ],
+        "smooth": True,
+        "interpolation": "cubic",
+        "k": 0.1,
+        "time": 10,
     }
     """
-    path = json.loads(request.values['path'])
+    values = json.loads(request.values)
+
+    values.setdefault('interpolation', 'linear')
+    values.setdefault('smooth', False)
+    values.setdefault('k', 0.1)
+    values.setdefault('time', 10)
+
+    path = values['path']
+
+    interpolation = values['interpolation']
+    if interpolation == 'cubic':
+        planner = CubicTrajectoryPlanner()
+    elif interpolation == 'linear':
+        planner = LinearTrajectoryPlanner()
+    else:
+        return abort(400)
 
     r = Robot()
-    # convert from web client coordinates
-    x, y, t = path[0][1], -path[0][0], 10
 
-    x0, y0, z0 = r.position()
+    r.motion.trajectory_tracker.smooth_flag = values['smooth']
 
-    delta_x = x - x0
-    delta_y = y - y0
+    if len(path) == 1:
+        # convert from web client coordinates
+        x, y, t = path[0][1], -path[0][0], 10
 
-    beta = math.atan2(delta_y, delta_x)
-    theta_n = math.atan2(math.sin(z0), math.cos(z0))
-    alpha = beta - theta_n
-    l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
-    xf_p = l * math.cos(alpha)
-    yf_p = l * math.sin(alpha)
+        x0, y0, z0 = r.position()
 
-    trajectory_parameters = DifferentialDriveTrajectoryParameters(
-        (DifferentialDriveRobotLocation(0., 0., 0.),
-         DifferentialDriveRobotLocation(xf_p, yf_p, 0.)),
-        t, r.motion.robot_parameters.sample_time)
+        delta_x = x - x0
+        delta_y = y - y0
 
-    r.motion.trajectory_tracker.smooth_flag = True
-    lineal_trajectory_planner = LinearTrajectoryPlanner()
-    r.change_trajectory_planner(lineal_trajectory_planner)
+        beta = math.atan2(delta_y, delta_x)
+        theta_n = math.atan2(math.sin(z0), math.cos(z0))
+        alpha = beta - theta_n
+        l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
+        xf_p = l * math.cos(alpha)
+        yf_p = l * math.sin(alpha)
+
+        trajectory_parameters = DifferentialDriveTrajectoryParameters(
+            (DifferentialDriveRobotLocation(0., 0., 0.),
+             DifferentialDriveRobotLocation(xf_p, yf_p, 0.)),
+            t, r.motion.robot_parameters.sample_time)
+    else:
+        locations_tuple = (DifferentialDriveRobotLocation(elem[1], -elem[0],
+                           elem[2]) for elem in path)
+        trajectory_parameters = DifferentialDriveTrajectoryParameters(
+                                locations_tuple, values['time'],
+                                r.motion.sample_time, values['k'])
+
+    r.change_trajectory_planner(planner)
     r.track(trajectory_parameters)
     return 'OK'
 
