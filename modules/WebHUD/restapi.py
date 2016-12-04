@@ -31,7 +31,7 @@ def odometry():
     }
     """
     x, y, theta = Robot().position()
-    return jsonify(x=x, y=y, theta=theta)
+    return jsonify(x=y, y=-x, theta=theta)
 
 
 @app.route('/profile', methods=['GET'])
@@ -101,7 +101,7 @@ def position():
     x = request.values['x']
     y = request.values['y']
     theta = request.values['theta']
-    Robot().position(x, y, theta)
+    Robot().position(y, -x, theta)
     return 'OK'
 
 
@@ -117,7 +117,7 @@ def path():
 
     r = Robot()
     # convert from web client coordinates
-    x, y, t = path[0][0], path[0][1], 10
+    x, y, t = path[0][1], -path[0][0], 10
 
     x0, y0, z0 = r.position()
 
@@ -236,7 +236,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 self.ws.pop(i)
                 continue
             # convert to web client coordinates
-            ws.send(json.dumps(('position', {'x': x, 'y': y,
+            ws.send(json.dumps(('position', {'x': x, 'y': -y,
                     'theta': theta})))
 
     def manual_mode(self):
