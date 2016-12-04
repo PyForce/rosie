@@ -10,6 +10,7 @@ mapStore = require './stores/map'
 
 {TopMenu, Sidebar, SettingsModal, AboutModal} = require './components/ui'
 {RobotVideo, RobotCard, TextOrderInput} = require './components/hud'
+{PathConfig} = require './components/path'
 
 
 about = ReactDOM.render <AboutModal/>, document.getElementById 'about'
@@ -55,11 +56,7 @@ class InfoHandler
 # path mode handler
 hudStore.addListener ->
     return if not hudStore.onPath()
-    comp = <button className='ui blue button'
-                   onClick={() => RobotActions.path robotStore.selectedRobot()}>
-                Go
-            </button>
-    ReactDOM.render comp,
+    ReactDOM.render <PathConfig/>,
         document.getElementById 'left-ui'
 
 
