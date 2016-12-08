@@ -32,7 +32,7 @@ class RobotActions
         Dispatcher.dispatch
             type: actionTypes.MOVE_ROBOT
             robot: robot
-            position: {x: pos.y, y: pos.x, theta: -pos.theta}
+            position: pos
 
     @path: (robot, path=null, smooth=False, interpolation='linear', k=0.1,
             time=10) ->
@@ -40,7 +40,7 @@ class RobotActions
             robot.setPath path
             return
         # TODO: read the time for each point and place where 0
-        path = mapStore.getPath().map (e) -> [e.lng, e.lat, 0]
+        path = mapStore.getPath().map (e) -> [e.lat, e.lng, 0]
         robot.setPath path, smooth, interpolation, k, time
 
         Dispatcher.dispatch

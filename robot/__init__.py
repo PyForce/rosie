@@ -204,8 +204,8 @@ class Robot:
 
         # TODO: Check the invertion
         #---- set position ----
-        self.motion.odometry_localizer.globalLocation.y_position = y
-        self.motion.odometry_localizer.globalLocation.x_position = x
+        self.motion.odometry_localizer.globalLocation.y_position = x
+        self.motion.odometry_localizer.globalLocation.x_position = y
         self.motion.odometry_localizer.globalLocation.z_position = theta
 
     def supervisor(self):
