@@ -14,7 +14,9 @@ from robot.motion.MovementSupervisor.Differential\
 from robot.motion.TrajectoryPlanner.Differential import\
     DifferentialDriveTrajectoryParameters
 from robot.motion.TrajectoryPlanner.Planner.Linear import\
-    LinearTrajectoryPlanner, CubicTrajectoryPlanner
+    LinearTrajectoryPlanner
+from robot.motion.TrajectoryPlanner.Planner.Cubic import\
+    CubicTrajectoryPlanner
 
 
 client_count = 0
