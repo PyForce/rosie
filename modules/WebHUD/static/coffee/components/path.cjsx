@@ -1,13 +1,18 @@
+L = require 'leaflet'
 React = require 'react'
 ReactDOM = require 'react-dom'
 
 RobotActions = require '../actions/robot'
 robotStore = require '../stores/robot'
+mapStore = require '../stores/map'
+
+{map} = require '../map'
 
 
 class PathConfig extends React.Component
     constructor: (@props) ->
         @sendPath = @sendPath.bind @
+        @markers = []
         super @props
 
     sendPath: ->
@@ -24,7 +29,32 @@ class PathConfig extends React.Component
     componentDidMount: ->
         # $(this.refs.interpolation).popup content: "Interpolation"
         $(this.refs._dropdown).dropdown()
+        mapStore.addListener =>
+            if @removed # notified to stop listening
+                mapStore.removeCurrentListener()
+                return
+
+            path = mapStore.getPath()
+            if not path.length and @markers.length
+                # remove remaining markers after disabling path mode
+                map.removeLayer marker for marker in @markers
+                return
+            return if not path.length  # all point removed, nothing to do
+            # the path has been reset, drop markers(if any) and mark the last(only) one
+            map.removeLayer marker for marker in @markers if path.length == 1
+
+            pos = path[path.length - 1]
+            circle = L.circle(pos, .02,
+                color: 'red'
+                fillColor: '#f03'
+                fillOpacity: .5).addTo map
+            # circle.bindTooltip("#{pos.lat.toFixed 3}, #{pos.lng.toFixed 3}").openTooltip()
+            @markers.push circle
+            return
         return
+
+    componentWillUnmount: ->
+        @removed = true
 
     render: ->
         <div className='ui raised segment' style={width: '300px'}>
