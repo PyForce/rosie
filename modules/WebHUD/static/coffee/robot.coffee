@@ -59,7 +59,7 @@ class Robot
             path = trajectory.getLatLngs().map (e) -> [e.lat, e.lng]
 
         @setRequest 'path', callback,
-            path: JSON.stringify(path)
+            path: path
             smooth: smooth
             interpolation: interpolation
             k: k
@@ -99,7 +99,8 @@ class Robot
             url: "http://#{@host}:#{@port}/#{route}"
             method: "PUT"
             crossDomain: true
-            data: param
+            contentType: "application/json"
+            data: JSON.stringify param
 
         $.ajax(request).done (data) ->
             if callback != undefined
