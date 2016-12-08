@@ -43,7 +43,7 @@ class RobotVideo extends React.Component
     {host, streamPort} = @props.robot
     <MediaQuery minWidth={600}>
       <img src={"http://#{host}:#{streamPort}/stream/video.mjpeg"} id='robot-video'
-        alt="streaming" style={{visibility: 'hidden'}} ref='root'/>
+        alt="streaming" style={{visibility: 'hidden', width: 'inherit'}} ref='root'/>
     </MediaQuery>
 
 
