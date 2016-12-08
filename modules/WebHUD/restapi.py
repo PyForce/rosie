@@ -33,7 +33,7 @@ def odometry():
     }
     """
     x, y, theta = Robot().position()
-    return jsonify(x=y, y=-x, theta=theta)
+    return jsonify(x=x, y=y, theta=theta)
 
 
 @app.route('/profile', methods=['GET'])
@@ -104,7 +104,7 @@ def position():
     x = data['x']
     y = data['y']
     theta = data['theta']
-    Robot().position(y, -x, theta)
+    Robot().position(x, y, theta)
     return 'OK'
 
 
@@ -143,7 +143,7 @@ def path():
 
     if len(path) == 1:
         # convert from web client coordinates
-        x, y, t = path[0][1], -path[0][0], 10
+        x, y, t = path[0][0], path[0][1], values[u'time']
 
         x0, y0, z0 = r.position()
 
@@ -162,8 +162,8 @@ def path():
              DifferentialDriveRobotLocation(xf_p, yf_p, 0.)),
             t, r.motion.robot_parameters.sample_time)
     else:
-        locations_tuple = [DifferentialDriveRobotLocation(
-            elem[1], -elem[0], elem[2]) for elem in path]
+        locations_tuple = [DifferentialDriveRobotLocation(*elem)
+                           for elem in path]
         trajectory_parameters = DifferentialDriveTrajectoryParameters(
             locations_tuple, values[u'time'], r.motion.sample_time,
             values[u'k'])
@@ -266,7 +266,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 self.ws.pop(i)
                 continue
             # convert to web client coordinates
-            websock.send(json.dumps(('position', {'x': x, 'y': -y,
+            websock.send(json.dumps(('position', {'x': x, 'y': y,
                                                   'theta': theta})))
 
     def manual_mode(self):
