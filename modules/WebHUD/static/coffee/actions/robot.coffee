@@ -39,7 +39,8 @@ class RobotActions
         if path
             robot.setPath path
             return
-        path = mapStore.getPath().map (e) -> [e.lat, e.lng]
+        # TODO: read the time for each point and place where 0
+        path = mapStore.getPath().map (e) -> [e.lat, e.lng, 0]
         robot.setPath path, smooth, interpolation, k, time
 
         Dispatcher.dispatch
