@@ -1,6 +1,3 @@
-React = require 'react'
-ReactDOM = require 'react-dom'
-
 RosieStore = require './rosie'
 Dispatcher = require '../dispatcher/dispatcher'
 actionTypes = require '../actions/types'

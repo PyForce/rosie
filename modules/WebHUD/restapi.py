@@ -14,7 +14,7 @@ from robot.motion.MovementSupervisor.Differential\
 from robot.motion.TrajectoryPlanner.Differential import\
     DifferentialDriveTrajectoryParameters
 from robot.motion.TrajectoryPlanner.Planner.Linear import\
-    LinearTrajectoryPlanner
+    LinearTrajectoryPlanner, CubicTrajectoryPlanner
 
 
 client_count = 0
@@ -98,9 +98,10 @@ def position():
         "theta": theta
     }
     """
-    x = request.values['x']
-    y = request.values['y']
-    theta = request.values['theta']
+    data = request.get_json()
+    x = data['x']
+    y = data['y']
+    theta = data['theta']
     Robot().position(y, -x, theta)
     return 'OK'
 
@@ -110,35 +111,62 @@ def position():
 def path():
     """
     {
-        "path": [(x, y), (x, y), ... ]
+        "path": [(x, y, t), (x, y, t), ... ],
+        "smooth": True,
+        "interpolation": "cubic",
+        "k": 0.1,
+        "time": 10,
     }
     """
-    path = json.loads(request.values['path'])
+    values = request.get_json()
+
+    values.setdefault(u'interpolation', 'linear')
+    values.setdefault(u'smooth', False)
+    values.setdefault(u'k', 0.1)
+    values.setdefault(u'time', 10)
+
+    path = values[u'path']
+
+    interpolation = values[u'interpolation']
+    if interpolation == u'cubic':
+        planner = CubicTrajectoryPlanner()
+    elif interpolation == u'linear':
+        planner = LinearTrajectoryPlanner()
+    else:
+        return abort(400)
 
     r = Robot()
-    # convert from web client coordinates
-    x, y, t = path[0][1], -path[0][0], 10
 
-    x0, y0, z0 = r.position()
+    r.motion.trajectory_tracker.smooth_flag = values[u'smooth']
 
-    delta_x = x - x0
-    delta_y = y - y0
+    if len(path) == 1:
+        # convert from web client coordinates
+        x, y, t = path[0][1], -path[0][0], 10
 
-    beta = math.atan2(delta_y, delta_x)
-    theta_n = math.atan2(math.sin(z0), math.cos(z0))
-    alpha = beta - theta_n
-    l = math.sqrt(delta_x * delta_x + delta_y * delta_y)
-    xf_p = l * math.cos(alpha)
-    yf_p = l * math.sin(alpha)
+        x0, y0, z0 = r.position()
 
-    trajectory_parameters = DifferentialDriveTrajectoryParameters(
-        (DifferentialDriveRobotLocation(0., 0., 0.),
-         DifferentialDriveRobotLocation(xf_p, yf_p, 0.)),
-        t, r.motion.robot_parameters.sample_time)
+        delta_x = x - x0
+        delta_y = y - y0
 
-    r.motion.trajectory_tracker.smooth_flag = True
-    lineal_trajectory_planner = LinearTrajectoryPlanner()
-    r.change_trajectory_planner(lineal_trajectory_planner)
+        beta = math.atan2(delta_y, delta_x)
+        theta_n = math.atan2(math.sin(z0), math.cos(z0))
+        alpha = beta - theta_n
+        dist = math.sqrt(delta_x * delta_x + delta_y * delta_y)
+        xf_p = dist * math.cos(alpha)
+        yf_p = dist * math.sin(alpha)
+
+        trajectory_parameters = DifferentialDriveTrajectoryParameters(
+            (DifferentialDriveRobotLocation(0., 0., 0.),
+             DifferentialDriveRobotLocation(xf_p, yf_p, 0.)),
+            t, r.motion.robot_parameters.sample_time)
+    else:
+        locations_tuple = [DifferentialDriveRobotLocation(
+            elem[1], -elem[0], elem[2]) for elem in path]
+        trajectory_parameters = DifferentialDriveTrajectoryParameters(
+            locations_tuple, values[u'time'], r.motion.sample_time,
+            values[u'k'])
+
+    r.change_trajectory_planner(planner)
     r.track(trajectory_parameters)
     return 'OK'
 
@@ -151,7 +179,7 @@ def text():
         "text": "some text"
     }
     """
-    text = str(request.values['text'])
+    text = request.get_json()['text']
     robot_handler.process_text(text)
     return 'OK'
 
@@ -200,6 +228,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.keys = []
 
         self.ws = []
+
         # register websockets under '/websockets'
         @ws.route('/websocket')
         def websocket(ws):
@@ -211,7 +240,6 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                     self.keys = data[1]
                 message = ws.receive()
             # self.ws = None
-
         # use old-style decorators to subscribe bounded methods
         app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
         app.route('/manual_mode', methods=['PUT'])(allow_origin(
@@ -231,13 +259,13 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             state.global_location.y_position, state.global_location.z_position
 
         # TODO: delete this for please!
-        for i, ws in enumerate(self.ws):
-            if ws.closed:
+        for i, websock in enumerate(self.ws):
+            if websock.closed:
                 self.ws.pop(i)
                 continue
             # convert to web client coordinates
-            ws.send(json.dumps(('position', {'x': x, 'y': -y,
-                    'theta': theta})))
+            websock.send(json.dumps(('position', {'x': x, 'y': -y,
+                                                  'theta': theta})))
 
     def manual_mode(self):
         """
