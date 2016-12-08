@@ -58,6 +58,10 @@ hudStore.addListener ->
     return if not hudStore.onPath()
     ReactDOM.render <PathConfig/>,
         document.getElementById 'left-ui'
+    hudStore.addListener ->
+        return if hudStore.onPath()
+        ReactDOM.unmountComponentAtNode document.getElementById 'left-ui'
+        hudStore.removeCurrentListener()
 
 
 # text command handler

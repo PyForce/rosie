@@ -12,6 +12,7 @@ mapStore = require '../stores/map'
 class PathConfig extends React.Component
     constructor: (@props) ->
         @sendPath = @sendPath.bind @
+        @removeMarkers = @removeMarkers.bind @
         @markers = []
         super @props
 
@@ -37,11 +38,11 @@ class PathConfig extends React.Component
             path = mapStore.getPath()
             if not path.length and @markers.length
                 # remove remaining markers after disabling path mode
-                map.removeLayer marker for marker in @markers
+                @removeMarkers()
                 return
             return if not path.length  # all point removed, nothing to do
             # the path has been reset, drop markers(if any) and mark the last(only) one
-            map.removeLayer marker for marker in @markers if path.length == 1
+            @removeMarkers() if path.length == 1
 
             pos = path[path.length - 1]
             circle = L.circle(pos, .02,
@@ -53,8 +54,12 @@ class PathConfig extends React.Component
             return
         return
 
+    removeMarkers: ->
+        map.removeLayer marker for marker in @markers
+
     componentWillUnmount: ->
         @removed = true
+        @removeMarkers()
 
     render: ->
         <div className='ui raised segment' style={width: '300px'}>
@@ -79,13 +84,13 @@ class PathConfig extends React.Component
                 </div>
                 <div className="column">
                     <div className="ui fluid right labeled input">
-                        <input type="number" placeholder="Time" ref="time"/>
+                        <input type="number" placeholder="Time = 10" ref="time"/>
                         <div className="ui basic label">sec</div>
                     </div>
                 </div>
                 <div className="column">
                     <div className="ui fluid input">
-                        <input type="number" placeholder="k" ref="k"/>
+                        <input type="number" placeholder="k = 0.1" ref="k"/>
                     </div>
                 </div>
                 <div className="column">
