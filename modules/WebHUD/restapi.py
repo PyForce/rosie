@@ -238,8 +238,8 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             message = ws.receive()
             while not ws.closed and message:
                 data = json.loads(message)
-                if data[0] == 'keys':
-                    self.keys = data[1]
+                if data['type'] == 'keys':
+                    self.keys = data['data']
                 message = ws.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
@@ -266,8 +266,9 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 self.ws.pop(i)
                 continue
             # convert to web client coordinates
-            websock.send(json.dumps(('position', {'x': -y, 'y': x,
-                                                  'theta': theta})))
+            websock.send(json.dumps({'type': 'position',
+                                     'data': {'x': -y, 'y': x,
+                                              'theta': theta}}))
 
     def manual_mode(self):
         """
