@@ -246,6 +246,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         app.route('/auto_mode', methods=['PUT', 'POST'])(allow_origin(self.auto_mode))
         app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
             self.manual_mode))
+        self.last_location = 0, 0, 0
 
     def movement_begin(self, *args, **kwargs):
         pass
@@ -257,8 +258,14 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         if self.manual:
             # update keys
             self.robot.add_key_list(self.keys)
+
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
+
+        x_, y_, t_ = self.last_location
+        if abs(x - x_) + abs(y - y_) + abs(theta - t_) == 0:
+            # don't notify when robot not moved
+            return
 
         # TODO: delete this for please!
         for i, websock in enumerate(self.ws):
@@ -269,6 +276,8 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             websock.send(json.dumps({'type': 'position',
                                      'data': {'x': -y, 'y': x,
                                               'theta': theta}}))
+        # update last location
+        self.last_location = x, y, theta
 
     def manual_mode(self):
         """
