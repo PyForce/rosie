@@ -90,7 +90,7 @@ def sensor(name):
     return jsonify(**json.loads(sensor.__doc__ % name))
 
 
-@app.route('/position', methods=['PUT'])
+@app.route('/position', methods=['PUT', 'POST'])
 @allow_origin
 def position():
     """
@@ -108,7 +108,7 @@ def position():
     return 'OK'
 
 
-@app.route('/path', methods=['PUT'])
+@app.route('/path', methods=['PUT', 'POST'])
 @allow_origin
 def path():
     """
@@ -173,7 +173,7 @@ def path():
     return 'OK'
 
 
-@app.route('/text', methods=['PUT'])
+@app.route('/text', methods=['PUT', 'POST'])
 @allow_origin
 def text():
     """
@@ -243,8 +243,8 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 message = ws.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
-        app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
-        app.route('/manual_mode', methods=['PUT'])(allow_origin(
+        app.route('/auto_mode', methods=['PUT', 'POST'])(allow_origin(self.auto_mode))
+        app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
             self.manual_mode))
 
     def movement_begin(self, *args, **kwargs):
