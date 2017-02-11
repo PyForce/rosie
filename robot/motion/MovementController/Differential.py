@@ -239,7 +239,7 @@ class DifferentialDriveMovementController:
 
 
         self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
-        self.prev_time = 0
+        self.prev_time = time.time()
 
         self.keys = []
 
@@ -256,6 +256,10 @@ class DifferentialDriveMovementController:
         @rtype : tuple
         @return: The actual speeds of the motors(2 floats)
         """
+
+        if elapsed_time < 0.0000000001:
+            elapsed_time = 0.0000000001
+            print('[WARN] Almost dividing by zero') # TODO: Check warning
         steps_per_sec_1 = delta_encoder_count_1 / elapsed_time
         angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
 
@@ -290,7 +294,8 @@ class DifferentialDriveMovementController:
         @param elapsed_time: elapsed time since last call
         """
         now = time.time()
-        elapsed_time = now - self.prev_time
+        elapsed_time = max(now - self.prev_time, 0.00001) # TODO:Check for very fast processor, never knows :)
+
         self.prev_time = now
 
         if self.ordered_stop:
