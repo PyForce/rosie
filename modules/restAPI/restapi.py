@@ -22,6 +22,11 @@ from robot.motion.TrajectoryPlanner.Planner.Cubic import\
 client_count = 0
 
 
+def objetify(request):
+    # TODO: review why force is required
+    return request.get_json(force=True)
+
+
 @app.route('/odometry', methods=['GET'])
 @allow_origin
 def odometry():
@@ -101,7 +106,7 @@ def position():
         "theta": theta
     }
     """
-    data = request.get_json()
+    data = objetify(request)
     x = data['x']
     y = data['y']
     theta = data['theta']
@@ -121,7 +126,7 @@ def position():
 #         "time": 10,
 #     }
 #     """
-#     values = request.get_json()
+#     values = objetify(request)
 
 #     values.setdefault(u'interpolation', 'linear')
 #     values.setdefault(u'smooth', False)
@@ -182,11 +187,12 @@ def goto():
         "target": [x, y, t],
     }
     """
-    values = request.get_json()
+    values = objetify(request)
     x, y, t = values[u'target']
 
     r = Robot()
     r.go_to(x, y, t)
+    return 'OK'
 
 
 @app.route('/follow', methods=['POST'])
@@ -198,10 +204,11 @@ def follow():
         "time": t
     }
     """
-    values = request.get_json()
+    values = objetify(request)
 
     r = Robot()
     r.follow(values[u'path'], values[u'time'])
+    return 'OK'
 
 
 @app.route('/text', methods=['POST'])
@@ -212,7 +219,7 @@ def text():
         "text": "some text"
     }
     """
-    text = request.get_json()['text']
+    text = objetify(request)['text']
     robot_handler.process_text(text)
     return 'OK'
 
