@@ -209,7 +209,7 @@ class Robot:
         self.motion.movement_start()
 
     def start_open_loop_control(self):
-        self.motion.movement_init(None)
+        self.motion.movement_init()
         self.motion.movement_start()
 
     def add_key_list(self, keys):
