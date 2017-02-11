@@ -90,7 +90,7 @@ def sensor(name):
     return jsonify(**json.loads(sensor.__doc__ % name))
 
 
-@app.route('/position', methods=['PUT'])
+@app.route('/position', methods=['PUT', 'POST'])
 @allow_origin
 def position():
     """
@@ -108,7 +108,7 @@ def position():
     return 'OK'
 
 
-@app.route('/path', methods=['PUT'])
+@app.route('/path', methods=['PUT', 'POST'])
 @allow_origin
 def path():
     """
@@ -173,7 +173,7 @@ def path():
     return 'OK'
 
 
-@app.route('/text', methods=['PUT'])
+@app.route('/text', methods=['PUT', 'POST'])
 @allow_origin
 def text():
     """
@@ -238,14 +238,15 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             message = ws.receive()
             while not ws.closed and message:
                 data = json.loads(message)
-                if data[0] == 'keys':
-                    self.keys = data[1]
+                if data['type'] == 'keys':
+                    self.keys = data['data']
                 message = ws.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
-        app.route('/auto_mode', methods=['PUT'])(allow_origin(self.auto_mode))
-        app.route('/manual_mode', methods=['PUT'])(allow_origin(
+        app.route('/auto_mode', methods=['PUT', 'POST'])(allow_origin(self.auto_mode))
+        app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
             self.manual_mode))
+        self.last_location = 0, 0, 0
 
     def movement_begin(self, *args, **kwargs):
         pass
@@ -257,8 +258,14 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         if self.manual:
             # update keys
             self.robot.add_key_list(self.keys)
+
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
+
+        x_, y_, t_ = self.last_location
+        if abs(x - x_) + abs(y - y_) + abs(theta - t_) == 0:
+            # don't notify when robot not moved
+            return
 
         # TODO: delete this for please!
         for i, websock in enumerate(self.ws):
@@ -266,8 +273,11 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 self.ws.pop(i)
                 continue
             # convert to web client coordinates
-            websock.send(json.dumps(('position', {'x': -y, 'y': x,
-                                                  'theta': theta})))
+            websock.send(json.dumps({'type': 'position',
+                                     'data': {'x': -y, 'y': x,
+                                              'theta': theta}}))
+        # update last location
+        self.last_location = x, y, theta
 
     def manual_mode(self):
         """
