@@ -283,7 +283,7 @@ class DifferentialDriveMovementController:
             self.movement_supervisor.movement_begin(None)
         self.motor_handler.reset()
         self.trajectory_tracker.reset()
-        self.odometry_localizer.reset_location()
+        # self.odometry_localizer.reset_location()
 
 
     def open_loop_movement_control(self):
