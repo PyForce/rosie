@@ -212,8 +212,8 @@ class Robot:
         self.motion.movement_init()
         self.motion.movement_start()
 
-    def add_key_list(self, keys):
-        self.motion.keys = keys
+    def add_movement(self, direction):
+        self.motion.dir = direction
 
     def stop_open_loop_control(self):
         self.motion.movement_finish()
@@ -256,3 +256,9 @@ class Robot:
 
     def change_trajectory_planner(self, newplanner):
         self.motion.trajectory_planner = newplanner
+
+    def maps(self):
+        return (map['name'] for map in self.planner.maps())
+
+    def get_map(self, name):
+        return self.planner.get_map(name) if name else self.planner.map

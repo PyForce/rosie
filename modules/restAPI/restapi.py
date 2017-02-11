@@ -22,6 +22,11 @@ from robot.motion.TrajectoryPlanner.Planner.Cubic import\
 client_count = 0
 
 
+def objetify(request):
+    # TODO: review why force is required
+    return request.get_json(force=True)
+
+
 @app.route('/odometry', methods=['GET'])
 @allow_origin
 def odometry():
@@ -33,7 +38,7 @@ def odometry():
     }
     """
     x, y, theta = Robot().position()
-    return jsonify(x=y, y=-x, theta=theta)
+    return jsonify(x=x, y=y, theta=theta)
 
 
 @app.route('/profile', methods=['GET'])
@@ -90,21 +95,22 @@ def sensor(name):
     return jsonify(**json.loads(sensor.__doc__ % name))
 
 
-@app.route('/position', methods=['PUT', 'POST'])
+@app.route('/position', methods=['POST'])
 @allow_origin
 def position():
     """
+    Teleports the robot
     {
         "x": x,
         "y": y,
         "theta": theta
     }
     """
-    data = request.get_json()
+    data = objetify(request)
     x = data['x']
     y = data['y']
     theta = data['theta']
-    Robot().position(y, -x, theta)
+    Robot().position(x, y, theta)
     return 'OK'
 
 
@@ -120,7 +126,7 @@ def position():
 #         "time": 10,
 #     }
 #     """
-#     values = request.get_json()
+#     values = objetify(request)
 
 #     values.setdefault(u'interpolation', 'linear')
 #     values.setdefault(u'smooth', False)
@@ -173,7 +179,7 @@ def position():
 #     return 'OK'
 
 
-@app.route('/goto', methods=['PUT', 'POST'])
+@app.route('/goto', methods=['POST'])
 @allow_origin
 def goto():
     """
@@ -181,14 +187,15 @@ def goto():
         "target": [x, y, t],
     }
     """
-    values = request.get_json()
+    values = objetify(request)
     x, y, t = values[u'target']
 
     r = Robot()
     r.go_to(x, y, t)
+    return 'OK'
 
 
-@app.route('/follow', methods=['PUT', 'POST'])
+@app.route('/follow', methods=['POST'])
 @allow_origin
 def follow():
     """
@@ -197,13 +204,14 @@ def follow():
         "time": t
     }
     """
-    values = request.get_json()
+    values = objetify(request)
 
     r = Robot()
     r.follow(values[u'path'], values[u'time'])
+    return 'OK'
 
 
-@app.route('/text', methods=['PUT', 'POST'])
+@app.route('/text', methods=['POST'])
 @allow_origin
 def text():
     """
@@ -211,20 +219,20 @@ def text():
         "text": "some text"
     }
     """
-    text = request.get_json()['text']
+    text = objetify(request)['text']
     robot_handler.process_text(text)
     return 'OK'
 
 
-@app.route('/maps')
+@app.route('/maps', methods=['GET'])
 @allow_origin
 def maps():
     """
     {
-        "map": "map_name"
+        ["map_name", ...]
     }
     """
-    return jsonify([map['name'] for map in Robot().planner.maps()])
+    return jsonify([name for name in Robot().maps()])
 
 
 @app.route('/map', defaults={'name': ''})
@@ -237,27 +245,25 @@ def map(name):
     }
     """
     r = Robot()
-    if name:
-        map = r.planner.get_map(name)
-    else:
-        map = r.planner.map
+    map = r.get_map(name)
     return jsonify(map) if map else abort(404)
 
 
-@app.route('/clusters')
-@allow_origin
-def clusters():
-    data = {
-        cluster.name: [cluster.host, cluster.port]
-        for cluster in scanner.clusters
-    }
-    return jsonify(**data)
+# @app.route('/clusters')
+# @allow_origin
+# def clusters():
+#     data = {
+#         cluster.name: [cluster.host, cluster.port]
+#         for cluster in scanner.clusters
+#     }
+#     return jsonify(**data)
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
     def __init__(self, robot):
         self.robot = robot
-        self.keys = []
+        self.move = []
+        self.manual = False
 
         self.ws = []
 
@@ -268,8 +274,8 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             message = ws.receive()
             while not ws.closed and message:
                 data = json.loads(message)
-                if data['type'] == 'keys':
-                    self.keys = data['data']
+                if data['type'] == 'move':
+                    self.move = data['data']
                 message = ws.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
@@ -287,7 +293,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
     def movement_update(self, state):
         if self.manual:
             # update keys
-            self.robot.add_key_list(self.keys)
+            self.robot.add_movement(self.move)
 
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
@@ -304,7 +310,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 continue
             # convert to web client coordinates
             websock.send(json.dumps({'type': 'position',
-                                     'data': {'x': -y, 'y': x,
+                                     'data': {'x': x, 'y': y,
                                               'theta': theta}}))
         # update last location
         self.last_location = x, y, theta

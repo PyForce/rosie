@@ -241,7 +241,7 @@ class DifferentialDriveMovementController:
         self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
         self.prev_time = time.time()
 
-        self.keys = []
+        self.dir = [0, 0]
 
     def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
         """
@@ -311,7 +311,7 @@ class DifferentialDriveMovementController:
         location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
                                                                             delta_encoder_count_2)
 
-        x, y, z = self.get_movement_direction_vector(self.keys)
+        x, y, z = self.get_movement_direction_vector()
 
         set_point_1, set_point_2 = self.follow(x, y, z)
 
@@ -384,28 +384,29 @@ class DifferentialDriveMovementController:
         else:
             return 0, 0
 
-    def get_movement_direction_vector(self, keys):
+    def get_movement_direction_vector(self):
         x, y, z = 0, 0, 0
-        dx, dy, dz = 0, 0, 0
-        if 87 in keys:  # W
-            dy += 8
-        if 65 in keys:  # A
-            dx -= 8
-        if 83 in keys:  # S
-            dy -= 8
-        if 68 in keys:  # D
-            dx += 8
-        if 81 in keys:  # Q
-            dz -= 8
-        if 69 in keys:  # E
-            dz += 8
+        dx, dy = [i*8 for i in self.dir]
+        dz = 0
+        # if 87 in keys:  # W
+        #     dy += 8
+        # if 65 in keys:  # A
+        #     dx -= 8
+        # if 83 in keys:  # S
+        #     dy -= 8
+        # if 68 in keys:  # D
+        #     dx += 8
+        # if 81 in keys:  # Q
+        #     dz -= 8
+        # if 69 in keys:  # E
+        #     dz += 8
 
-        x = (x+dx)/2.0
-        y = (y+dy)/2.0
-        z = (z+dz)/2.0
+        # x = (x+dx)/2.0
+        # y = (y+dy)/2.0
+        # z = (z+dz)/2.0
 
-
-        return x, y, z
+        # TODO: find out why this need to be inverted
+        return -dx, dy, dz
 
     def movement_finish(self):
         """
