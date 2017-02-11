@@ -268,7 +268,7 @@ class DifferentialDriveMovementController:
 
         return angular_speed_1, angular_speed_2
 
-    def movement_init(self, trajectory_parameters):
+    def movement_init(self, trajectory_parameters=None):
         """
         Initialize the movement
 
