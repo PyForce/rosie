@@ -256,6 +256,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
     def __init__(self, robot):
         self.robot = robot
         self.keys = []
+        self.manual = False
 
         self.ws = []
 
