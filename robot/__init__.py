@@ -163,6 +163,47 @@ class Robot:
         self.motion = self.setting_handler.buildMovementControllers()
         self.planner = self.setting_handler.buildPlanner()
 
+    def go_to(self, x, y, t):
+        """
+        Allows the robot to go from the current position
+        to a given point in time t.
+
+        Example:
+
+        >>> r = Robot()
+        >>> r.go_to(3, 4, 10) # Goes to (3,4) in 10s
+        """
+
+        trajectory = DifferentialDriveTrajectoryParameters(
+            (DifferentialDriveRobotLocation(*self.position()),
+             DifferentialDriveRobotLocation(x, y, 0.)),
+            t, self.motion.robot_parameters.sample_time)
+
+        self.track(trajectory)
+
+    def follow(self, points, t):
+        """
+        Allows the robot to follow a set of given points in time t * len(points).
+
+        Example:
+
+        >>> r = Robot()
+        >>> trajectory = [(1,2), (6,1), (0,0)]
+        >>> t = 10
+        >>> r.follow(trajectory, t)
+        """
+
+        locations = [DifferentialDriveRobotLocation(p[0], p[1], 0.) for p in points]
+        pos = self.position()
+        locations.insert(0,DifferentialDriveRobotLocation(pos[0],pos[1],0))
+
+        trajectory = DifferentialDriveTrajectoryParameters(locations,
+            t, self.motion.robot_parameters.sample_time)
+
+        print(trajectory)
+
+        self.track(trajectory)
+
     def track(self, trajectory_parameters):
         self.motion.movement_init(trajectory_parameters)
         self.motion.movement_start()
