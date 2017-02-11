@@ -256,3 +256,9 @@ class Robot:
 
     def change_trajectory_planner(self, newplanner):
         self.motion.trajectory_planner = newplanner
+
+    def maps(self):
+        return (map['name'] for map in self.planner.maps())
+
+    def get_map(self, name):
+        return self.planner.get_map(name) if name else self.planner.map

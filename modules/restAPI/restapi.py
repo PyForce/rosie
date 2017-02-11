@@ -33,7 +33,7 @@ def odometry():
     }
     """
     x, y, theta = Robot().position()
-    return jsonify(x=y, y=-x, theta=theta)
+    return jsonify(x=x, y=y, theta=theta)
 
 
 @app.route('/profile', methods=['GET'])
@@ -90,10 +90,11 @@ def sensor(name):
     return jsonify(**json.loads(sensor.__doc__ % name))
 
 
-@app.route('/position', methods=['PUT', 'POST'])
+@app.route('/position', methods=['POST'])
 @allow_origin
 def position():
     """
+    Teleports the robot
     {
         "x": x,
         "y": y,
@@ -104,7 +105,7 @@ def position():
     x = data['x']
     y = data['y']
     theta = data['theta']
-    Robot().position(y, -x, theta)
+    Robot().position(x, y, theta)
     return 'OK'
 
 
@@ -173,7 +174,7 @@ def position():
 #     return 'OK'
 
 
-@app.route('/goto', methods=['PUT', 'POST'])
+@app.route('/goto', methods=['POST'])
 @allow_origin
 def goto():
     """
@@ -188,7 +189,7 @@ def goto():
     r.go_to(x, y, t)
 
 
-@app.route('/follow', methods=['PUT', 'POST'])
+@app.route('/follow', methods=['POST'])
 @allow_origin
 def follow():
     """
@@ -203,7 +204,7 @@ def follow():
     r.follow(values[u'path'], values[u'time'])
 
 
-@app.route('/text', methods=['PUT', 'POST'])
+@app.route('/text', methods=['POST'])
 @allow_origin
 def text():
     """
@@ -216,15 +217,15 @@ def text():
     return 'OK'
 
 
-@app.route('/maps')
+@app.route('/maps', methods=['GET'])
 @allow_origin
 def maps():
     """
     {
-        "map": "map_name"
+        ["map_name", ...]
     }
     """
-    return jsonify([map['name'] for map in Robot().planner.maps()])
+    return jsonify([name for name in Robot().maps()])
 
 
 @app.route('/map', defaults={'name': ''})
@@ -237,21 +238,18 @@ def map(name):
     }
     """
     r = Robot()
-    if name:
-        map = r.planner.get_map(name)
-    else:
-        map = r.planner.map
+    map = r.get_map(name)
     return jsonify(map) if map else abort(404)
 
 
-@app.route('/clusters')
-@allow_origin
-def clusters():
-    data = {
-        cluster.name: [cluster.host, cluster.port]
-        for cluster in scanner.clusters
-    }
-    return jsonify(**data)
+# @app.route('/clusters')
+# @allow_origin
+# def clusters():
+#     data = {
+#         cluster.name: [cluster.host, cluster.port]
+#         for cluster in scanner.clusters
+#     }
+#     return jsonify(**data)
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
@@ -304,7 +302,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 continue
             # convert to web client coordinates
             websock.send(json.dumps({'type': 'position',
-                                     'data': {'x': -y, 'y': x,
+                                     'data': {'x': x, 'y': y,
                                               'theta': theta}}))
         # update last location
         self.last_location = x, y, theta
