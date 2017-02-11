@@ -212,8 +212,8 @@ class Robot:
         self.motion.movement_init()
         self.motion.movement_start()
 
-    def add_key_list(self, keys):
-        self.motion.keys = keys
+    def add_movement(self, direction):
+        self.motion.dir = direction
 
     def stop_open_loop_control(self):
         self.motion.movement_finish()
