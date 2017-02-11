@@ -24,6 +24,9 @@ class DifferentialDriveRobotLocation:
         self.y_position = 0.
         self.x_position = 0.
 
+    def __repr__(self):
+        return "(%f,%f,%f)" % (self.x_position, self.y_position, self.z_position)
+
 
 class DifferentialDriveRobotParameters:
     """
@@ -89,6 +92,10 @@ class DifferentialDriveRobotSpeed:
         self.z_speed = z_speed
         self.y_speed = y_speed
         self.x_speed = x_speed
+
+    def __repr__(self):
+        return "(%f,%f,%f)" % (self.x_speed, self.y_speed, self.z_speed)
+
 
 
 class DifferentialDriveRobotState:
