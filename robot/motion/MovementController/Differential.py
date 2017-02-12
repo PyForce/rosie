@@ -241,7 +241,7 @@ class DifferentialDriveMovementController:
         self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
         self.prev_time = time.time()
 
-        self.dir = [0, 0]
+        self.dir = [0, 0, 0]
 
     def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
         """
@@ -374,20 +374,20 @@ class DifferentialDriveMovementController:
         if not (x, y) == (0, 0):
             left = right = y
             ratio = abs(x / self.robot_parameters.max_speed)
-            if x > 0:
+            if x < 0:
                 right *= (1 - ratio)
-            elif x < 0:
+            elif x > 0:
                 left *= (1 - ratio)
             return right, left
         elif z:
-            return -z, z
+            return z, -z
         else:
             return 0, 0
 
     def get_movement_direction_vector(self):
         x, y, z = 0, 0, 0
-        dx, dy = [i*8 for i in self.dir]
-        dz = 0
+        # TODO: change 8 for max speed
+        dx, dy, dz = [i*8 for i in self.dir]
         # if 87 in keys:  # W
         #     dy += 8
         # if 65 in keys:  # A
@@ -405,8 +405,7 @@ class DifferentialDriveMovementController:
         # y = (y+dy)/2.0
         # z = (z+dz)/2.0
 
-        # TODO: find out why this need to be inverted
-        return -dx, dy, dz
+        return dx, dy, dz
 
     def movement_finish(self):
         """
