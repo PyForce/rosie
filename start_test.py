@@ -34,27 +34,27 @@ r = Robot()
 
 r.go_to(1,1,5)
 for i in range(5):
-	pos = r.position()
-	print(pos)
-	plt.scatter(pos[0],pos[1])
-	time.sleep(1)
+    pos = r.position()
+    print(pos)
+    plt.scatter(pos[0],pos[1])
+    time.sleep(1)
 
-x  = [element.x_position for element in r.motion.trajectory_planner.reference_locations]
-y  = [element.y_position for element in r.motion.trajectory_planner.reference_locations]
-plt.plot(x,y)
+x = [element.x_position for element in r.motion.trajectory_planner.reference_locations]
+y = [element.y_position for element in r.motion.trajectory_planner.reference_locations]
+plt.plot(x, y)
 plt.show()
 
 print("")
 r.go_to(1,1,5)
 for i in range(10):
-	pos = r.position()
-	print(pos)
-	plt.scatter(pos[0],pos[1])
-	time.sleep(0.5)
+    pos = r.position()
+    print(pos)
+    plt.scatter(pos[0],pos[1])
+    time.sleep(0.5)
 
-x  = [element.x_position for element in r.motion.trajectory_planner.reference_locations]
-y  = [element.y_position for element in r.motion.trajectory_planner.reference_locations]
-plt.plot(x,y)
+x = [element.x_position for element in r.motion.trajectory_planner.reference_locations]
+y = [element.y_position for element in r.motion.trajectory_planner.reference_locations]
+plt.plot(x, y)
 plt.show()
 # trajectory = [(1,2), (6,1), (1,0)]
 # t = 10
