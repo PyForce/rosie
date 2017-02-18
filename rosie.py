@@ -1,11 +1,12 @@
 #! /usr/bin/env python
-print("       ___  ____     ")
-print("  _ _ / _ \/ ___\ _  ")
-print(" | '_| | | \___ \(_) ")
-print(" | | | |_| |___) | | ")
-print(" |_|  \___/\____/|_| ")
-print(" ------ SYSTEM ----- ")
-print("")
+r"""
+       ___  ____
+  _ _ / _ \/ ___\ _
+ | '_| | | \___ \(_)
+ | | | |_| |___) | |
+ |_|  \___/\____/|_|
+
+"""
 
 import argparse
 import importlib
@@ -19,7 +20,10 @@ import traceback
 from settings import config
 
 FORMAT = '[%(asctime)-15s] %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO, filename='rosie.log')
+logging.basicConfig(format=FORMAT,
+                    level=getattr(logging, config.get(
+                        'general', 'loglevel').upper(), None),
+                    filename=config.get('general', 'logfile'))
 
 
 # allows for all modules to be imported as `import <module_name>`
@@ -27,6 +31,9 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), 'modules')))
 
 
 def test(args):
+    """
+    Run rosie tests
+    """
     import unittest
     tests = unittest.TestLoader().discover('tests')
     unittest.TextTestRunner(verbosity=2).run(tests)
@@ -43,6 +50,9 @@ def start(args):
     modules = []
 
     def close_modules(signum, frame):
+        """
+        Close running modules upon Crtl-c
+        """
         for module, thr in modules:
             logging.info('closing %s...', module.__name__)
             if hasattr(module, 'end'):
@@ -62,12 +72,12 @@ def start(args):
     signal.signal(signal.SIGTERM, close_modules)
     signal.signal(signal.SIGINT, close_modules)
 
-    for sect in filter(lambda s: config.getboolean(s, 'active'),
-                       config.sections()):
-        logging.info('loading %s...' % sect)
+    for sect in (s for s in config.sections()
+                 if config.getboolean(s, 'active')):
+        logging.info('loading %s...', sect)
         try:
             module = importlib.import_module(sect)
-        except Exception as e:
+        except ImportError:
             logging.error(traceback.format_exc())
             logging.error('\033[31m[*] module %s not loaded\033[0m', sect)
         # no exception was raised
