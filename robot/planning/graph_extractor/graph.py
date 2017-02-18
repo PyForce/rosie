@@ -4,6 +4,7 @@ Created on Tue Apr  7 22:43:58 2015
 
 @author: Toni
 """
+import logging
 
 ############### NODE ################
 class Node:    
@@ -59,8 +60,8 @@ class AdjacencyMatrixGraph:
         return [u for u in self.V if self.E[u, v]]
     
     def show(self):
-        print(' %-12s| %-35s| %-29s' % ('Vertex', 'Succs', 'Preds'))
-        print('-'*13+'+'+'-'*36+'+'+'-'*30)
+        logging.info(' %-12s| %-35s| %-29s' % ('Vertex', 'Succs', 'Preds'))
+        logging.info('-'*13+'+'+'-'*36+'+'+'-'*30)
         for v in self.V:
             aux_succ=''
             for w in self.succs(v): 
@@ -68,7 +69,7 @@ class AdjacencyMatrixGraph:
             aux_pred=''
             for u in self.preds(v):
                 aux_pred+=str(u)+' '
-            print(' %-12s| %-35s| %-29s' % (v, aux_succ, aux_pred))
+            logging.info(' %-12s| %-35s| %-29s' % (v, aux_succ, aux_pred))
     
     #---- position of TAG ----
     def pos_of(self,name):

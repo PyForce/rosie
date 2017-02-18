@@ -1,7 +1,8 @@
+import logging
 try:
     import smbus
 except:
-    print("[IMPORT] smbus unavailable")
+    logging.error("smbus unavailable")
 from robot.motion.MotorHandler.MotorDriver.Dual import DualPowerMotorDriver
 
 
@@ -67,8 +68,8 @@ class MD25MotorDriver(DualPowerMotorDriver):
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
-            print "delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA"
-            print delta_encoder_count_1, temp
+            logging.info("delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA")
+            logging.info(delta_encoder_count_1, temp)
 
         if delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA \
                 or delta_encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA:
@@ -77,8 +78,8 @@ class MD25MotorDriver(DualPowerMotorDriver):
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
-            print "delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA"
-            print delta_encoder_count_2, temp
+            logging.info("delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA")
+            logging.info(delta_encoder_count_2, temp)
 
         if encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT \
                 or encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT \
@@ -87,7 +88,7 @@ class MD25MotorDriver(DualPowerMotorDriver):
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
-            print "MD25MotorDriver.MAX_ENCODER_COUNT"
+            logging.info("MD25MotorDriver.MAX_ENCODER_COUNT")
 
         self.prev_encoder_count_1 = self.encoder_count_1
         self.prev_encoder_count_2 = self.encoder_count_2

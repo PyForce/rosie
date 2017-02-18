@@ -5,6 +5,8 @@ Created on Thu Apr  9 17:07:02 2015
 @author: Toni
 """
 import runpy
+import logging
+
 
 from robotOLD.planner.maps import graph
 from robotOLD.planner.searcher import astar
@@ -51,7 +53,7 @@ def set_map(file_name=''):
         MAP = raw['CURRENT_MAP']
     except:
         MAP = None
-        print("    WARNING: Map information wasn't loaded")
+        logging.warning("map information wasn't loaded")
 
 
 def path_xyt(start, target, show=True):

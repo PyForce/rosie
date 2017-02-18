@@ -1,5 +1,6 @@
 import math
 import time
+import logging
 
 class DifferentialDriveRobotLocation:
     """
@@ -259,7 +260,7 @@ class DifferentialDriveMovementController:
 
         if elapsed_time < 0.0000000001:
             elapsed_time = 0.0000000001
-            print('[WARN] Almost dividing by zero') # TODO: Check warning
+            logging.warning('almost dividing by zero') # TODO: Check warning
         steps_per_sec_1 = delta_encoder_count_1 / elapsed_time
         angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
 
