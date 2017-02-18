@@ -61,7 +61,7 @@ def start(args):
                 thr.join(3)
                 if thr.is_alive():
                     logging.warning(
-                        '\033[33m join timed out, killing thread!!\033[0m')
+                        'join timed out, killing thread!!\033[0m')
                     if sys.version_info.major == 3:
                         thr._stop()
                     else:
@@ -79,7 +79,7 @@ def start(args):
             module = importlib.import_module(sect)
         except ImportError:
             logging.error(traceback.format_exc())
-            logging.error('\033[31m[*] module %s not loaded\033[0m', sect)
+            logging.error('module %s not loaded\033[0m', sect)
         # no exception was raised
         else:
             logging.info('loaded %s', sect)
