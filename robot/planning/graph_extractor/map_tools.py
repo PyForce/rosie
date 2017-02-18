@@ -2,12 +2,11 @@
 Map tools
 """
 
+import json
 from itertools import chain
 
-import json
 import numpy as np
-
-from shapely.geometry import Polygon, LinearRing, LineString, JOIN_STYLE
+from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
 from shapely.ops import cascaded_union
 
 
@@ -54,10 +53,9 @@ class Room(object):
         self.support_points = []
 
     def _borders_points(self):
-        '''
+        """
         Get all border points in matrix form
-        :return: m `np.matrix` m[i] = [x_i, y_i]
-        '''
+        """
         points = []
         for border in self._borders:
             points.extend([(b[0], b[1]) for b in border])
@@ -93,23 +91,26 @@ class Map(object):
             jsonmap = json.load(jfile)
             self.__rooms = [Room(room, room_name) for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
-            self._items_border_points = self._items_border_points()
+            self.__items_border_points = self.__generate_items_border_points()
 
             self._generate_polygon()
 
     @property
     def rooms(self):
+        """
+        All rooms contained in the map
+        """
         return self.__rooms
 
     def __generate_borders_points(self):
         polygon = cascaded_union([Polygon(room.borders_points) for room in self.rooms])
         return np.array(polygon.exterior.coords)[:-1]
 
-    def _items_border_points(self):
-        points = []
+    def __generate_items_border_points(self):
+        points = np.array([])
         for room in self.rooms:
             for item in room.items:
-                points.append(item.border_points)
+                np.append(points, item.border_points)
         return points
 
     def _generate_polygon(self):
@@ -175,17 +176,12 @@ class Map(object):
         holes_p = [Polygon(h) for h in holes]
         border_p = Polygon(support_points)
 
-        c = 1000
-
         for i in range(all_points.shape[0] - 1):
             for j in range(all_points.shape[0] - 1):
-                if not c:
-                    break
-                c -= 1
 
                 line = np.array((all_points[i], all_points[j]))
                 if is_valid(LineString(line), border_p, holes_p):
-                    plt.plot(line[:,0], line[:,1], 'b')
+                    plt.plot(line[:, 0], line[:, 1], 'b')
 
         plot_line(self.borders_points, support_points)
 
@@ -195,11 +191,25 @@ class Map(object):
 
     @property
     def borders_points(self):
+        """
+        Current border points
+        """
         return self.__borders_points
 
     @property
     def items_border_points(self):
-        return self._items_border_points
+        """
+        Border points for Items
+        """
+        return self.__items_border_points
 
 
-m = Map('../maps/map.json')
+def main():
+    """
+    Main function
+    """
+    Map('../maps/map.json')
+
+
+if __name__ == '__main__':
+    main()
