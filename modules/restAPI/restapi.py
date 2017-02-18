@@ -2,7 +2,6 @@ import math
 import os
 
 from flask import request, jsonify, json, url_for, send_file, abort
-from scanner import scanner_server as scanner
 
 from . import app, ws
 from .utils import allow_origin
@@ -260,6 +259,7 @@ def map(name):
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
+
     def __init__(self, robot):
         self.robot = robot
         self.move = []
@@ -279,7 +279,8 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
                 message = ws.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
-        app.route('/auto_mode', methods=['PUT', 'POST'])(allow_origin(self.auto_mode))
+        app.route('/auto_mode', methods=['PUT',
+                                         'POST'])(allow_origin(self.auto_mode))
         app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
             self.manual_mode))
         self.last_location = 0, 0, 0
