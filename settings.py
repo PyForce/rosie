@@ -6,6 +6,7 @@ else:
 
 
 class FallbackConfigParser(configparser.ConfigParser, object):
+
     def get(self, section, option, fallback=None):
         if self.has_section(section) and self.has_option(section, option):
             return super(FallbackConfigParser, self).get(section, option)
@@ -31,7 +32,7 @@ class FallbackConfigParser(configparser.ConfigParser, object):
         else:
             return fallback
 
-config = FallbackConfigParser(defaults={'active': 'False', 'log': 'False',
+config = FallbackConfigParser(defaults={'active': 'False', 'logfile': 'None', 'loglevel': 'INFO',
                                         'profile': 'simubot'})
 read = config.read('config.ini')
 if 'config.ini' not in read:
