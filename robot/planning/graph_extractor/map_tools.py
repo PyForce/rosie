@@ -1,31 +1,45 @@
+"""
+Map tools
+"""
+
+from itertools import chain
 
 import json
 import numpy as np
 
-from shapely.geometry import Polygon, LinearRing, LineString
+from shapely.geometry import Polygon, LinearRing, LineString, JOIN_STYLE
 from shapely.ops import cascaded_union
 
 
 class Item(object):
+    """
+    Abstraction structure for Items
+    """
+    def __init__(self, item, item_name='', parent_item=None):
+        self.__item_name = item_name
+        self.__parent_item = parent_item
+        self.__borders = item['geometry']['coordinates']
+        self.__border_points = self.__generate_border_points()
 
-    def __init__(self, item, item_name=''):
-        self._borders = item['geometry']['coordinates']
-        self._item_name = item_name
-        self._border_points = self._border_points()
-
-    def _border_points(self):
-        points = []
-        for border in self._borders:
-            points.extend(border)
+    def __generate_border_points(self):
+        points = np.array([])
+        for border in self.__borders:
+            np.append(points, border)
         return np.array(points)
 
     @property
     def border_points(self):
-        return self._border_points
+        """
+        Border points
+        """
+        return self.__border_points
 
     @property
     def name(self):
-        return self._item_name
+        """
+        Item name
+        """
+        return self.__item_name
 
 
 class Room(object):
@@ -71,21 +85,23 @@ class Room(object):
 
 
 class Map(object):
-
+    """
+    Abstract structure for maps
+    """
     def __init__(self, jsonfile):
-        with open(jsonfile) as f:
-            jsonmap = json.load(f)
-            self._rooms = [Room(room, room_name) for room_name, room in jsonmap['rooms'].items()]
-            self._borders_points = self._borders_points()
+        with open(jsonfile) as jfile:
+            jsonmap = json.load(jfile)
+            self.__rooms = [Room(room, room_name) for room_name, room in jsonmap['rooms'].items()]
+            self.__borders_points = self.__generate_borders_points()
             self._items_border_points = self._items_border_points()
 
             self._generate_polygon()
 
     @property
     def rooms(self):
-        return self._rooms
+        return self.__rooms
 
-    def _borders_points(self):
+    def __generate_borders_points(self):
         polygon = cascaded_union([Polygon(room.borders_points) for room in self.rooms])
         return np.array(polygon.exterior.coords)[:-1]
 
@@ -121,7 +137,7 @@ class Map(object):
 
         # TODO: Move to the constructor
         H = 0.1
-        JOIN_STYLE = 1
+        join_style = JOIN_STYLE.mitre
 
         items_border_points = self.items_border_points
 
@@ -129,8 +145,11 @@ class Map(object):
         map_po = LineString(extend_line(self.borders_points)).parallel_offset(
             H,
             'left' if is_ccw else 'right',
-            join_style=JOIN_STYLE
+            join_style=join_style
         )
+        if map_po.geom_type == 'MultiLineString':
+            geoms = list(map_po.geoms)
+            map_po = list(chain(geoms[0].coords, geoms[1].coords))
         support_points = np.array(map_po)
 
         holes = []
@@ -141,7 +160,7 @@ class Map(object):
                 item_po = LineString(extend_line(item)).parallel_offset(
                     H,
                     'right' if is_ccw else 'left',
-                    join_style=JOIN_STYLE
+                    join_style=join_style
                 )
                 support_item_points = np.array(item_po)
                 holes.append(support_item_points)
@@ -176,7 +195,7 @@ class Map(object):
 
     @property
     def borders_points(self):
-        return self._borders_points
+        return self.__borders_points
 
     @property
     def items_border_points(self):
