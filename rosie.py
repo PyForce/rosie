@@ -7,6 +7,7 @@ print(" |_|  \___/\____/|_| ")
 print(" ------ SYSTEM ----- ")
 print("")
 
+import argparse
 import importlib
 import logging
 import os
@@ -15,8 +16,6 @@ import sys
 import threading
 import traceback
 
-from modules import kernel
-from robot import Robot
 from settings import config
 
 FORMAT = '[%(asctime)-15s] %(levelname)s %(message)s'
@@ -27,7 +26,18 @@ logging.basicConfig(format=FORMAT, level=logging.INFO, filename='rosie.log')
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), 'modules')))
 
 
-if __name__ == '__main__':
+def test(args):
+    import unittest
+    tests = unittest.TestLoader().discover('tests')
+    unittest.TextTestRunner(verbosity=2).run(tests)
+
+
+def start(args):
+    """
+    Handles the start of the rosie application
+    """
+    from modules import kernel
+    from robot import Robot
     # create the robot
     Robot()
     modules = []
@@ -73,3 +83,20 @@ if __name__ == '__main__':
     event = threading.Event()
     event.set()
     kernel._run(event)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title='subcommands')
+
+    parser_test = subparsers.add_parser('test', help='run tests')
+    parser_test.set_defaults(func=test)
+    parser_start = subparsers.add_parser(
+        'start', help='start the rosie application')
+    parser_start.set_defaults(func=start)
+
+    args = parser.parse_args()
+    args.func(args)
+
+if __name__ == '__main__':
+    main()
