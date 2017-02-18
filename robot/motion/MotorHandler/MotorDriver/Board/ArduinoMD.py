@@ -1,7 +1,9 @@
+import logging
+# TODO: more detailed error logs
 try:
     from serial import Serial
 except:
-    print ("      ERROR: Importing serial")
+    logging.error("couldn't import serial")
 
 from struct import *
 from math import pi
@@ -32,7 +34,7 @@ class Arduino(DualSpeedMotorDriver):
         try:
             self.serialPort = Serial(port, baudrate)
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
         self.batteryStatus = 100
         self.sampling = False
         self.speed1 = []
@@ -58,7 +60,7 @@ class Arduino(DualSpeedMotorDriver):
         try:
             self.serialPort.write(package)
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
 
     def read_delta_encoders_count_state(self):
         try:
@@ -87,7 +89,7 @@ class Arduino(DualSpeedMotorDriver):
                 delta_pulses1 = self.pulses1 - self.lastPulses1
                 delta_pulses2 = self.pulses2 - self.lastPulses2
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
         return delta_pulses1, delta_pulses2, self.batteryStatus, 0, 0
 
     def set_constants(self, kc, ki, kd):
@@ -95,13 +97,13 @@ class Arduino(DualSpeedMotorDriver):
         try:
             self.serialPort.write(package)
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
 
     def reset_encoders(self):
         try:
             self.serialPort.write(COMMAND_ENCODER_RESET)
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
 
 
     def start_sampling_speeds(self):
@@ -109,14 +111,14 @@ class Arduino(DualSpeedMotorDriver):
             self.serialPort.write(COMMAND_START_SAMPLING_SPEEDS)        
             self.sampling = True
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
 
     def stop_sampling_speeds(self):
         try:
             self.serialPort.write(COMMAND_STOP_SAMPLING_SPEEDS)
             self.sampling = False
         except:
-            print ("      Error using the serial port")
+            logging.error("error using the serial port")
 
     # For debuggin propuses only
     # TODO: This should run in other thread 
@@ -144,5 +146,5 @@ class Arduino(DualSpeedMotorDriver):
                     self.speed1.append(speed1)
                     self.speed2.append(speed2)
                 except:
-                    print ("      Error using the serial port")
+                    logging.error("error using the serial port")
             sleep(sleepLapse)

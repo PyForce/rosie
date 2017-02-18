@@ -1,4 +1,5 @@
 import os
+import logging
 
 from settings import config as global_settings
 
@@ -30,12 +31,12 @@ class SettingHandler:
                                    globals(), locals(), ['settings'], -1)
                 self.settings = _temp.settings
                 self.parameters = self.buildRobotParameters()
-                print('    PROFILE: ' + self.profile)
+                logging.info('load profile: ' + self.profile)
             except:
                 self.settings = None
-                print("    ERROR! In <" + self.profile + ">")
+                logging.error("problem loading <" + self.profile + ">")
         else:
-            print("    ERROR! Directory <" + self.profile + "> do not exist")
+            logging.error("directory <" + self.profile + "> do not exist")
 
     def buildMovementControllers(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
@@ -54,7 +55,7 @@ class SettingHandler:
                                                        timer,
                                                        self.parameters)
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildLocalizer(self):
@@ -62,10 +63,10 @@ class SettingHandler:
             if self.settings.LOCALIZER == 'ODOMETRY_RK2':
                 return RungeKutta2OdometryLocalizer(self.parameters)
             else:
-                print("    ERROR! Localizer Not Supported>")
+                logging.error("localizer not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildTrajectoryPlanner(self):
@@ -75,10 +76,10 @@ class SettingHandler:
             elif self.settings.INTERPOLATION == 'CUBIC':
                 return CubicTrajectoryPlanner()
             else:
-                print("    ERROR! Trajectory Planner Not Supported>")
+                logging.error("trajectory planner not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildMovementSupervisor(self):
@@ -91,10 +92,10 @@ class SettingHandler:
             if True:
                 return IOLinearizationTrajectoryTracker(self.parameters)
             else:
-                print("    ERROR! Trajectory Tracker Not Supported>")
+                logging.error("trajectory tracker not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
 
@@ -119,10 +120,10 @@ class SettingHandler:
                 power_motor_driver = MD25MotorDriver(1, 0x58)
                 return SoftSpeedControlledMH(speed_controller, power_motor_driver)
             else:
-                print("    ERROR! Motor Driver Not Supported>")
+                logging.error("motor driver not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildTimer(self):
@@ -146,7 +147,7 @@ class SettingHandler:
                                                     self.settings.MAX_SPEED)
 
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildPlanner(self):
@@ -187,10 +188,11 @@ class Robot:
 
         Example:
 
-        >>> r = Robot()
+        >>> r = Robot() # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+                PROFILE: ...
         >>> trajectory = [(1,2), (6,1), (0,0)]
         >>> t = 10
-        >>> r.follow(trajectory, t)
+        >>> r.follow(trajectory, t) # doctest: +ELLIPSIS
         """
 
         locations = [DifferentialDriveRobotLocation(p[0], p[1], 0.) for p in points]
@@ -199,8 +201,6 @@ class Robot:
 
         trajectory = DifferentialDriveTrajectoryParameters(locations,
             t, self.motion.robot_parameters.sample_time)
-
-        print(trajectory)
 
         self.track(trajectory)
 
@@ -231,7 +231,7 @@ class Robot:
         :return: current position (when ``x``, ``y`` and ``theta`` are None)
         :type: tuple
 
-        >>> r = Robot()
+        >>> r = Robot() # doctest: +ELLIPSIS
         >>> r.position(2,3,0.5)
         >>> r.position()
         (2, 3, 0.5)

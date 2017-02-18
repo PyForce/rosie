@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import importlib
 import os
+import logging
+
 
 from settings import config as global_settings
 
@@ -24,9 +26,9 @@ def load_global_settings():
             # substitute dirty exec call
             SETTINGS = importlib.import_module("profiles.%s.settings" %
                                                (profile))
-            print('    PROFILE: ' + profile)
+            logging.info('loaded profile: ' + profile)
         except:
             SETTINGS = None
-            print("    ERROR! In <"+profile+">")
+            logging.error("error loading profile <"+profile+">")
     else:
-        print("    WARNING! Directory <"+profile+"> do not exist")
+        logging.warning("directory <"+profile+"> does not exist")

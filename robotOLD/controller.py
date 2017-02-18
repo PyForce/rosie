@@ -5,6 +5,9 @@ import os
 import runpy
 import sys
 import time
+import logging
+
+
 from datetime import datetime
 
 from robotOLD.control import pid, track
@@ -23,11 +26,11 @@ __version__ = '1.12'
 #---- Python import ----
 # On Windows
 if sys.platform.startswith('win'):
-    print('    PLATFORM: Windows')
+    logging.info('platform: Windows')
     import threading
 # On UNIX & OS X
 else:
-    print('    PLATFORM: UNIX or OS X')
+    logging.info('platform: UNIX or OS X')
     import signal
 
 #---- rOSi import ----
@@ -40,7 +43,7 @@ if os.path.exists(os.path.join(os.getcwd(), 'robotOLD', 'boards',
     try:
         board = importlib.import_module('robotOLD.boards.%s' %
                                         settings.FILENAME[:-3])
-        print('    NAME: '+settings.MOBILE_ROBOT)
+        logging.info('name: '+settings.MOBILE_ROBOT)
     except:
         board = None
 
@@ -58,7 +61,7 @@ class Controller:
             except:
                 pass
         except:
-            print("    ERROR: The control board wasn't loaded")
+            logging.info("the control board wasn't loaded")
             self.robot = None
 
         #---- position ----
@@ -102,7 +105,7 @@ class Controller:
                 signal.signal(signal.SIGALRM, self._unix_handler)
                 signal.setitimer(signal.ITIMER_REAL, 0, 0)
             except:
-                print("    ERROR: Signal initializing")
+                logging.error("signal initializing")
             self._start_move = self._unix_timer_start
 
     def set_speed(self, set1=0, set2=0):
@@ -185,7 +188,7 @@ class Controller:
             try:
                 signal.setitimer(signal.ITIMER_REAL, 0, 0)
             except:
-                print("    ERROR: Signal finishing")
+                logging.error("signal finishing")
         self.set_speed()
         self.finished = True
 
@@ -263,7 +266,7 @@ class Controller:
             signal.setitimer(signal.ITIMER_REAL, self.sample_time,
                              self.sample_time)
         except:
-            print("    ERROR: Signal starting")
+            logging.error("signal starting")
 
     def _win_timer_start(self):
         """
@@ -395,7 +398,7 @@ class Controller:
         try:
             runpy.run_module('robotOLD.actions', init_globals={'self': self})
         except OSError:
-            print("    ERROR: Actions")
+            logging.error("actions")
 
     def async_speed(self, x, y):
         """
