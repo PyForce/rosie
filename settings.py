@@ -6,40 +6,45 @@ else:
 
 
 class FallbackConfigParser(configparser.ConfigParser, object):
-    def get(self, section, option, fallback=None):
-        if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).get(section, option)
-        else:
-            return fallback
 
-    def getint(self, section, option, fallback=None):
+    def get(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).getint(section, option)
+            return super(FallbackConfigParser, self).get(section, option,
+                                                         **kwargs)
         else:
-            return fallback
+            return kwargs.get('fallback', None)
 
-    def getfloat(self, section, option, fallback=None):
+    def getint(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).getfloat(section, option)
+            return super(FallbackConfigParser, self).getint(section, option,
+                                                            **kwargs)
         else:
-            return fallback
+            return kwargs.get('fallback', None)
 
-    def getboolean(self, section, option, fallback=None):
+    def getfloat(self, section, option, **kwargs):
+        if self.has_section(section) and self.has_option(section, option):
+            return super(FallbackConfigParser, self).getfloat(section, option,
+                                                              **kwargs)
+        else:
+            return kwargs.get('fallback', None)
+
+    def getboolean(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
             return super(FallbackConfigParser, self).getboolean(section,
-                                                                option)
+                                                                option,
+                                                                **kwargs)
         else:
-            return fallback
+            return kwargs.get('fallback', None)
 
-config = FallbackConfigParser(defaults={'active': 'False', 'log': 'False',
+config = FallbackConfigParser(defaults={'active': 'False', 'logfile': None, 'loglevel': 'INFO',
                                         'profile': 'simubot'})
 read = config.read('config.ini')
 if 'config.ini' not in read:
     with open('config.ini', 'w+') as fp:
         del config.defaults()['active']
-        _tmp, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
+        _, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
         config.write(fp)
-        configparser.DEFAULTSECT = _tmp
+        configparser.DEFAULTSECT = _
         config.defaults()['active'] = 'False'
         fp.seek(0)
         config.readfp(fp)

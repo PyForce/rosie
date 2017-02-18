@@ -16,9 +16,9 @@ if __name__ == '__main__':
 
 def init():
     from settings import config
-    host = config.get('WebHUD', 'host', '0.0.0.0')
-    port = config.getint('WebHUD', 'port', 5000)
-    debug = config.getboolean('WebHUD', 'debug', False)
+    host = config.get('WebHUD', 'host', fallback='0.0.0.0')
+    port = config.getint('WebHUD', 'port', fallback=5000)
+    debug = config.getboolean('WebHUD', 'debug', fallback=False)
     app.debug = debug
 
     global server
