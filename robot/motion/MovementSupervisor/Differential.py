@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-import thread
 
 __author__ = 'Silvio'
 
@@ -47,6 +46,7 @@ class SupervisorContainer(DifferentialDriveMovementSupervisor, list):
     """
         Class that groups multiple supervisors
     """
+
     def __init__(self, *supervisors):
         self.extend(supervisors)
 
