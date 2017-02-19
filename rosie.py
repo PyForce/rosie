@@ -43,7 +43,7 @@ def start(args):
     """
     Handles the start of the rosie application
     """
-    from modules import kernel
+    import time
     from robot import Robot
     # create the robot
     Robot()
@@ -61,7 +61,7 @@ def start(args):
                 thr.join(3)
                 if thr.is_alive():
                     logging.warning(
-                        'join timed out, killing thread!!\033[0m')
+                        'join timed out, killing thread!!')
                     if sys.version_info.major == 3:
                         thr._stop()
                     else:
@@ -89,10 +89,11 @@ def start(args):
                 thr.start()
             modules.append((module, thr))
 
-    # run kernel as main thread
     event = threading.Event()
     event.set()
-    kernel._run(event)
+    # main thread
+    while event.is_set():
+        time.sleep(2)
 
 
 def main():
