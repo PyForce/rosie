@@ -21,6 +21,7 @@ COMMAND_ENCODER_RESET = b'\xAA'
 COMMAND_START_SAMPLING_SPEEDS = b'\xAB'
 COMMAND_STOP_SAMPLING_SPEEDS = b'\xAC'
 
+
 class Arduino(DualSpeedMotorDriver):
     """
     A class to represent an Arduino Motor Driver
@@ -34,7 +35,7 @@ class Arduino(DualSpeedMotorDriver):
         try:
             self.serialPort = Serial(port, baudrate)
         except:
-            logging.error("error using the serial port")
+            logging.error("serial port not found")
         self.batteryStatus = 100
         self.sampling = False
         self.speed1 = []
@@ -60,7 +61,7 @@ class Arduino(DualSpeedMotorDriver):
         try:
             self.serialPort.write(package)
         except:
-            logging.error("error using the serial port")
+            logging.error("setting speeds")
 
     def read_delta_encoders_count_state(self):
         try:
@@ -72,24 +73,24 @@ class Arduino(DualSpeedMotorDriver):
                 pulses1 += self.serialPort.read()
                 pulses1 += self.serialPort.read()
                 pulses1, = unpack("i", pulses1)
-                            
+
                 pulses2 = self.serialPort.read()
                 pulses2 += self.serialPort.read()
                 pulses2 += self.serialPort.read()
                 pulses2 += self.serialPort.read()
                 pulses2, = unpack("i", pulses2)
-                
+
                 batteryCharge, = unpack('B', self.serialPort.read())
-                
+
                 self.lastPulses1 = self.pulses1
                 self.lastPulses2 = self.pulses2
-                self.pulses1= pulses1
-                self.pulses2= pulses2
+                self.pulses1 = pulses1
+                self.pulses2 = pulses2
                 self.batteryStatus = batteryCharge
                 delta_pulses1 = self.pulses1 - self.lastPulses1
                 delta_pulses2 = self.pulses2 - self.lastPulses2
         except:
-            logging.error("error using the serial port")
+            logging.error("reading encoders")
         return delta_pulses1, delta_pulses2, self.batteryStatus, 0, 0
 
     def set_constants(self, kc, ki, kd):
@@ -97,36 +98,35 @@ class Arduino(DualSpeedMotorDriver):
         try:
             self.serialPort.write(package)
         except:
-            logging.error("error using the serial port")
+            logging.error("setting constants")
 
     def reset_encoders(self):
         try:
             self.serialPort.write(COMMAND_ENCODER_RESET)
         except:
-            logging.error("error using the serial port")
-
+            logging.error("reseting encoders")
 
     def start_sampling_speeds(self):
         try:
-            self.serialPort.write(COMMAND_START_SAMPLING_SPEEDS)        
+            self.serialPort.write(COMMAND_START_SAMPLING_SPEEDS)
             self.sampling = True
         except:
-            logging.error("error using the serial port")
+            logging.error("start sampling")
 
     def stop_sampling_speeds(self):
         try:
             self.serialPort.write(COMMAND_STOP_SAMPLING_SPEEDS)
             self.sampling = False
         except:
-            logging.error("error using the serial port")
+            logging.error("stop sampling")
 
     # For debuggin propuses only
-    # TODO: This should run in other thread 
+    # TODO: This should run in other thread
     def run_sampler(self):
         sleepLapse = 0.01
         while True:
             if self.sampling == True:
-                try:                    
+                try:
                     while self.serialPort.inWaiting() < 4:
                         sleep(sleepLapse)
                     speed1 = self.serialPort.read()
@@ -146,5 +146,5 @@ class Arduino(DualSpeedMotorDriver):
                     self.speed1.append(speed1)
                     self.speed2.append(speed2)
                 except:
-                    logging.error("error using the serial port")
+                    logging.error("running sampler")
             sleep(sleepLapse)
