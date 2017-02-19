@@ -17,7 +17,7 @@ class RobotTest(unittest.TestCase):
         Tests that the robot class is a singleton
         """
         new_bot = Robot()
-        self.assertEqual(id(self.bot), id(new_bot))
+        self.assertIs(self.bot, new_bot)
 
     def test_initial_position(self):
         """
