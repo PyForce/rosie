@@ -1,4 +1,5 @@
 from __future__ import print_function
+from os.path import abspath, dirname, join as joinpath
 
 # from robot.planner.maps.graph import AdjacencyMatrixGraph as Graph
 import json
@@ -203,4 +204,5 @@ def generate(jsonfile):
 
 
 if __name__ == '__main__':
-    generate('../maps/map.json')
+    path = abspath(joinpath(dirname(__file__), '..', 'maps', 'map.json'))
+    generate(path)
