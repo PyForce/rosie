@@ -136,7 +136,7 @@ class Map(object):
             self.__rooms = [Room(room, room_name, self.locations) for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
             self.__items_border_points = self.__generate_items_border_points()
-            self.__visibility_graph = self.__generate_visivility_graph()
+            self.__beveled_points, self.__visibility_graph = self.__generate_visivility_graph()
 
     @property
     def visibility_graph(self):
@@ -144,6 +144,13 @@ class Map(object):
         Get visibility graph
         """
         return self.__visibility_graph
+
+    @property
+    def beveled_points(self):
+        """
+        Get points that are reachable for the robot
+        """
+        return self.__beveled_points
 
     @property
     def rooms(self):
@@ -239,7 +246,7 @@ class Map(object):
                 if is_valid(LineString(line), border_p, holes_p):
                     visibility_graph[i, j] = True
 
-        return visibility_graph
+        return all_points, visibility_graph
 
 
 def main():
