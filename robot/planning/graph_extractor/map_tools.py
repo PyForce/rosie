@@ -102,6 +102,10 @@ class Room(object):
         return self._borders_points
 
     @property
+    def borders(self):
+        return self._borders
+
+    @property
     def walls(self):
         return self._walls
 
