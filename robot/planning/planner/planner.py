@@ -1,6 +1,8 @@
 import os
 import json
 
+from ..graph_extractor import Map
+
 
 class Planner(object):
     def __init__(self, mapdir=None):
@@ -8,6 +10,9 @@ class Planner(object):
                                              'maps')
 
     def get_points(self, start, end):
+        """
+        Get points for the trajectory
+        """
         return [start, end]
 
     @property
