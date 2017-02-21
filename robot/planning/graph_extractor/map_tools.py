@@ -50,11 +50,14 @@ class Item(object):
     """
     Abstraction structure for Items
     """
-    def __init__(self, item, item_name='', parent_item=None):
+    def __init__(self, item, item_name='', locations=None, parent_item=None):
         self.__item_name = item_name
         self.__parent_item = parent_item
         self.__borders = item['geometry']['coordinates']
         self.__border_points = self.__generate_border_points()
+
+        if locations is not None:
+            locations[item_name] = self.__border_points
 
     def __generate_border_points(self):
         points = np.array([])
@@ -79,14 +82,18 @@ class Item(object):
 
 class Room(object):
 
-    def __init__(self, room, room_name=''):
+    def __init__(self, room, room_name='', locations=None):
         self._room_name = room_name
         self._borders = room['borders']['geometry']['coordinates']
         self._walls = room['walls']['geometry']['coordinates']
         self._doors = room['doors']['geometry']['coordinates']
-        self._items = [Item(item, item_name) for item_name, item in room['items'].items()]
+        self._items = [Item(item, item_name, locations) for item_name, item in room['items'].items()]
         self._borders_points = self._borders_points()
         self.support_points = []
+
+        if locations is not None:
+            locations[room_name] = self._borders_points
+
 
     def _borders_points(self):
         """
@@ -125,7 +132,8 @@ class Map(object):
     def __init__(self, jsonfile):
         with open(jsonfile) as jfile:
             jsonmap = json.load(jfile)
-            self.__rooms = [Room(room, room_name) for room_name, room in jsonmap['rooms'].items()]
+            self.locations = {}
+            self.__rooms = [Room(room, room_name, self.locations) for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
             self.__items_border_points = self.__generate_items_border_points()
 
