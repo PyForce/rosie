@@ -7,6 +7,9 @@ class Planner(object):
         self.mapdir = mapdir or os.path.join(os.path.dirname(__file__), '..',
                                              'maps')
 
+    def get_points(self, start, end):
+        return [start, end]
+
     @property
     def map(self):
         return self._map
