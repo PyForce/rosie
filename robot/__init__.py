@@ -182,6 +182,10 @@ class Robot:
 
         self.track(trajectory)
 
+    def go_to_with_planner(self, x, y, t):
+        points = self.planner.get_points(start=self.position(), end=(x, y))
+        self.follow(points, t)
+
     def follow(self, points, t):
         """
         Allows the robot to follow a set of given points in time t * len(points).
