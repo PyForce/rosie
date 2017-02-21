@@ -195,6 +195,21 @@ def goto():
     return 'OK'
 
 
+@app.route('/gotoplanner', methods=['POST'])
+@allow_origin
+def gotoplanner():
+    """
+    {
+        "target": [x, y, t],
+    }
+    """
+    values = objetify(request)
+
+    robot = Robot()
+    robot.go_to_with_planner(*values[u'target'])
+    return 'OK'
+
+
 @app.route('/follow', methods=['POST'])
 @allow_origin
 def follow():
