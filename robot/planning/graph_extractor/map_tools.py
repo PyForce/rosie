@@ -10,6 +10,42 @@ from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
 from shapely.ops import cascaded_union
 
 
+def _get_all_features(item):
+    item_type = item['type']
+    item_geometry = item['geometry']
+    item_geometry_type = item_geometry['type']
+    item_geometry_coordinates = item_geometry['coordinates']
+    return item_type, item_geometry, item_geometry_type, item_geometry_coordinates
+
+
+def _get_any(item, item_name, expected='', func=lambda l: sum(l, [])):
+    item = item[item_name]
+    _, _, geometry_type, coordinates = _get_all_features(item)
+    if expected:
+        assert geometry_type == expected, item_name + ' accesor in a not ' + expected + ' Item'
+    return func(coordinates)
+
+
+def _get_borders(item, func=lambda l: sum(l, [])):
+    """
+    Get the borders coordinates then apply the function `func`
+    """
+    return _get_any(item, 'borders', 'Polygon', func)
+
+
+def _get_walls(item, func=lambda l: sum(l, [])):
+    return _get_any(item, 'walls', 'MultiLineString', func)
+
+
+def _get_doors(item, func=lambda l: sum(l, [])):
+    return _get_any(item, 'doors', 'MultiLineString', func)
+
+
+def _get_all_items(item, func=lambda l: sum(l, [])):
+    return {item_name: _get_any(item_val, item_name, 'Polygon', func)
+            for item_name, item_val in item.items()}
+
+
 class Item(object):
     """
     Abstraction structure for Items
@@ -95,12 +131,32 @@ class Map(object):
 
             self._generate_polygon()
 
+    def visibility_graph(self):
+        """
+        Generate the visibility graph
+        """
+        pass
+
     @property
     def rooms(self):
         """
-        All rooms contained in the map
+        List of all the rooms in the map
         """
         return self.__rooms
+
+    @property
+    def borders_points(self):
+        """
+        Current border points
+        """
+        return self.__borders_points
+
+    @property
+    def items_border_points(self):
+        """
+        Border points for Items
+        """
+        return self.__items_border_points
 
     def __generate_borders_points(self):
         polygon = cascaded_union([Polygon(room.borders_points) for room in self.rooms])
@@ -188,20 +244,6 @@ class Map(object):
         plt.gca().axis('off')
         plt.gca().set_aspect(1)
         plt.show()
-
-    @property
-    def borders_points(self):
-        """
-        Current border points
-        """
-        return self.__borders_points
-
-    @property
-    def items_border_points(self):
-        """
-        Border points for Items
-        """
-        return self.__items_border_points
 
 
 def main():
