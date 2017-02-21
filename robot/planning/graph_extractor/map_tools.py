@@ -136,14 +136,14 @@ class Map(object):
             self.__rooms = [Room(room, room_name, self.locations) for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
             self.__items_border_points = self.__generate_items_border_points()
+            self.__visibility_graph = self.__generate_visivility_graph()
 
-            self._generate_polygon()
-
+    @property
     def visibility_graph(self):
         """
-        Generate the visibility graph
+        Get visibility graph
         """
-        pass
+        return self.__visibility_graph
 
     @property
     def rooms(self):
@@ -177,16 +177,9 @@ class Map(object):
                 np.append(points, item.border_points)
         return points
 
-    def _generate_polygon(self):
+    def __generate_visivility_graph(self):
         def extend_line(line):
             return np.append(line, [line[0], line[1]], axis=0)
-
-        def plot_line(line, support_line):
-            line = np.array(line)
-            support_line = np.array(support_line)
-
-            plt.plot(line[:,0], line[:,1], 'r')
-            plt.plot(support_line[:,0], support_line[:,1], 'y')
 
         def is_valid(line, border, holes):
             intersects = False
@@ -198,13 +191,9 @@ class Map(object):
                     break
             return border.contains(line) and not intersects
 
-        import matplotlib.pyplot as plt
-
         # TODO: Move to the constructor
         H = 0.1
         join_style = JOIN_STYLE.mitre
-
-        items_border_points = self.items_border_points
 
         is_ccw = LinearRing(self.borders_points).is_ccw
         map_po = LineString(extend_line(self.borders_points)).parallel_offset(
@@ -240,25 +229,25 @@ class Map(object):
         holes_p = [Polygon(h) for h in holes]
         border_p = Polygon(support_points)
 
+        points_len = len(all_points)
+        visibility_graph = np.zeros(shape=(points_len, points_len))
+
         for i in range(all_points.shape[0] - 1):
             for j in range(all_points.shape[0] - 1):
 
                 line = np.array((all_points[i], all_points[j]))
                 if is_valid(LineString(line), border_p, holes_p):
-                    plt.plot(line[:, 0], line[:, 1], 'b')
+                    visibility_graph[i, j] = True
 
-        plot_line(self.borders_points, support_points)
-
-        plt.gca().axis('off')
-        plt.gca().set_aspect(1)
-        plt.show()
+        return visibility_graph
 
 
 def main():
     """
     Main function
     """
-    Map('../maps/map.json')
+    tmap = Map('../maps/map.json')
+    print tmap.visibility_graph
 
 
 if __name__ == '__main__':
