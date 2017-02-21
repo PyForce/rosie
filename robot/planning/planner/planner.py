@@ -17,6 +17,9 @@ class Planner(object):
         """
         return self.graph.astar_path(start, end)
 
+    def get_points(self, start, end):
+        return [start, end]
+
     @property
     def map(self):
         return self.__map
