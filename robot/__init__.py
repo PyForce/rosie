@@ -183,7 +183,7 @@ class Robot:
         self.track(trajectory)
 
     def go_to_with_planner(self, x, y, t):
-        points = self.planner.get_points(start=self.position(), end=(x, y))
+        points = self.planner.get_points(start=self.position()[:-1], end=(x, y))
         self.follow(points, t)
 
     def follow(self, points, t):
