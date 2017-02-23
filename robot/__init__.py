@@ -267,3 +267,6 @@ class Robot:
 
     def get_map(self, name):
         return self.planner.get_map(name) if name else self.planner.map
+
+    def use_map(self, map_name):
+        self.planner.use_map(map_name)
