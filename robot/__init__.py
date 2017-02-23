@@ -18,7 +18,9 @@ from robot.motion.MovementSupervisor.Differential import SupervisorContainer
 
 
 from tools.singleton import Singleton
-from planning.planner import Planner
+from .planning.planner import Planner
+
+from .planning.graph_extractor import list_maps
 
 
 class SettingHandler:
@@ -151,7 +153,9 @@ class SettingHandler:
 
     def buildPlanner(self):
         planner = Planner()
-        planner.map = "Gustavo's House"
+        # TODO: Move this to the Web
+        # Use by default
+        planner.use_map("Gustavo's House")
         return planner
 
 
@@ -262,10 +266,13 @@ class Robot:
         self.motion.trajectory_planner = newplanner
 
     def maps(self):
-        return (map['name'] for map in self.planner.maps())
+        """
+        Get all names for the maps
+        """
+        return (tmap['name'] for _, tmap in list_maps())
 
-    def get_map(self, name):
-        return self.planner.get_map(name) if name else self.planner.map
+    def get_map(self, map_name):
+        return self.planner.get_map(map_name)
 
     def use_map(self, map_name):
         self.planner.use_map(map_name)
