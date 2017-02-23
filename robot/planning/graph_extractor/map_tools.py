@@ -1,6 +1,7 @@
 """
 Map tools
 """
+from __future__ import print_function
 
 import json
 import os
@@ -72,10 +73,9 @@ class Item(object):
             locations[item_name] = self.__border_points
 
     def __generate_border_points(self):
-        points = np.array([])
-        for border in self.__borders:
-            np.append(points, border)
-        return np.array(points)
+        if not self.__borders:
+            return np.array([])
+        return np.array(self.__borders[0])
 
     @property
     def border_points(self):
