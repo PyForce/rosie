@@ -241,8 +241,6 @@ class Map(object):
                 support_item_points = np.array(item_po)
                 holes.append(support_item_points)
 
-                plot_line(item, support_item_points)
-
         all_points = support_points
 
         for hole in holes:
