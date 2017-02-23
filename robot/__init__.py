@@ -1,5 +1,5 @@
 import os
-import logging
+import numpy as np
 
 from settings import config as global_settings
 
@@ -19,25 +19,26 @@ from robot.motion.MovementSupervisor.Differential import SupervisorContainer
 
 
 from tools.singleton import Singleton
-from robot.planning.planner import Planner
+from .planning.planner import Planner
+
+from .planning.graph_extractor import list_maps
 
 
 class SettingHandler:
-
     def __init__(self):
         self.profile = global_settings.get('general', 'profile')
         if os.path.exists(os.path.join(os.getcwd(), 'profiles', self.profile)):
             try:
-                import importlib
-                self.settings = importlib.import_module(
-                    "profiles.%s.settings" % self.profile)
+                _temp = __import__("profiles.%s" % (self.profile),
+                                   globals(), locals(), ['settings'], -1)
+                self.settings = _temp.settings
                 self.parameters = self.buildRobotParameters()
-                logging.info('load profile: ' + self.profile)
-            except ImportError:
+                print('    PROFILE: ' + self.profile)
+            except:
                 self.settings = None
-                logging.error("problem loading <" + self.profile + ">")
+                print("    ERROR! In <" + self.profile + ">")
         else:
-            logging.error("directory <" + self.profile + "> do not exist")
+            print("    ERROR! Directory <" + self.profile + "> do not exist")
 
     def buildMovementControllers(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
@@ -56,7 +57,7 @@ class SettingHandler:
                                                        timer,
                                                        self.parameters)
         else:
-            logging.error("kinematic model not supported")
+            print("    ERROR! Kinematic Model Not Supported>")
             return None
 
     def buildLocalizer(self):
@@ -64,10 +65,10 @@ class SettingHandler:
             if self.settings.LOCALIZER == 'ODOMETRY_RK2':
                 return RungeKutta2OdometryLocalizer(self.parameters)
             else:
-                logging.error("localizer not supported")
+                print("    ERROR! Localizer Not Supported>")
                 return None
         else:
-            logging.error("kinematic model not supported")
+            print("    ERROR! Kinematic Model Not Supported>")
             return None
 
     def buildTrajectoryPlanner(self):
@@ -77,10 +78,10 @@ class SettingHandler:
             elif self.settings.INTERPOLATION == 'CUBIC':
                 return CubicTrajectoryPlanner()
             else:
-                logging.error("trajectory planner not supported")
+                print("    ERROR! Trajectory Planner Not Supported>")
                 return None
         else:
-            logging.error("kinematic model not supported")
+            print("    ERROR! Kinematic Model Not Supported>")
             return None
 
     def buildMovementSupervisor(self):
@@ -93,24 +94,25 @@ class SettingHandler:
             if True:
                 return IOLinearizationTrajectoryTracker(self.parameters)
             else:
-                logging.error("trajectory tracker not supported")
+                print("    ERROR! Trajectory Tracker Not Supported>")
                 return None
         else:
-            logging.error("kinematic model not supported")
+            print("    ERROR! Kinematic Model Not Supported>")
             return None
+
+
 
     def buildMotorHandler(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
             if self.settings.FILENAME == 'VirtualMD.py':
                 from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
-                speed_motor_driver = VirtualMotorDriver(
-                    self.parameters.steps_per_revolution, self.parameters.max_speed)
+                speed_motor_driver = VirtualMotorDriver(self.parameters.steps_per_revolution, self.parameters.max_speed)
                 return HardSpeedControlledMH(speed_motor_driver)
             if self.settings.FILENAME == 'ArduinoMD.py':
                 from robot.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
                 speed_motor_driver = Arduino(self.settings.MAX_SPEED)
                 speed_motor_driver.set_constants(self.parameters.constant_kc, self.parameters.constant_ki,
-                                                 self.parameters.constant_kd)
+                                                      self.parameters.constant_kd)
                 return HardSpeedControlledMH(speed_motor_driver)
             elif self.settings.FILENAME == 'MD25.py':
                 from robot.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
@@ -120,10 +122,10 @@ class SettingHandler:
                 power_motor_driver = MD25MotorDriver(1, 0x58)
                 return SoftSpeedControlledMH(speed_controller, power_motor_driver)
             else:
-                logging.error("motor driver not supported")
+                print("    ERROR! Motor Driver Not Supported>")
                 return None
         else:
-            logging.error("kinematic model not supported")
+            print("    ERROR! Kinematic Model Not Supported>")
             return None
 
     def buildTimer(self):
@@ -147,12 +149,14 @@ class SettingHandler:
                                                     self.settings.MAX_SPEED)
 
         else:
-            logging.error("kinematic model not supported")
+            print("    ERROR! Kinematic Model Not Supported>")
             return None
 
     def buildPlanner(self):
         planner = Planner()
-        planner.map = "Gustavo's House"
+        # TODO: Move this to the Web
+        # Use by default
+        planner.use_map("Gustavo's House")
         return planner
 
 
@@ -183,8 +187,14 @@ class Robot:
         self.track(trajectory)
 
     def go_to_with_planner(self, x, y, t):
-        points = self.planner.get_points(start=self.position()[:-1], end=(x, y))
-        self.follow(points, t)
+        start = self.position()[:-1]
+        end = np.array([x, y])
+        points = self.planner.get_points(start=start, end=end)
+
+        if not points:
+            print('No available path. start=%r, end=%r' % (start, end))
+        else:
+            self.follow(points, t)
 
     def follow(self, points, t):
         """
@@ -192,20 +202,20 @@ class Robot:
 
         Example:
 
-        >>> r = Robot() # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-                PROFILE: ...
+        >>> r = Robot()
         >>> trajectory = [(1,2), (6,1), (0,0)]
         >>> t = 10
-        >>> r.follow(trajectory, t) # doctest: +ELLIPSIS
+        >>> r.follow(trajectory, t)
         """
 
-        locations = [DifferentialDriveRobotLocation(
-            p[0], p[1], 0.) for p in points]
+        locations = [DifferentialDriveRobotLocation(p[0], p[1], 0.) for p in points]
         pos = self.position()
-        locations.insert(0, DifferentialDriveRobotLocation(pos[0], pos[1], 0))
+        locations.insert(0,DifferentialDriveRobotLocation(pos[0],pos[1],0))
 
         trajectory = DifferentialDriveTrajectoryParameters(locations,
-                                                           t, self.motion.robot_parameters.sample_time)
+            t, self.motion.robot_parameters.sample_time)
+
+        print(trajectory)
 
         self.track(trajectory)
 
@@ -236,7 +246,7 @@ class Robot:
         :return: current position (when ``x``, ``y`` and ``theta`` are None)
         :type: tuple
 
-        >>> r = Robot() # doctest: +ELLIPSIS
+        >>> r = Robot()
         >>> r.position(2,3,0.5)
         >>> r.position()
         (2, 3, 0.5)
@@ -263,10 +273,13 @@ class Robot:
         self.motion.trajectory_planner = newplanner
 
     def maps(self):
-        return (map['name'] for map in self.planner.maps())
+        """
+        Get all names for the maps
+        """
+        return (tmap['name'] for _, tmap in list_maps())
 
-    def get_map(self, name):
-        return self.planner.get_map(name) if name else self.planner.map
+    def get_map(self, map_name):
+        return self.planner.get_map(map_name)
 
     def use_map(self, map_name):
         self.planner.use_map(map_name)
