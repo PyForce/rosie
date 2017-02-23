@@ -3,6 +3,7 @@ Map tools
 """
 
 import json
+import os
 from itertools import chain
 
 import numpy as np
@@ -44,6 +45,15 @@ def _get_doors(item, func=lambda l: sum(l, [])):
 def _get_all_items(item, func=lambda l: sum(l, [])):
     return {item_name: _get_any(item_val, item_name, 'Polygon', func)
             for item_name, item_val in item.items()}
+
+
+def list_maps(mapdir='../maps'):
+    """
+    Lazy return all maps in `mapdir` directory
+    """
+    for tmap in os.listdir(mapdir):
+        with open(os.path.join(mapdir, tmap), 'r') as map_file:
+            yield json.load(map_file)
 
 
 class Item(object):
