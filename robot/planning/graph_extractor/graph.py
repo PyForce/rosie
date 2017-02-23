@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from heapq import heappush, heappop
+from itertools import count
+import numpy as np
+
 
 class AdjacencyMatrixGraph(object):
     """
@@ -10,11 +14,11 @@ class AdjacencyMatrixGraph(object):
         self.labels = labels
         self.matrix = matrix
 
-    def successors(self, point):
+    def neighbors(self, u):
         """
-        Get all the successors of the given point
+        Get all the neighbors of the given vertex index
         """
-        return (v for v in self.vertices if self.matrix[point, v])
+        return (v for v in range(len(self.vertices)) if self.matrix[u, v])
 
     def pos_of(self, tag):
         """
@@ -41,3 +45,81 @@ class AdjacencyMatrixGraph(object):
         #         if v.pos == name:
         #             return v
         # return None
+
+    @staticmethod
+    def distance(vertex1, vertex2):
+        x, y = vertex1 - vertex2
+        return np.hypot(x, y)
+
+    @staticmethod
+    def heuristic(vertex1, vertex2):
+        return AdjacencyMatrixGraph.distance(vertex1, vertex2)
+
+    # from NetworkX
+    def astar_path(self, source, target):
+        for i, vertex in enumerate(self.vertices):
+            if all(source == vertex):
+                s_index = i
+                break
+        else:
+            return None
+
+        c = count()
+        queue = [(0, next(c), s_index, 0, None)]
+
+        enqueued = {}
+        explored = {}
+
+        while queue:
+            _, __, u, path_dist, parent = heappop(queue)
+            vertex = self.vertices[u]
+
+            if all(vertex == target):
+                path = [self.vertices[u]]
+                node = parent
+                while node is not None:
+                    path.append(self.vertices[node])
+                    node = explored[node]
+                path.reverse()
+                return path
+
+            if u in explored:
+                continue
+
+            explored[u] = parent
+            for v in self.neighbors(u):
+                neighbor = self.vertices[v]
+
+                if v in explored:
+                    continue
+
+                ncost = path_dist + self.distance(vertex, neighbor)
+                if v in enqueued:
+                    qcost, h = enqueued[v]
+                    if qcost <= ncost:
+                        continue
+                else:
+                    h = self.heuristic(neighbor, target)
+                enqueued[v] = ncost, h
+                heappush(queue, (ncost + h, next(c), v, ncost, u))
+
+        return None
+
+
+if __name__ == '__main__':
+    vertices = np.array([
+        [0.0, 0.0],
+        [1.1, 0.0],
+        [2.2, 2.0],
+        [2.3, 1.0]
+    ])
+
+    matrix = np.array([
+        [True, True, False, False],
+        [False, True, True, False],
+        [True, False, True, True],
+        [False, False, True, True]
+    ])
+    graph = AdjacencyMatrixGraph(vertices, matrix)
+    print("from %r to %r" % (vertices[0], vertices[3]))
+    print(graph.astar_path(vertices[0], vertices[3]))
