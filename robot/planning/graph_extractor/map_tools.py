@@ -103,7 +103,8 @@ class Room(object):
         self._borders = room['borders']['geometry']['coordinates']
         self._walls = room['walls']['geometry']['coordinates']
         self._doors = room['doors']['geometry']['coordinates']
-        self._items = [Item(item, item_name, locations) for item_name, item in room['items'].items()]
+        self._items = [Item(item, item_name, locations)
+                        for item_name, item in room['items'].items()]
         self._borders_points = self._borders_points()
         self.support_points = []
 
