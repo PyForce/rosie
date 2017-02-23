@@ -203,19 +203,24 @@ class Map(object):
                     points.append(item.border_points)
         return points
 
+    @staticmethod
+    def is_valid(line, border, holes):
+        """
+        Say if the given `line` is valid within `border` and `holes`
+        """
+        intersects = False
+        for hole in holes:
+            if hole.touches(line):
+                continue
+            if hole.intersects(line):
+                intersects = True
+                break
+        return border.contains(line) and not intersects
+
     def __generate_visivility_graph(self):
         def extend_line(line):
             return np.append(line, [line[0], line[1]], axis=0)
 
-        def is_valid(line, border, holes):
-            intersects = False
-            for hole in holes:
-                if hole.touches(line):
-                    continue
-                if hole.intersects(line):
-                    intersects = True
-                    break
-            return border.contains(line) and not intersects
 
         # TODO: Move to the constructor
         H = 0.1
