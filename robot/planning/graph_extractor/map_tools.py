@@ -52,8 +52,9 @@ def list_maps(mapdir='../maps'):
     Lazy return all maps in `mapdir` directory
     """
     for tmap in os.listdir(mapdir):
-        with open(os.path.join(mapdir, tmap), 'r') as map_file:
-            yield json.load(map_file)
+        map_path = os.path.abspath(os.path.join(mapdir, tmap))
+        with open(map_path, 'r') as map_file:
+            yield map_path, json.load(map_file)
 
 
 class Item(object):
