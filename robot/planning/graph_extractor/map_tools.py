@@ -144,7 +144,8 @@ class Map(object):
         with open(jsonfile) as jfile:
             jsonmap = json.load(jfile)
             self.locations = {}
-            self.__rooms = [Room(room, room_name, self.locations) for room_name, room in jsonmap['rooms'].items()]
+            self.__rooms = [Room(room, room_name, self.locations)
+                            for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
             self.__items_border_points = self.__generate_items_border_points()
             self.__beveled_points, self.__visibility_graph = self.__generate_visivility_graph()
