@@ -51,6 +51,7 @@ def list_maps(mapdir='../maps'):
     """
     Lazy return all maps in `mapdir` directory
     """
+    mapdir = os.path.join(os.path.dirname(__file__), mapdir)
     for tmap in os.listdir(mapdir):
         map_path = os.path.abspath(os.path.join(mapdir, tmap))
         with open(map_path, 'r') as map_file:
