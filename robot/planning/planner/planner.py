@@ -17,7 +17,10 @@ class Planner(object):
         """
         Get points for the trajectory
         """
-        return self.graph.astar_path(start, end)
+        assert self.__map and self.__graph
+        vertices, adjacency_matrix, tags = self.map.add_points(start, end)
+        graph = Graph(vertices, adjacency_matrix, tags)
+        return graph.astar_path(start, end)
 
     @property
     def map(self):
