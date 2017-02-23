@@ -221,7 +221,6 @@ class Map(object):
         def extend_line(line):
             return np.append(line, [line[0], line[1]], axis=0)
 
-
         # TODO: Move to the constructor
         H = 0.1
         join_style = JOIN_STYLE.mitre
@@ -235,9 +234,9 @@ class Map(object):
         if map_po.geom_type == 'MultiLineString':
             geoms = list(map_po.geoms)
             map_po = list(chain(geoms[0].coords, geoms[1].coords))
-        support_points = np.array(map_po)
 
-        holes = []
+        self.__support_points = np.array(map_po)
+        self.__holes = []
 
         for item in self.items_border_points:
             if item.size > 0:
@@ -251,39 +250,69 @@ class Map(object):
                     geoms = list(item_po.geoms)
                     item_po = list(chain(geoms[0].coords, geoms[1].coords))
                 support_item_points = np.array(item_po)
-                holes.append(support_item_points)
+                self.__holes.append(support_item_points)
 
-        all_points = support_points
+        all_points = self.__support_points
 
-        for hole in holes:
+        for hole in self.__holes:
             all_points = np.append(all_points, hole, axis=0)
 
-        holes_p = [Polygon(h) for h in holes]
-        border_p = Polygon(support_points)
+        holes_p = [Polygon(h) for h in self.__holes]
+        border_p = Polygon(self.__support_points)
 
         points_len = len(all_points)
         visibility_graph = np.zeros(shape=(points_len, points_len))
 
-        for i in range(all_points.shape[0] - 1):
-            for j in range(all_points.shape[0] - 1):
+        for i in range(all_points.shape[0]):
+            for j in range(all_points.shape[0]):
 
                 line = np.array((all_points[i], all_points[j]))
-                if is_valid(LineString(line), border_p, holes_p):
+                if self.is_valid(LineString(line), border_p, holes_p):
                     visibility_graph[i, j] = True
 
         return all_points, visibility_graph
+
+    @staticmethod
+    def plot_adjacency_graph(all_points, visibility_graph):
+        import matplotlib.pyplot as plt
+        for i in range(visibility_graph.shape[0]):
+            for j in range(visibility_graph.shape[1]):
+                if visibility_graph[i, j]:
+                    a = all_points[i]
+                    b = all_points[j]
+                    plt.plot([a[0], b[0]], [a[1], b[1]])
+        plt.show()
 
     def add_points(self, begin, end):
         """
         Add `begin` and `end` points but mantein the structure of
         the graph.
-        It returns a copy of `vertices`, `adjacency_matrix` and `tags` with
+        It returns a copy of `vertices`, `visibility_graph` and `tags` with
         two more values.
         """
-        adjacency_matrix = self.visibility_graph
-        vertices = self.beveled_points
+        visibility_graph = self.visibility_graph
+        all_points = self.beveled_points
+        all_points = np.append(all_points, [begin, end], axis=0)
 
-        vertices = np.append(vertices, [begin, end])
+        tags = None
+
+        holes_p = [Polygon(h) for h in self.__holes]
+        border_p = Polygon(self.__support_points)
+
+        points_len = len(all_points) - 2
+        tvg = np.zeros(shape=(points_len + 2, points_len + 2))
+        tvg[:-2, :-2] = visibility_graph
+        visibility_graph = tvg
+
+        for i in range(points_len):
+            for j in range(points_len, points_len + 2):
+                line = np.array((all_points[i], all_points[j]))
+                if self.is_valid(LineString(line), border_p, holes_p):
+                    visibility_graph[i, j] = visibility_graph[j, i] = True
+
+        # self.plot_adjacency_graph(all_points, visibility_graph)
+
+        return all_points, visibility_graph, tags
 
 def main():
     """
