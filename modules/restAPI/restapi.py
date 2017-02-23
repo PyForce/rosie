@@ -2,7 +2,6 @@ import math
 import os
 
 from flask import request, jsonify, json, url_for, send_file, abort
-from scanner import scanner_server as scanner
 
 from . import app, ws
 from .utils import allow_origin
@@ -262,16 +261,6 @@ def map(name):
     r = Robot()
     map = r.get_map(name)
     return jsonify(map) if map else abort(404)
-
-
-# @app.route('/clusters')
-# @allow_origin
-# def clusters():
-#     data = {
-#         cluster.name: [cluster.host, cluster.port]
-#         for cluster in scanner.clusters
-#     }
-#     return jsonify(**data)
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
