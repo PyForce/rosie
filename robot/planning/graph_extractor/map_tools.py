@@ -196,10 +196,11 @@ class Map(object):
         return np.array(polygon.exterior.coords)[:-1]
 
     def __generate_items_border_points(self):
-        points = np.array([])
+        points = []
         for room in self.rooms:
             for item in room.items:
-                np.append(points, item.border_points)
+                if item.border_points.shape[0]:
+                    points.append(item.border_points)
         return points
 
     def __generate_visivility_graph(self):
