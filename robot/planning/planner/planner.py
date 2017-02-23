@@ -1,3 +1,5 @@
+import json
+
 from ..graph_extractor import Map, AdjacencyMatrixGraph as Graph, list_maps
 
 
@@ -24,6 +26,12 @@ class Planner(object):
     @property
     def graph(self):
         return self.__graph
+
+    def get_map(self, map_name):
+        map_path = self.__map_mapping.get(map_name)
+        if not map_path:
+            raise Warning('Unknown map name %s' % map_name)
+        return json.load(map_path)
 
     def use_map(self, map_name):
         """
