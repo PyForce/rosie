@@ -242,6 +242,9 @@ class Map(object):
                     'right' if is_ccw else 'left',
                     join_style=join_style
                 )
+                if item_po.geom_type == 'MultiLineString':
+                    geoms = list(item_po.geoms)
+                    item_po = list(chain(geoms[0].coords, geoms[1].coords))
                 support_item_points = np.array(item_po)
                 holes.append(support_item_points)
 
@@ -265,13 +268,24 @@ class Map(object):
 
         return all_points, visibility_graph
 
+    def add_points(self, begin, end):
+        """
+        Add `begin` and `end` points but mantein the structure of
+        the graph.
+        It returns a copy of `vertices`, `adjacency_matrix` and `tags` with
+        two more values.
+        """
+        adjacency_matrix = self.visibility_graph
+        vertices = self.beveled_points
+
+        vertices = np.append(vertices, [begin, end])
 
 def main():
     """
     Main function
     """
     tmap = Map('../maps/map.json')
-    print tmap.visibility_graph
+    print(tmap.visibility_graph)
 
 
 if __name__ == '__main__':
