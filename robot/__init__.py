@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 from settings import config as global_settings
 
@@ -186,8 +187,14 @@ class Robot:
         self.track(trajectory)
 
     def go_to_with_planner(self, x, y, t):
-        points = self.planner.get_points(start=self.position()[:-1], end=(x, y))
-        self.follow(points, t)
+        start = self.position()[:-1]
+        end = np.array([x, y])
+        points = self.planner.get_points(start=start, end=end)
+
+        if not points:
+            print('No available path. start=%r, end=%r' % (start, end))
+        else:
+            self.follow(points, t)
 
     def follow(self, points, t):
         """
