@@ -62,7 +62,7 @@ class AdjacencyMatrixGraph(object):
                 s_index = i
                 break
         else:
-            return None
+            raise Exception("source vertex '%r' not found" % source)
 
         c = count()
         queue = [(0, next(c), s_index, 0, None)]
@@ -102,8 +102,7 @@ class AdjacencyMatrixGraph(object):
                     h = self.heuristic(neighbor, target)
                 enqueued[v] = ncost, h
                 heappush(queue, (ncost + h, next(c), v, ncost, u))
-
-        return None
+        raise Exception("target vertex '%r' not found" % target)
 
 
 if __name__ == '__main__':
