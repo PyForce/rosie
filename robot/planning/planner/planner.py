@@ -40,8 +40,7 @@ class Planner(object):
         map_path = self.__map_mapping.get(map_name)
         if not map_path:
             raise Warning('Unknown map name %s' % map_name)
-
-        self.__map = Map(map_name)
-        vertices = self.map.beveled_points()
-        adjacent_matrix = self.map.visibility_graph()
+        self.__map = Map(map_path)
+        vertices = self.map.beveled_points
+        adjacent_matrix = self.map.visibility_graph
         self.__graph = Graph(vertices, adjacent_matrix)
