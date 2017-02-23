@@ -1,94 +1,124 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Apr  7 22:43:58 2015
 
-@author: Toni
-"""
-import logging
+from heapq import heappush, heappop
+from itertools import count
+import numpy as np
 
-############### NODE ################
-class Node:    
-    def __init__(self, pos=()):    
-        self.pos=pos
-        
-    def __lt__(self, other):
-        return True
 
-#################################################
-#               ADJACENCY MATRIX                #
-#################################################
+class AdjacencyMatrixGraph(object):
+    """
+    Adjacency Matrix Graph
+    """
+    def __init__(self, vertices, matrix, labels=None):
+        self.vertices = vertices
+        self.labels = labels
+        self.matrix = matrix
 
-class AdjacencyMatrix :
-    def __init__(self, V, E):
-        self.index={}
-        i=0
-        for v in V :
-            self.index [v]=i
-            i += 1
-        self.matrix=[]
-        for i in range(len(V)):
-            self.matrix. append([False] * len(V))
-        for(u,v) in E: 
-            self.matrix [self.index [u]][self.index [v]]=True
-    
-    def __contains__(self, item):
-        (u, v)=item
-        return self.matrix [self.index [u]][self.index [v]]
-    
-    def __setitem__(self, item, value):
-        (u,v)=item
-        self.matrix [self.index [u]][self.index [v]]=value
-    
-    def __getitem__(self, item):
-        (u,v)=item
-        return self.matrix [self.index [u]][self.index [v]]
+    def neighbors(self, u):
+        """
+        Get all the neighbors of the given vertex index
+        """
+        return (v for v in range(len(self.vertices)) if self.matrix[u, v])
 
-class AdjacencyMatrixGraph:
-    def __init__(self, V =[], E=[], L=[], directed =True):
-        self.directed=directed
-        self.V=V
-        self.L=L
-        if directed : 
-            self.E=AdjacencyMatrix(V, E)
+    def pos_of(self, tag):
+        """
+        Get the 'points' for the given tag
+        """
+        raise NotImplementedError()
+        # if type(name) is dict:
+        #     try:
+        #         n = name['place']
+        #         for l in self.L:
+        #             if l[0].count(n):
+        #                 try:
+        #                     return l[1][name['pos']]
+        #                 except:
+        #                     return l[1][None][0]
+        #     except:
+        #         pass
+        # elif type(name) is str:
+        #     for l in self.L:
+        #         if l[0].count(name):
+        #             return l[1][None][0]
+        # elif type(name) is tuple:
+        #     for v in self.V:
+        #         if v.pos == name:
+        #             return v
+        # return None
+
+    @staticmethod
+    def distance(vertex1, vertex2):
+        x, y = vertex1 - vertex2
+        return np.hypot(x, y)
+
+    @staticmethod
+    def heuristic(vertex1, vertex2):
+        return AdjacencyMatrixGraph.distance(vertex1, vertex2)
+
+    # from NetworkX
+    def astar_path(self, source, target):
+        for i, vertex in enumerate(self.vertices):
+            if all(source == vertex):
+                s_index = i
+                break
         else:
-            self.E=AdjacencyMatrix(V, E+[(v,u) for(u,v) in E])
-    
-    def succs(self, u):
-        return [v for v in self.V if self.E[u, v]]
-    
-    def preds(self, v):
-        return [u for u in self.V if self.E[u, v]]
-    
-    def show(self):
-        logging.info(' %-12s| %-35s| %-29s' % ('Vertex', 'Succs', 'Preds'))
-        logging.info('-'*13+'+'+'-'*36+'+'+'-'*30)
-        for v in self.V:
-            aux_succ=''
-            for w in self.succs(v): 
-                aux_succ+=str(w)+' '
-            aux_pred=''
-            for u in self.preds(v):
-                aux_pred+=str(u)+' '
-            logging.info(' %-12s| %-35s| %-29s' % (v, aux_succ, aux_pred))
-    
-    #---- position of TAG ----
-    def pos_of(self,name):
-        if type(name) is dict:
-            try:
-                n=name['place']
-                for l in self.L:
-                    if l[0].count(n):
-                        try:
-                            return l[1][name['pos']]
-                        except:
-                            return l[1][None][0]
-            except: pass
-        elif type(name) is str:
-            for l in self.L:
-                if l[0].count(name):
-                    return l[1][None][0]
-        elif type(name) is tuple:
-            for v in self.V:
-                if v.pos==name:
-                    return v
-        return None
+            raise Exception("source vertex '%r' not found" % source)
+
+        c = count()
+        queue = [(0, next(c), s_index, 0, None)]
+
+        enqueued = {}
+        explored = {}
+
+        while queue:
+            _, __, u, path_dist, parent = heappop(queue)
+            vertex = self.vertices[u]
+
+            if all(vertex == target):
+                path = [self.vertices[u]]
+                node = parent
+                while node is not None:
+                    path.append(self.vertices[node])
+                    node = explored[node]
+                path.reverse()
+                return path
+
+            if u in explored:
+                continue
+
+            explored[u] = parent
+            for v in self.neighbors(u):
+                neighbor = self.vertices[v]
+
+                if v in explored:
+                    continue
+
+                ncost = path_dist + self.distance(vertex, neighbor)
+                if v in enqueued:
+                    qcost, h = enqueued[v]
+                    if qcost <= ncost:
+                        continue
+                else:
+                    h = self.heuristic(neighbor, target)
+                enqueued[v] = ncost, h
+                heappush(queue, (ncost + h, next(c), v, ncost, u))
+        raise Exception("target vertex '%r' not found" % target)
+
+
+if __name__ == '__main__':
+    vertices = np.array([
+        [0.0, 0.0],
+        [1.1, 0.0],
+        [2.2, 2.0],
+        [2.3, 1.0]
+    ])
+
+    matrix = np.array([
+        [True, True, False, False],
+        [False, True, True, False],
+        [True, False, True, True],
+        [False, False, True, True]
+    ])
+    graph = AdjacencyMatrixGraph(vertices, matrix)
+    print("from %r to %r" % (vertices[0], vertices[3]))
+    print(graph.astar_path(vertices[0], vertices[3]))

@@ -91,10 +91,6 @@ class Item(object):
         """
         return self.__item_name
 
-    @property
-    def item_name(self):
-        return self._item_name
-
 
 class Room(object):
 
@@ -111,7 +107,6 @@ class Room(object):
         if locations is not None:
             locations[room_name] = self._borders_points
 
-
     def _borders_points(self):
         """
         Get all border points in matrix form
@@ -124,6 +119,10 @@ class Room(object):
     @property
     def borders_points(self):
         return self._borders_points
+
+    @property
+    def borders(self):
+        return self._borders
 
     @property
     def walls(self):
