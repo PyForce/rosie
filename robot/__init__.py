@@ -38,9 +38,9 @@ class SettingHandler:
                 logging.info('profile: %s', self.profile)
             except ImportError as ex:
                 self.settings = None
-                print("    ERROR! In <" + self.profile + ">")
+                logging.error('%s: %s', self.profile, ex.message)
         else:
-            print("    ERROR! Directory <" + self.profile + "> do not exist")
+            logging.error('directory <%s> does not exists')
 
     def buildMovementControllers(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
@@ -59,7 +59,7 @@ class SettingHandler:
                                                        timer,
                                                        self.parameters)
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildLocalizer(self):
@@ -67,10 +67,10 @@ class SettingHandler:
             if self.settings.LOCALIZER == 'ODOMETRY_RK2':
                 return RungeKutta2OdometryLocalizer(self.parameters)
             else:
-                print("    ERROR! Localizer Not Supported>")
+                logging.error("localizer model not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildTrajectoryPlanner(self):
@@ -80,10 +80,10 @@ class SettingHandler:
             elif self.settings.INTERPOLATION == 'CUBIC':
                 return CubicTrajectoryPlanner()
             else:
-                print("    ERROR! Trajectory Planner Not Supported>")
+                logging.error("trajectory planner not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildMovementSupervisor(self):
@@ -96,10 +96,10 @@ class SettingHandler:
             if True:
                 return IOLinearizationTrajectoryTracker(self.parameters)
             else:
-                print("    ERROR! Trajectory Tracker Not Supported>")
+                logging.error("trajectory tracker not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildMotorHandler(self):
@@ -123,10 +123,10 @@ class SettingHandler:
                 power_motor_driver = MD25MotorDriver(1, 0x58)
                 return SoftSpeedControlledMH(speed_controller, power_motor_driver)
             else:
-                print("    ERROR! Motor Driver Not Supported>")
+                logging.error("motor driver not supported")
                 return None
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildTimer(self):
@@ -150,7 +150,7 @@ class SettingHandler:
                                                     self.settings.MAX_SPEED)
 
         else:
-            print("    ERROR! Kinematic Model Not Supported>")
+            logging.error("kinematic model not supported")
             return None
 
     def buildPlanner(self):
@@ -193,7 +193,7 @@ class Robot:
         points = self.planner.get_points(start=start, end=end)
 
         if not points:
-            print('No available path. start=%r, end=%r' % (start, end))
+            logging.warning("no available path. start=%r, end=%r", start, end)
         else:
             self.follow(points, t)
 
@@ -216,8 +216,6 @@ class Robot:
 
         trajectory = DifferentialDriveTrajectoryParameters(locations,
                                                            t, self.motion.robot_parameters.sample_time)
-
-        print(trajectory)
 
         self.track(trajectory)
 
