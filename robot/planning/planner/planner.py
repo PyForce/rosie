@@ -34,7 +34,8 @@ class Planner(object):
         map_path = self.__map_mapping.get(map_name)
         if not map_path:
             raise Warning('Unknown map name %s' % map_name)
-        return json.load(map_path)
+        with open(map_path) as fmap:
+            return json.load(fmap)
 
     def use_map(self, map_name):
         """
