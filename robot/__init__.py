@@ -1,4 +1,5 @@
 import os
+import logging
 import numpy as np
 
 from settings import config as global_settings
@@ -25,16 +26,17 @@ from .planning.graph_extractor import list_maps
 
 
 class SettingHandler:
+
     def __init__(self):
         self.profile = global_settings.get('general', 'profile')
         if os.path.exists(os.path.join(os.getcwd(), 'profiles', self.profile)):
             try:
-                _temp = __import__("profiles.%s" % (self.profile),
-                                   globals(), locals(), ['settings'], -1)
-                self.settings = _temp.settings
+                import importlib
+                self.settings = importlib.import_module(
+                    "profiles.%s.settings" % self.profile)
                 self.parameters = self.buildRobotParameters()
-                print('    PROFILE: ' + self.profile)
-            except:
+                logging.info('profile: %s', self.profile)
+            except ImportError as ex:
                 self.settings = None
                 print("    ERROR! In <" + self.profile + ">")
         else:
@@ -100,19 +102,18 @@ class SettingHandler:
             print("    ERROR! Kinematic Model Not Supported>")
             return None
 
-
-
     def buildMotorHandler(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
             if self.settings.FILENAME == 'VirtualMD.py':
                 from robot.motion.MotorHandler.MotorDriver.Board.VirtualMD import VirtualMotorDriver
-                speed_motor_driver = VirtualMotorDriver(self.parameters.steps_per_revolution, self.parameters.max_speed)
+                speed_motor_driver = VirtualMotorDriver(
+                    self.parameters.steps_per_revolution, self.parameters.max_speed)
                 return HardSpeedControlledMH(speed_motor_driver)
             if self.settings.FILENAME == 'ArduinoMD.py':
                 from robot.motion.MotorHandler.MotorDriver.Board.ArduinoMD import Arduino
                 speed_motor_driver = Arduino(self.settings.MAX_SPEED)
                 speed_motor_driver.set_constants(self.parameters.constant_kc, self.parameters.constant_ki,
-                                                      self.parameters.constant_kd)
+                                                 self.parameters.constant_kd)
                 return HardSpeedControlledMH(speed_motor_driver)
             elif self.settings.FILENAME == 'MD25.py':
                 from robot.motion.MotorHandler.MotorDriver.Board.MD25 import MD25MotorDriver
@@ -208,12 +209,13 @@ class Robot:
         >>> r.follow(trajectory, t)
         """
 
-        locations = [DifferentialDriveRobotLocation(p[0], p[1], 0.) for p in points]
+        locations = [DifferentialDriveRobotLocation(
+            p[0], p[1], 0.) for p in points]
         pos = self.position()
-        locations.insert(0,DifferentialDriveRobotLocation(pos[0],pos[1],0))
+        locations.insert(0, DifferentialDriveRobotLocation(pos[0], pos[1], 0))
 
         trajectory = DifferentialDriveTrajectoryParameters(locations,
-            t, self.motion.robot_parameters.sample_time)
+                                                           t, self.motion.robot_parameters.sample_time)
 
         print(trajectory)
 
