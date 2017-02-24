@@ -1,4 +1,6 @@
-import math
+"""
+rosie API implementation
+"""
 import os
 
 from flask import request, jsonify, json, url_for, send_file, abort
@@ -6,24 +8,16 @@ from flask import request, jsonify, json, url_for, send_file, abort
 from . import app, ws
 from .utils import allow_origin
 from robot import Robot
-from robot.motion.MovementController.Differential import\
-    DifferentialDriveRobotLocation
-from robot.motion.MovementSupervisor.Differential\
+from robot.motion.MovementSupervisor.Differential \
     import DifferentialDriveMovementSupervisor
-from robot.motion.TrajectoryPlanner.Differential import\
-    DifferentialDriveTrajectoryParameters
-from robot.motion.TrajectoryPlanner.Planner.Linear import\
-    LinearTrajectoryPlanner
-from robot.motion.TrajectoryPlanner.Planner.Cubic import\
-    CubicTrajectoryPlanner
 
 
-client_count = 0
-
-
-def objetify(request):
+def objetify(req):
+    """
+    Get the json from a request in a unified manner
+    """
     # TODO: review why force is required
-    return request.get_json(force=True)
+    return req.get_json(force=True)
 
 
 @app.route('/odometry', methods=['GET'])
@@ -36,33 +30,29 @@ def odometry():
         "theta": 3.21
     }
     """
-    x, y, theta = Robot().position()
-    return jsonify(x=x, y=y, theta=theta)
-
-
-@app.route('/profile', methods=['GET'])
-@allow_origin
-def profile():
-    """
-    {
-        "x": 2.1,
-        "y": 1.3,
-        "theta": 3.21
-    }
-    """
-    prof = Robot().setting_handler.profile
-    return jsonify(prof=prof)
+    xpos, ypos, theta = Robot().position()
+    return jsonify(x=xpos, y=ypos, theta=theta)
 
 
 @app.route('/metadata', methods=['GET'])
 @allow_origin
 def metadata():
-    settings = Robot().setting_handler.settings
+    """
+    {
+        "name": 'SIMUBOT',
+        "thumbnail": 'http://localhost:5000/thumbnail',
+        "vector": 'http://facebook.com/myuser/image',
+        "size": [0.4, 0.2, 0.2]
+    }
+    """
+    handler = Robot().setting_handler
     data = {
-        "name": settings.MOBILE_ROBOT,
+        "name": handler.settings.MOBILE_ROBOT,
         "thumbnail": url_for('.thumbnail'),
         "vector": url_for('.vector'),
-        "size": [settings.LARGE, settings.WIDTH, settings.HEIGHT]
+        "size": [handler.settings.LARGE, handler.settings.WIDTH,
+                 handler.settings.HEIGHT],
+        "profile": handler.profile
     }
     return jsonify(**data)
 
@@ -70,28 +60,35 @@ def metadata():
 @app.route('/thumbnail', methods=['GET'])
 @allow_origin
 def thumbnail():
+    """
+    Detailed image of the robot
+    """
     profile = Robot().setting_handler.profile
-    filePath = os.path.join(os.getcwd(), 'profiles', profile, 'thumbnail.png')
-    return send_file(filePath)
+    filepath = os.path.join(os.getcwd(), 'profiles', profile, 'thumbnail.png')
+    return send_file(filepath)
 
 
 @app.route('/vector', methods=['GET'])
 @allow_origin
 def vector():
+    """
+    Icon of the robot
+    """
     profile = Robot().setting_handler.profile
-    filePath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
-    return send_file(filePath)
+    filepath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
+    return send_file(filepath)
 
 
-@app.route('/sensor/<string:name>', methods=['GET'])
-@allow_origin
-def sensor(name):
-    """
-    {
-        "name": %s
-    }
-    """
-    return jsonify(**json.loads(sensor.__doc__ % name))
+# TODO: read a the sensors
+# @app.route('/sensor/<string:name>', methods=['GET'])
+# @allow_origin
+# def sensor(name):
+#     """
+#     {
+#         "sensor_name": sensor_reading
+#     }
+#     """
+#     return jsonify(**json.loads(sensor.__doc__ % name))
 
 
 @app.route('/position', methods=['POST'])
@@ -106,10 +103,10 @@ def position():
     }
     """
     data = objetify(request)
-    x = data['x']
-    y = data['y']
+    xpos = data['x']
+    ypos = data['y']
     theta = data['theta']
-    Robot().position(x, y, theta)
+    Robot().position(xpos, ypos, theta)
     return 'OK'
 
 
@@ -187,10 +184,10 @@ def goto():
     }
     """
     values = objetify(request)
-    x, y, t = values[u'target']
+    xpos, ypos, theta = values[u'target']
 
-    r = Robot()
-    r.go_to(x, y, t)
+    robot = Robot()
+    robot.go_to(xpos, ypos, theta)
     return 'OK'
 
 
@@ -220,21 +217,8 @@ def follow():
     """
     values = objetify(request)
 
-    r = Robot()
-    r.follow(values[u'path'], values[u'time'])
-    return 'OK'
-
-
-@app.route('/text', methods=['POST'])
-@allow_origin
-def text():
-    """
-    {
-        "text": "some text"
-    }
-    """
-    text = objetify(request)['text']
-    robot_handler.process_text(text)
+    robot = Robot()
+    robot.follow(values[u'path'], values[u'time'])
     return 'OK'
 
 
@@ -242,9 +226,9 @@ def text():
 @allow_origin
 def maps():
     """
-    {
-        ["map_name", ...]
-    }
+    [
+        "map_name", ...
+    ]
     """
     return jsonify([name for name in Robot().maps()])
 
@@ -252,37 +236,46 @@ def maps():
 @app.route('/map', defaults={'name': ''})
 @app.route('/map/<string:name>')
 @allow_origin
-def map(name):
+def getmap(name):
     """
     {
         "map": "map_name"
     }
     """
-    r = Robot()
-    map = r.get_map(name)
-    return jsonify(map) if map else abort(404)
+    robot = Robot()
+    worldmap = robot.get_map(name)
+    return jsonify(worldmap) if worldmap else abort(404)
 
 
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
-    def __init__(self, robot):
-        self.robot = robot
+    """
+    Supervisor to send movement updates to rosie web clients
+    """
+
+    def __init__(self):
+        super(WebHUDMovementSupervisor, self).__init__()
+        self.robot = Robot()
         self.manual = False
 
-        self.ws = []
+        self.clients = []
 
         # register websockets under '/websockets'
         @ws.route('/websocket')
-        def websocket(ws):
-            self.ws.append(ws)
-            message = ws.receive()
-            while not ws.closed and message:
+        def websocket(websocket):
+            """
+            Web client communication API
+            """
+            self.clients.append(websocket)
+            message = websocket.receive()
+            while not websocket.closed and message:
                 data = json.loads(message)
                 if data['type'] == 'move' and self.manual:
                     self.robot.add_movement(data['data'])
-                message = ws.receive()
+                message = websocket.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
-        app.route('/auto_mode', methods=['PUT', 'POST'])(allow_origin(self.auto_mode))
+        app.route('/auto_mode', methods=['PUT',
+                                         'POST'])(allow_origin(self.auto_mode))
         app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
             self.manual_mode))
         self.last_location = 0, 0, 0
@@ -294,25 +287,25 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         pass
 
     def movement_update(self, state):
-        x, y, theta = state.global_location.x_position,\
+        move_x, move_y, move_theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
 
-        x_, y_, t_ = self.last_location
-        if abs(x - x_) + abs(y - y_) + abs(theta - t_) == 0:
+        prev_x, prev_y, prev_theta = self.last_location
+        if abs(move_x - prev_x) + abs(move_y - prev_y) + abs(move_theta -
+                                                             prev_theta) == 0:
             # don't notify when robot not moved
             return
 
-        # TODO: delete this for please!
-        for i, websock in enumerate(self.ws):
+        for i, websock in enumerate(self.clients):
             if websock.closed:
-                self.ws.pop(i)
+                self.clients.pop(i)
                 continue
             # convert to web client coordinates
             websock.send(json.dumps({'type': 'position',
-                                     'data': {'x': x, 'y': y,
-                                              'theta': theta}}))
+                                     'data': {'x': move_x, 'y': move_y,
+                                              'theta': move_theta}}))
         # update last location
-        self.last_location = x, y, theta
+        self.last_location = move_x, move_y, move_theta
 
     def manual_mode(self):
         """
@@ -331,6 +324,5 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         return 'OK'
 
 
-r = Robot()
 # add WebHUDMovementSupervisor to working supervisors
-r.supervisor().append(WebHUDMovementSupervisor(r))
+Robot().supervisor().append(WebHUDMovementSupervisor())
