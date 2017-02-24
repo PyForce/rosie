@@ -266,7 +266,6 @@ def map(name):
 class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
     def __init__(self, robot):
         self.robot = robot
-        self.move = []
         self.manual = False
 
         self.ws = []
@@ -278,8 +277,8 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
             message = ws.receive()
             while not ws.closed and message:
                 data = json.loads(message)
-                if data['type'] == 'move':
-                    self.move = data['data']
+                if data['type'] == 'move' and self.manual:
+                    self.robot.add_movement(data['data'])
                 message = ws.receive()
             # self.ws = None
         # use old-style decorators to subscribe bounded methods
@@ -295,10 +294,6 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         pass
 
     def movement_update(self, state):
-        if self.manual:
-            # update keys
-            self.robot.add_movement(self.move)
-
         x, y, theta = state.global_location.x_position,\
             state.global_location.y_position, state.global_location.z_position
 
