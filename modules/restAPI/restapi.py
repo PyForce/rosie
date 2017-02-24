@@ -3,7 +3,8 @@ rosie API implementation
 """
 import os
 
-from flask import request, jsonify, json, url_for, send_file, abort
+from flask import request, jsonify, json, url_for, send_file, abort,\
+    make_response
 
 from . import app, ws
 from .utils import allow_origin
@@ -196,13 +197,18 @@ def goto():
 def gotoplanner():
     """
     {
-        "target": [x, y, t],
+        "target": [x, y, t]
     }
     """
     values = objetify(request)
 
     robot = Robot()
-    robot.go_to_with_planner(*values[u'target'])
+    try:
+        robot.go_to_with_planner(*values['target'])
+    except Exception as ex:
+        response = make_response(ex.message)
+        response.status_code = 409  # CONFLICT
+        return response
     return 'OK'
 
 
