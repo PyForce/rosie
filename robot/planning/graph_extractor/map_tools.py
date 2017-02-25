@@ -153,7 +153,9 @@ class Map(object):
                             for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
             self.__items_border_points = self.__generate_items_border_points()
-            self.__beveled_points, self.__visibility_graph = self.__generate_visivility_graph()
+            self.__beveled_points = None
+            self.__visibility_graph = None
+            self.__H = None
 
     @property
     def visibility_graph(self):
@@ -216,12 +218,21 @@ class Map(object):
                 break
         return border.contains(line) and not intersects
 
+    def generate_visivility_graph(self, robot):
+        width = robot.setting_handler.settings.WIDTH
+        large = robot.setting_handler.settings.LARGE
+        h = max(width, large)
+        h = 0.2 * h
+
+        if not self.__H or self.__H != h:
+            self.__H = h
+            self.__beveled_points, self.__visibility_graph = self.__generate_visivility_graph()
+
     def __generate_visivility_graph(self):
         def extend_line(line):
             return np.append(line, [line[0], line[1]], axis=0)
 
-        # TODO: Move to the constructor
-        H = 0.1
+        H = self.__H
         join_style = JOIN_STYLE.mitre
 
         is_ccw = LinearRing(self.borders_points).is_ccw
