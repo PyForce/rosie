@@ -13,11 +13,12 @@ class Planner(object):
         for map_path, tmap in list_maps():
             self.__map_mapping[tmap['name']] = map_path
 
-    def get_points(self, start, end):
+    def get_points(self, start, end, robot):
         """
         Get points for the trajectory
         """
         assert self.__map and self.__graph
+        self.__map.generate_visivility_graph(robot)
         vertices, adjacency_matrix, tags = self.map.add_points(start, end)
         graph = Graph(vertices, adjacency_matrix, tags)
         return graph.astar_path(start, end)
