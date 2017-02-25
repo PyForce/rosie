@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 import numpy as np
 
@@ -189,7 +191,18 @@ class Robot:
     def go_to_with_planner(self, x, y, t):
         start = self.position()[:-1]
         end = np.array([x, y])
-        points = self.planner.get_points(start=start, end=end)
+        points = self.planner.get_points(start=start, end=end, robot=self)
+
+        def add_t(points, t):
+            points = np.array(points)
+            lens = np.hypot(points[:, 0], points[:, 1])
+            tpm = t / np.add.reduce(lens)
+            npoints = np.zeros(shape=(points.shape[0], 3))
+            npoints[:, :-1] = points
+            npoints[:, -1] = tpm * lens
+            return npoints
+
+        npoints = add_t(points, t)
 
         if not points:
             print('No available path. start=%r, end=%r' % (start, end))
