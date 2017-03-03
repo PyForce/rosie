@@ -108,7 +108,7 @@ def position():
     ypos = data['y']
     theta = data['theta']
     Robot().position(xpos, ypos, theta)
-    return 'OK'
+    return jsonify(True)
 
 
 @app.route('/goto', methods=['POST'])
@@ -117,34 +117,25 @@ def goto():
     """
     {
         "target": [x, y, t],
+        "planner": false
     }
     """
     values = objetify(request)
     xpos, ypos, theta = values[u'target']
+    planner = values.get(u'planner', False)
 
     robot = Robot()
-    robot.go_to(xpos, ypos, theta)
-    return 'OK'
+    if planner:
+        try:
+            robot.go_to_with_planner(*values['target'])
+        except Exception as ex:
+            response = jsonify(error=ex.message)
+            response.status_code = 409  # CONFLICT
+            return response
+    else:
+        robot.go_to(xpos, ypos, theta)
 
-
-@app.route('/gotoplanner', methods=['POST'])
-@allow_origin
-def gotoplanner():
-    """
-    {
-        "target": [x, y, t]
-    }
-    """
-    values = objetify(request)
-
-    robot = Robot()
-    try:
-        robot.go_to_with_planner(*values['target'])
-    except Exception as ex:
-        response = make_response(ex.message)
-        response.status_code = 409  # CONFLICT
-        return response
-    return 'OK'
+    return jsonify(True)
 
 
 @app.route('/follow', methods=['POST'])
@@ -160,7 +151,7 @@ def follow():
 
     robot = Robot()
     robot.follow(values[u'path'], values[u'time'])
-    return 'OK'
+    return jsonify(True)
 
 
 @app.route('/maps', methods=['GET'])
@@ -254,7 +245,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.manual = True
         self.robot.start_open_loop_control()
-        return 'OK'
+        return jsonify(True)
 
     def auto_mode(self):
         """
@@ -262,7 +253,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.manual = False
         self.robot.stop_open_loop_control()
-        return 'OK'
+        return jsonify(True)
 
 
 # add WebHUDMovementSupervisor to working supervisors
