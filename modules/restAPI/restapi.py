@@ -2,6 +2,7 @@
 rosie API implementation
 """
 import os
+import logging
 
 from flask import request, jsonify, json, url_for, send_file, abort,\
     make_response
@@ -192,25 +193,29 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.clients = []
 
         # register websockets under '/websockets'
-        @ws.route('/websocket')
-        def websocket(websocket):
-            """
-            Web client communication API
-            """
-            self.clients.append(websocket)
-            message = websocket.receive()
-            while not websocket.closed and message:
-                data = json.loads(message)
-                if data['type'] == 'move' and self.manual:
-                    self.robot.add_movement(data['data'])
-                message = websocket.receive()
-            # self.ws = None
+        ws.add_url_rule('/websocket', 'websocket', self.websocket)
+
         # use old-style decorators to subscribe bounded methods
-        app.route('/auto_mode', methods=['PUT',
-                                         'POST'])(allow_origin(self.auto_mode))
-        app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
-            self.manual_mode))
+        app.add_url_rule('/auto_mode', 'auto_mode',
+                         self.auto_mode, methods=('PUT', 'POST'))
+        app.add_url_rule('/manual_mode', 'manual_mode',
+                         self.manual_mode, methods=('PUT', 'POST'))
+
         self.last_location = 0, 0, 0
+
+    def websocket(self, websocket):
+        """
+        Web client communication API
+        """
+        logging.debug("connected websocket client: %s",
+                      websocket.environ['REMOTE_ADDR'])
+        self.clients.append(websocket)
+        message = websocket.receive()
+        while not websocket.closed and message:
+            data = json.loads(message)
+            if data['type'] == 'move' and self.manual:
+                self.robot.add_movement(data['data'])
+            message = websocket.receive()
 
     def movement_begin(self, *args, **kwargs):
         pass
@@ -239,6 +244,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         # update last location
         self.last_location = move_x, move_y, move_theta
 
+    @allow_origin
     def manual_mode(self):
         """
         {}
@@ -247,6 +253,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot.start_open_loop_control()
         return jsonify(True)
 
+    @allow_origin
     def auto_mode(self):
         """
         {}
