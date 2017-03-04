@@ -32,7 +32,8 @@ HEIGHT = 0.24
 Motor Controller
 """
 
-# Filename of the controller board (this file is located in the folder: robotOLD/board)
+# Filename of the controller board (this file is located in the folder:
+# robotOLD/board)
 FILENAME = 'ArduinoMD.py'
 
 # PID settings (Set it True if your hardware support speed control)
@@ -76,6 +77,13 @@ MAX_SPEED = 8.0
 
 # Binary for controlling the fraction of power from the supply
 MAX_POWER_BIN = 0.0
+
+"""
+Streaming
+"""
+
+# url of the camera video stream
+VIDEO_STREAMING = 'http://localhost:8000/'
 
 """
 Future

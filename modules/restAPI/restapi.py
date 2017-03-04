@@ -5,7 +5,7 @@ import os
 import logging
 
 from flask import request, jsonify, json, url_for, send_file, abort,\
-    make_response
+    redirect
 
 from . import app, ws
 from robot import Robot
@@ -49,6 +49,7 @@ def metadata():
         "name": handler.settings.MOBILE_ROBOT,
         "thumbnail": url_for('.thumbnail'),
         "vector": url_for('.vector'),
+        "video": url_for('.video'),
         "size": [handler.settings.LARGE, handler.settings.WIDTH,
                  handler.settings.HEIGHT],
         "profile": handler.profile
@@ -74,6 +75,15 @@ def vector():
     profile = Robot().setting_handler.profile
     filepath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
     return send_file(filepath)
+
+
+@app.route('/video', methods=('GET',))
+def video():
+    """
+    Camera video stream
+    """
+    handler = Robot().setting_handler
+    return redirect(handler.settings.VIDEO_STREAM)
 
 
 # TODO: read a the sensors
