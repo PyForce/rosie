@@ -41,15 +41,21 @@ def metadata():
         "name": 'SIMUBOT',
         "thumbnail": 'http://localhost:5000/thumbnail',
         "vector": 'http://facebook.com/myuser/image',
+        "video": ':8000/video'
         "size": [0.4, 0.2, 0.2]
     }
     """
     handler = Robot().setting_handler
+
+    videouri = False
+    if hasattr(handler.settings, 'VIDEO_URI'):
+        videouri = handler.settings.VIDEO_URI
+
     data = {
         "name": handler.settings.MOBILE_ROBOT,
         "thumbnail": url_for('.thumbnail'),
         "vector": url_for('.vector'),
-        "video": url_for('.video'),
+        "video": videouri,
         "size": [handler.settings.LARGE, handler.settings.WIDTH,
                  handler.settings.HEIGHT],
         "profile": handler.profile
@@ -75,15 +81,6 @@ def vector():
     profile = Robot().setting_handler.profile
     filepath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
     return send_file(filepath)
-
-
-@app.route('/video', methods=('GET',))
-def video():
-    """
-    Camera video stream
-    """
-    handler = Robot().setting_handler
-    return redirect(handler.settings.VIDEO_STREAM)
 
 
 # TODO: read a the sensors
