@@ -82,8 +82,8 @@ MAX_POWER_BIN = 0.0
 Streaming
 """
 
-# url of the camera video stream
-VIDEO_STREAMING = 'http://localhost:8000/'
+# uri of the video stream (start with ':' for same host and specify the port)
+VIDEO_URI = ':8000/'
 
 """
 Future
