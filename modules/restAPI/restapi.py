@@ -8,7 +8,6 @@ from flask import request, jsonify, json, url_for, send_file, abort,\
     make_response
 
 from . import app, ws
-from .utils import allow_origin
 from robot import Robot
 from robot.motion.MovementSupervisor.Differential \
     import DifferentialDriveMovementSupervisor
@@ -23,7 +22,6 @@ def objetify(req):
 
 
 @app.route('/odometry', methods=['GET'])
-@allow_origin
 def odometry():
     """
     {
@@ -37,7 +35,6 @@ def odometry():
 
 
 @app.route('/metadata', methods=['GET'])
-@allow_origin
 def metadata():
     """
     {
@@ -60,7 +57,6 @@ def metadata():
 
 
 @app.route('/thumbnail', methods=['GET'])
-@allow_origin
 def thumbnail():
     """
     Detailed image of the robot
@@ -71,7 +67,6 @@ def thumbnail():
 
 
 @app.route('/vector', methods=['GET'])
-@allow_origin
 def vector():
     """
     Icon of the robot
@@ -94,7 +89,6 @@ def vector():
 
 
 @app.route('/position', methods=['POST'])
-@allow_origin
 def position():
     """
     Teleports the robot
@@ -140,7 +134,6 @@ def goto():
 
 
 @app.route('/follow', methods=['POST'])
-@allow_origin
 def follow():
     """
     {
@@ -156,7 +149,6 @@ def follow():
 
 
 @app.route('/maps', methods=['GET'])
-@allow_origin
 def maps():
     """
     [
@@ -168,7 +160,6 @@ def maps():
 
 @app.route('/map', defaults={'name': ''})
 @app.route('/map/<string:name>')
-@allow_origin
 def getmap(name):
     """
     {
@@ -244,7 +235,6 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         # update last location
         self.last_location = move_x, move_y, move_theta
 
-    @allow_origin
     def manual_mode(self):
         """
         {}
@@ -253,7 +243,6 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot.start_open_loop_control()
         return jsonify(True)
 
-    @allow_origin
     def auto_mode(self):
         """
         {}
