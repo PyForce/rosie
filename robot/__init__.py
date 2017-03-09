@@ -226,6 +226,7 @@ class Robot:
         self.motion.movement_start()
 
     def start_open_loop_control(self):
+        logging.debug('set mode: MANUAL')
         self.motion.movement_init()
         self.motion.movement_start()
 
@@ -233,6 +234,7 @@ class Robot:
         self.motion.dir = direction
 
     def stop_open_loop_control(self):
+        logging.debug('set mode: AUTO')
         self.motion.movement_finish()
 
     def position(self, x=None, y=None, theta=None):
