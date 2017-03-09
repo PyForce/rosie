@@ -2,12 +2,12 @@
 rosie API implementation
 """
 import os
+import logging
 
 from flask import request, jsonify, json, url_for, send_file, abort,\
     make_response
 
 from . import app, ws
-from .utils import allow_origin
 from robot import Robot
 from robot.motion.MovementSupervisor.Differential \
     import DifferentialDriveMovementSupervisor
@@ -22,7 +22,6 @@ def objetify(req):
 
 
 @app.route('/odometry', methods=['GET'])
-@allow_origin
 def odometry():
     """
     {
@@ -36,7 +35,6 @@ def odometry():
 
 
 @app.route('/metadata', methods=['GET'])
-@allow_origin
 def metadata():
     """
     {
@@ -59,7 +57,6 @@ def metadata():
 
 
 @app.route('/thumbnail', methods=['GET'])
-@allow_origin
 def thumbnail():
     """
     Detailed image of the robot
@@ -70,7 +67,6 @@ def thumbnail():
 
 
 @app.route('/vector', methods=['GET'])
-@allow_origin
 def vector():
     """
     Icon of the robot
@@ -82,7 +78,6 @@ def vector():
 
 # TODO: read a the sensors
 # @app.route('/sensor/<string:name>', methods=['GET'])
-# @allow_origin
 # def sensor(name):
 #     """
 #     {
@@ -93,7 +88,6 @@ def vector():
 
 
 @app.route('/position', methods=['POST'])
-@allow_origin
 def position():
     """
     Teleports the robot
@@ -108,47 +102,36 @@ def position():
     ypos = data['y']
     theta = data['theta']
     Robot().position(xpos, ypos, theta)
-    return 'OK'
+    return jsonify(True)
 
 
 @app.route('/goto', methods=['POST'])
-@allow_origin
 def goto():
     """
     {
         "target": [x, y, t],
+        "planner": false
     }
     """
     values = objetify(request)
     xpos, ypos, theta = values[u'target']
+    planner = values.get(u'planner', False)
 
     robot = Robot()
-    robot.go_to(xpos, ypos, theta)
-    return 'OK'
+    if planner:
+        try:
+            robot.go_to_with_planner(*values['target'])
+        except Exception as ex:
+            response = jsonify(error=ex.message)
+            response.status_code = 409  # CONFLICT
+            return response
+    else:
+        robot.go_to(xpos, ypos, theta)
 
-
-@app.route('/gotoplanner', methods=['POST'])
-@allow_origin
-def gotoplanner():
-    """
-    {
-        "target": [x, y, t]
-    }
-    """
-    values = objetify(request)
-
-    robot = Robot()
-    try:
-        robot.go_to_with_planner(*values['target'])
-    except Exception as ex:
-        response = make_response(ex.message)
-        response.status_code = 409  # CONFLICT
-        return response
-    return 'OK'
+    return jsonify(True)
 
 
 @app.route('/follow', methods=['POST'])
-@allow_origin
 def follow():
     """
     {
@@ -160,11 +143,10 @@ def follow():
 
     robot = Robot()
     robot.follow(values[u'path'], values[u'time'])
-    return 'OK'
+    return jsonify(True)
 
 
 @app.route('/maps', methods=['GET'])
-@allow_origin
 def maps():
     """
     [
@@ -176,7 +158,6 @@ def maps():
 
 @app.route('/map', defaults={'name': ''})
 @app.route('/map/<string:name>')
-@allow_origin
 def getmap(name):
     """
     {
@@ -201,25 +182,29 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.clients = []
 
         # register websockets under '/websockets'
-        @ws.route('/websocket')
-        def websocket(websocket):
-            """
-            Web client communication API
-            """
-            self.clients.append(websocket)
-            message = websocket.receive()
-            while not websocket.closed and message:
-                data = json.loads(message)
-                if data['type'] == 'move' and self.manual:
-                    self.robot.add_movement(data['data'])
-                message = websocket.receive()
-            # self.ws = None
+        ws.add_url_rule('/websocket', 'websocket', self.websocket)
+
         # use old-style decorators to subscribe bounded methods
-        app.route('/auto_mode', methods=['PUT',
-                                         'POST'])(allow_origin(self.auto_mode))
-        app.route('/manual_mode', methods=['PUT', 'POST'])(allow_origin(
-            self.manual_mode))
+        app.add_url_rule('/auto_mode', 'auto_mode',
+                         self.auto_mode, methods=('PUT', 'POST'))
+        app.add_url_rule('/manual_mode', 'manual_mode',
+                         self.manual_mode, methods=('PUT', 'POST'))
+
         self.last_location = 0, 0, 0
+
+    def websocket(self, websocket):
+        """
+        Web client communication API
+        """
+        logging.debug("connected websocket client: %s",
+                      websocket.environ['REMOTE_ADDR'])
+        self.clients.append(websocket)
+        message = websocket.receive()
+        while not websocket.closed and message:
+            data = json.loads(message)
+            if data['type'] == 'move' and self.manual:
+                self.robot.add_movement(data['data'])
+            message = websocket.receive()
 
     def movement_begin(self, *args, **kwargs):
         pass
@@ -254,7 +239,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.manual = True
         self.robot.start_open_loop_control()
-        return 'OK'
+        return jsonify(True)
 
     def auto_mode(self):
         """
@@ -262,7 +247,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.manual = False
         self.robot.stop_open_loop_control()
-        return 'OK'
+        return jsonify(True)
 
 
 # add WebHUDMovementSupervisor to working supervisors
