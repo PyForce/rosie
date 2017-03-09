@@ -5,7 +5,7 @@ import os
 import logging
 
 from flask import request, jsonify, json, url_for, send_file, abort,\
-    make_response
+    redirect
 
 from . import app, ws
 from robot import Robot
@@ -41,14 +41,21 @@ def metadata():
         "name": 'SIMUBOT',
         "thumbnail": 'http://localhost:5000/thumbnail',
         "vector": 'http://facebook.com/myuser/image',
+        "video": ':8000/video'
         "size": [0.4, 0.2, 0.2]
     }
     """
     handler = Robot().setting_handler
+
+    videouri = False
+    if hasattr(handler.settings, 'VIDEO_URI'):
+        videouri = handler.settings.VIDEO_URI
+
     data = {
         "name": handler.settings.MOBILE_ROBOT,
         "thumbnail": url_for('.thumbnail'),
         "vector": url_for('.vector'),
+        "video": videouri,
         "size": [handler.settings.LARGE, handler.settings.WIDTH,
                  handler.settings.HEIGHT],
         "profile": handler.profile
