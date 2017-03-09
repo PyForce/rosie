@@ -78,7 +78,6 @@ def vector():
 
 # TODO: read a the sensors
 # @app.route('/sensor/<string:name>', methods=['GET'])
-# @allow_origin
 # def sensor(name):
 #     """
 #     {
@@ -107,7 +106,6 @@ def position():
 
 
 @app.route('/goto', methods=['POST'])
-@allow_origin
 def goto():
     """
     {
