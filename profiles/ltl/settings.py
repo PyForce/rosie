@@ -83,7 +83,7 @@ Streaming
 """
 
 # uri of the video stream (start with ':' for same host and specify the port)
-VIDEO_URI = ':8000/stream/video.mjpeg'
+VIDEO_URI = ':8080/stream/video.mjpeg'
 
 """
 Future
