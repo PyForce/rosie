@@ -5,7 +5,7 @@ import os
 import logging
 
 from flask import request, jsonify, json, url_for, send_file, abort,\
-    redirect
+    redirect, make_response
 
 from . import app, ws
 from robot import Robot
@@ -109,7 +109,7 @@ def position():
     ypos = data['y']
     theta = data['theta']
     Robot().position(xpos, ypos, theta)
-    return jsonify(True)
+    return make_response("")
 
 
 @app.route('/goto', methods=['POST'])
@@ -135,7 +135,7 @@ def goto():
     else:
         robot.go_to(xpos, ypos, theta)
 
-    return jsonify(True)
+    return make_response("")
 
 
 @app.route('/follow', methods=['POST'])
@@ -150,7 +150,7 @@ def follow():
 
     robot = Robot()
     robot.follow(values[u'path'], values[u'time'])
-    return jsonify(True)
+    return make_response("")
 
 
 @app.route('/maps', methods=['GET'])
@@ -160,7 +160,7 @@ def maps():
         "map_name", ...
     ]
     """
-    return jsonify([name for name in Robot().maps()])
+    return jsonify(maps=[name for name in Robot().maps()])
 
 
 @app.route('/map', defaults={'name': ''})
@@ -246,7 +246,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.manual = True
         self.robot.start_open_loop_control()
-        return jsonify(True)
+        return make_response("")
 
     def auto_mode(self):
         """
@@ -254,7 +254,7 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         """
         self.manual = False
         self.robot.stop_open_loop_control()
-        return jsonify(True)
+        return make_response("")
 
 
 # add WebHUDMovementSupervisor to working supervisors
