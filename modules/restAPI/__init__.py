@@ -1,9 +1,13 @@
 from flask import Flask
 from flask_sockets import Sockets
+from flask_cors import CORS
 from geventwebsocket import WebSocketServer
 from geventwebsocket.handler import WebSocketHandler
 
 app = Flask(__name__)
+
+# allow CORS on all requests
+CORS(app)
 
 ws = Sockets(app)
 server = None
