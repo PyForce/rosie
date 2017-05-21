@@ -23,7 +23,7 @@ persistent=yes
 load-plugins=
 
 # Use multiple processes to speed up Pylint.
-jobs=1
+jobs=4
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
@@ -41,7 +41,7 @@ extension-pkg-whitelist=
 # Pylint and this flag can prevent that. It has one side effect, the resulting
 # AST will be different than the one from reality. This option is deprecated
 # and it will be removed in Pylint 2.0.
-optimize-ast=no
+optimize-ast=yes
 
 
 [MESSAGES CONTROL]
@@ -239,7 +239,7 @@ bad-names=foo,bar,baz,toto,tutu,tata
 name-group=
 
 # Include a hint for the correct naming format with invalid-name
-include-naming-hint=no
+include-naming-hint=yes
 
 # List of decorators that produce properties, such as abc.abstractproperty. Add
 # to this list to register other decorators that produce valid properties.
@@ -252,7 +252,7 @@ function-rgx=[a-z_][a-z0-9_]{2,30}$
 function-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct variable names
-variable-rgx=[a-z_][a-z0-9_]{2,30}$
+variable-rgx=[a-z_][a-z0-9_]{0,30}$
 
 # Naming hint for variable names
 variable-name-hint=[a-z_][a-z0-9_]{0,30}$
@@ -307,7 +307,7 @@ method-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
-no-docstring-rgx=^_
+no-docstring-rgx=^_|main
 
 # Minimum line length for functions/classes that require docstrings, shorter
 # ones are exempt.
@@ -369,7 +369,7 @@ known-third-party=enchant
 # Analyse import fallback blocks. This can be used to support both Python 2 and
 # 3 compatible code, which means that the block might have code that exists
 # only in one or another interpreter, leading to false positives when analysed.
-analyse-fallback-blocks=no
+analyse-fallback-blocks=yes
 
 
 [CLASSES]
