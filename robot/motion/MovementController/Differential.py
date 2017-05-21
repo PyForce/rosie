@@ -303,26 +303,31 @@ class DifferentialDriveMovementController:
             self.movement_finish()
             return
 
-        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = self.motor_handler. \
-            read_delta_encoders_count_state()
-        angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,
-                                                               elapsed_time)
-        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-        location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
+        status = self.motor_handler.read_delta_encoders_count_state()
+        
+        if status:
+            delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = status
+            angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,elapsed_time)
+            self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
+
+            location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
                                                                             delta_encoder_count_2)
 
-        x, y, z = self.get_movement_direction_vector()
+            x, y, z = self.get_movement_direction_vector()
 
-        set_point_1, set_point_2 = self.follow(x, y, z)
+            set_point_1, set_point_2 = self.follow(x, y, z)
 
-        self.motor_handler.set_speeds(set_point_1, set_point_2)
+            self.motor_handler.set_speeds(set_point_1, set_point_2)
 
-        self.robot_state.update(location, global_position, None, None, None, None, angular_speed_1,
+            self.robot_state.update(location, global_position, None, None, None, None, angular_speed_1,
                                 set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
                                 elapsed_time)
 
-        self.movement_supervisor.movement_update(self.robot_state)
+            self.movement_supervisor.movement_update(self.robot_state)
+
+        else:
+            print("MOTOR CONTROLER ERROR!!!!!!")
 
     def closed_loop_movement_control(self):
         """

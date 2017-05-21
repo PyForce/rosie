@@ -36,13 +36,15 @@ class FallbackConfigParser(configparser.ConfigParser, object):
         else:
             return kwargs.get('fallback', None)
 
-config = FallbackConfigParser(defaults={'active': 'False', 'logfile': None, 'loglevel': 'INFO',
+config = FallbackConfigParser(defaults={'active': 'False', 'loglevel': 'INFO',
                                         'profile': 'simubot'})
 read = config.read('config.ini')
 if 'config.ini' not in read:
     with open('config.ini', 'w+') as fp:
         del config.defaults()['active']
         _, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
+        config.add_section("restAPI")
+        config.set("restAPI", "active", True)
         config.write(fp)
         configparser.DEFAULTSECT = _
         config.defaults()['active'] = 'False'
