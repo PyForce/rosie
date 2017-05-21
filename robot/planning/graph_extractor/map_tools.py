@@ -145,10 +145,12 @@ class Map(object):
     """
     Abstract structure for maps
     """
+
     def __init__(self, jsonfile):
         with open(jsonfile) as jfile:
             jsonmap = json.load(jfile)
             self.locations = {}
+            self.__name = jsonmap['name']
             self.__rooms = [Room(room, room_name, self.locations)
                             for room_name, room in jsonmap['rooms'].items()]
             self.__borders_points = self.__generate_borders_points()
@@ -156,6 +158,11 @@ class Map(object):
             self.__beveled_points = None
             self.__visibility_graph = None
             self.__H = None
+
+    @property
+    def name(self):
+        """Returns the name of the current graph."""
+        return self.__name
 
     @property
     def visibility_graph(self):
