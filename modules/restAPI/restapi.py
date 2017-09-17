@@ -176,13 +176,13 @@ def getmap(name):
     return jsonify(worldmap) if worldmap else abort(404)
 
 
-class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
+class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
     """
     Supervisor to send movement updates to rosie web clients
     """
 
     def __init__(self):
-        super(WebHUDMovementSupervisor, self).__init__()
+        super(RestAPIMovementSupervisor, self).__init__()
         self.robot = Robot()
         self.manual = False
 
@@ -257,5 +257,5 @@ class WebHUDMovementSupervisor(DifferentialDriveMovementSupervisor):
         return make_response("")
 
 
-# add WebHUDMovementSupervisor to working supervisors
-Robot().supervisor().append(WebHUDMovementSupervisor())
+# add RestAPIMovementSupervisor to working supervisors
+Robot().supervisor().append(RestAPIMovementSupervisor())
