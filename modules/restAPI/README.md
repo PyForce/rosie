@@ -1,4 +1,4 @@
-WebHUD
+restAPI
 ======
 Web client to control the robot.
 
