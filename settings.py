@@ -5,7 +5,7 @@ else:
     import ConfigParser as configparser
 
 
-class FallbackConfigParser(configparser.ConfigParser, object):
+class FallbackConfigParser(configparser.RawConfigParser, object):
 
     def get(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
