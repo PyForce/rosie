@@ -63,6 +63,7 @@ def start(args):
                     logging.warning(
                         'join timed out, killing thread!!')
                     if sys.version_info.major == 3:
+                        thr._tstate_lock.release()
                         thr._stop()
                     else:
                         thr._Thread__stop()
