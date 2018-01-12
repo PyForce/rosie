@@ -12,6 +12,7 @@ flask-cors = "*"
 flask-sockets = "*"
 numpy = "*"
 shapely = "*"
+gevent = "==1.2.2"
 
 
 [dev-packages]
