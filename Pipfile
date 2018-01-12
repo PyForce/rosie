@@ -1,0 +1,21 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+flask = "*"
+flask-cors = "*"
+flask-sockets = "*"
+numpy = "*"
+shapely = "*"
+gevent = "==1.2.2"
+
+
+[dev-packages]
+
+falcon = "*"
+gunicorn = "*"
