@@ -163,8 +163,7 @@ class SettingHandler:
         return planner
 
 
-class Robot:
-    __metaclass__ = Singleton
+class Robot(Singleton):
 
     def __init__(self):
         self.setting_handler = SettingHandler()
