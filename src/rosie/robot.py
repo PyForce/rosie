@@ -1,22 +1,23 @@
 import importlib
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 
 from rosie.config import config as global_settings
 from rosie.motion.controller import MovementController
-from rosie.motion.models import Pose, RobotParameters
-from rosie.motion.motors import HardwareSpeedMotorHandler, PIDSpeedController, SoftwareSpeedMotorHandler
+from rosie.motion.models import Pose, RobotParameters, TrajectoryParameters
+from rosie.motion.motors import (
+    HardwareSpeedMotorHandler,
+    PIDSpeedController,
+    SoftwareSpeedMotorHandler,
+)
 from rosie.motion.odometry import RungeKutta2Localizer
 from rosie.motion.recording import MovementRecorder
 from rosie.motion.supervisors import SupervisorContainer
 from rosie.motion.tracking import IOLinearizationTracker
-from rosie.motion.trajectories import (
-    CubicTrajectoryPlanner,
-    TrajectoryParameters,
-    LinearTrajectoryPlanner,
-)
+from rosie.motion.trajectories import CubicTrajectoryPlanner, LinearTrajectoryPlanner
 from rosie.planning.maps import list_maps
 from rosie.planning.planner import Planner
 
@@ -39,7 +40,7 @@ class Robot:
         # [recording] directory = ...: one CSV file per planned movement
         recordings = global_settings.get("recording", "directory")
         if recordings:
-            self.supervisor().append(MovementRecorder(self.parameters, recordings))
+            self.supervisor().append(MovementRecorder(self.parameters, Path(recordings)))
 
     @property
     def sample_time(self):
@@ -72,12 +73,10 @@ class Robot:
         """
 
         trajectory = TrajectoryParameters(
-            (
-                Pose(*self.position()),
-                Pose(x, y, 0.0),
-            ),
+            [Pose(*self.position()), Pose(x, y, 0.0)],
             t,
             self.motion.robot_parameters.sample_time,
+            0.0,
         )
 
         self.track(trajectory)
@@ -120,7 +119,7 @@ class Robot:
         locations.insert(0, Pose(pos[0], pos[1], 0))
 
         trajectory = TrajectoryParameters(
-            locations, t, self.motion.robot_parameters.sample_time
+            locations, t, self.motion.robot_parameters.sample_time, 0.0
         )
 
         self.track(trajectory)
@@ -131,11 +130,11 @@ class Robot:
 
     def start_open_loop_control(self):
         logging.debug("set mode: MANUAL")
-        self.motion.movement_init()
+        self.motion.movement_init(None)
         self.motion.movement_start()
 
     def add_movement(self, direction):
-        self.motion.dir = direction
+        self.motion.direction = direction
 
     def stop_open_loop_control(self):
         logging.debug("set mode: AUTO")
@@ -259,7 +258,11 @@ def _md25_motors(profile, parameters, _clock):
 
 
 # the boards' driver files used to be chosen by name, profiles still say so
-MOTOR_HANDLERS = {"VirtualMD.py": _virtual_motors, "ArduinoMD.py": _arduino_motors, "MD25.py": _md25_motors}
+MOTOR_HANDLERS = {
+    "VirtualMD.py": _virtual_motors,
+    "ArduinoMD.py": _arduino_motors,
+    "MD25.py": _md25_motors,
+}
 
 
 def _choose(options, setting, value):

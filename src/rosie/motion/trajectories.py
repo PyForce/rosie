@@ -1,125 +1,69 @@
 import math
 from abc import ABC, abstractmethod
 
-from rosie.motion.models import ORIGIN, STILL, Pose, Velocity
-
-
-class TrajectoryParameters:
-    """
-    Structure containing data to generate trajectories
-
-    @param constant_t: Time between key points
-    @type constant_t: float
-    @param constant_k: Constant for cubic interpolations
-    @type constant_k: float
-    @param sample_time: Sample time between two interpolated points
-    @type sample_time: float
-    @param key_locations: Tuple (n Pose) containing all points to generate path by interpolation
-    @type key_locations: tuple
-    """
-
-    def __init__(self, key_locations, constant_t, sample_time, constant_k=0.0):
-        self.constant_t = constant_t
-        self.constant_k = constant_k
-        self.sample_time = sample_time
-        self.key_locations = key_locations
+from rosie.motion.models import ORIGIN, STILL, Pose, TrajectoryParameters, Velocity
 
 
 class TrajectoryPlanner(ABC):
-    """
-    Abstract class to plan trajectories for a differential drive mobile robot
+    """Turns key poses into one reference pose and velocity per control step."""
 
-    """
+    def __init__(self) -> None:
+        self.reference_locations: list[Pose] = []
+        self.reference_speeds: list[Velocity] = []
+        self.current_point_index = 0
+        self.finished = False
 
-    def __init__(self):
-        pass
+    def initialize_track(self, params: TrajectoryParameters) -> None:
+        self.current_point_index = 0
+        self.finished = False
+        self.reference_locations, self.reference_speeds = self._plan(params)
 
-    @abstractmethod
-    def initialize_track(self, trajectory_parameters):
-        """
-        Build the trajectory
+    def get_length(self) -> int:
+        return len(self.reference_locations)
 
-        @param trajectory_parameters: Parameters of the trajectory
-        @type trajectory_parameters: motion.TrajectoryParameters.TrajectoryParameters
-        """
-        pass
+    def get_next_point(self) -> tuple[Pose, Velocity]:
+        if self.current_point_index >= len(self.reference_locations):
+            self.finished = True
+            return self.reference_locations[-1], self.reference_speeds[-1]
 
-    @abstractmethod
-    def has_finished(self):
-        """
-        Return if the trajectory has finished
+        result = (
+            self.reference_locations[self.current_point_index],
+            self.reference_speeds[self.current_point_index],
+        )
 
-        @rtype : bool
-        @return: True if the trajectory has finished, False otherwise
-        """
-        pass
+        self.current_point_index += 1
+        if self.current_point_index >= len(self.reference_locations):
+            self.finished = True
 
-    @abstractmethod
-    def get_next_point(self):
-        """
-        Get the location and speed for the next point in the trajectory
+        return result
 
-        @rtype : tuple
-        @return : Tuple containing location(Pose) and speed (Velocity) of
-        the reference robot in the current point
-        """
-        pass
+    def has_finished(self) -> bool:
+        return self.finished
 
     @abstractmethod
-    def get_length(self):
-        """
-        Get the number of points in the trajectory
-
-        @return: The length of the trajectory (number of points)
-        @rtype: int
-        """
-        pass
+    def _plan(self, params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]: ...
 
 
 class LinearTrajectoryPlanner(TrajectoryPlanner):
-    """
-    Class to plan trajectories for a differential drive mobile robot using lineal interpolation
+    def _plan(self, params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
+        segments = len(params.key_poses) - 1
+        points_count = int(segments * params.segment_time / params.sample_time)
+        poses = [ORIGIN] * points_count
+        velocities = [STILL] * points_count
 
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.reference_locations = list()
-        self.reference_speeds = list()
-        self.points_count = 0
-        self.current_point_index = 0
-        self.finished = False
-
-    def initialize_track(self, trajectory_parameters):
-        """
-        Build the trajectory
-
-        @param trajectory_parameters: Parameters of the trajectory
-        @type trajectory_parameters:  motion.TrajectoryParameters.TrajectoryParameters
-        """
-        self.current_point_index = 0
-        self.finished = False
-
-        segments = len(trajectory_parameters.key_locations) - 1
-        total_time = segments * trajectory_parameters.constant_t
-        self.points_count = int(total_time / trajectory_parameters.sample_time)
-
-        self.reference_locations = [ORIGIN] * self.points_count
-        self.reference_speeds = [STILL] * self.points_count
-
-        theta_prev_interval = 0
-        points_per_segment = int(trajectory_parameters.constant_t / trajectory_parameters.sample_time)
+        theta_prev_interval = 0.0
+        points_per_segment = int(params.segment_time / params.sample_time)
 
         for i in range(segments):
             segment_base_index = i * points_per_segment
-            start = trajectory_parameters.key_locations[i]
-            end = trajectory_parameters.key_locations[i + 1]
+            start = params.key_poses[i]
+            end = params.key_poses[i + 1]
 
             delta_x = (end.x - start.x) / float(points_per_segment)
             delta_y = (end.y - start.y) / float(points_per_segment)
 
-            speed_x = delta_x / trajectory_parameters.sample_time
-            speed_y = delta_y / trajectory_parameters.sample_time
+            speed_x = delta_x / params.sample_time
+            speed_y = delta_y / params.sample_time
 
             theta_interval = math.atan2(speed_y, speed_x)
 
@@ -135,108 +79,43 @@ class LinearTrajectoryPlanner(TrajectoryPlanner):
             elif diff3 < diff1:
                 theta_interval += 2 * math.pi
 
-            self.reference_locations[segment_base_index] = Pose(start.x, start.y, theta_interval)
-            self.reference_speeds[segment_base_index] = Velocity(
-                speed_x,
-                speed_y,
-                (theta_interval - theta_prev_interval) / float(trajectory_parameters.sample_time),
+            poses[segment_base_index] = Pose(start.x, start.y, theta_interval)
+            velocities[segment_base_index] = Velocity(
+                speed_x, speed_y, (theta_interval - theta_prev_interval) / float(params.sample_time)
             )
 
             theta_prev_interval = theta_interval
 
             for j in range(1, points_per_segment):
-                previous = self.reference_locations[segment_base_index + j - 1]
-                self.reference_locations[segment_base_index + j] = Pose(
+                previous = poses[segment_base_index + j - 1]
+                poses[segment_base_index + j] = Pose(
                     previous.x + delta_x, previous.y + delta_y, theta_interval
                 )
-                self.reference_speeds[segment_base_index + j] = Velocity(speed_x, speed_y, 0.0)
+                velocities[segment_base_index + j] = Velocity(speed_x, speed_y, 0.0)
 
-    def get_length(self):
-        """
-        Get the number of points in the trajectory
-
-        @return: The length of the trajectory (number of points)
-        @rtype: int
-        """
-        return self.points_count
-
-    def get_next_point(self):
-        """
-        Get the location and speed for the next point in the trajectory
-
-        @rtype : tuple
-        @return : Tuple containing location(Pose) and speed (Velocity) of
-        the reference robot in the current point
-        """
-        if self.current_point_index >= len(self.reference_locations):
-            self.finished = True
-            return self.reference_locations[-1], self.reference_speeds[-1]
-        result = (
-            self.reference_locations[self.current_point_index],
-            self.reference_speeds[self.current_point_index],
-        )
-        self.current_point_index += 1
-        if self.current_point_index >= len(self.reference_locations):
-            self.finished = True
-        return result
-
-    def has_finished(self):
-        """
-        Return if the trajectory has finished
-
-        @rtype : bool
-        @return: True if the trajectory has finished, False otherwise
-        """
-        return self.finished
+        return poses, velocities
 
 
 class CubicTrajectoryPlanner(TrajectoryPlanner):
-    """
-    Class to plan trajectories for a differential drive mobile robot using cubic interpolation
-
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.reference_locations = list()
-        self.reference_speeds = list()
-        self.points_count = 0
-        self.current_point_index = 0
-        self.finished = False
-
-    def initialize_track(self, trajectory_parameters):
-        """
-        Build the trajectory
-
-        @param trajectory_parameters: Parameters of the trajectory
-        @type trajectory_parameters:  motion.TrajectoryParameters.TrajectoryParameters
-        """
-        points_per_segment = int(
-            trajectory_parameters.constant_t / float(trajectory_parameters.sample_time)
-        )
-
-        self.current_point_index = 0
-        self.finished = False
-
-        segments = len(trajectory_parameters.key_locations) - 1
-
-        self.points_count = points_per_segment * segments
-
-        self.reference_locations = [ORIGIN] * self.points_count
-        self.reference_speeds = [STILL] * self.points_count
+    def _plan(self, params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
+        points_per_segment = int(params.segment_time / float(params.sample_time))
+        segments = len(params.key_poses) - 1
+        points_count = points_per_segment * segments
+        poses = [ORIGIN] * points_count
+        velocities = [STILL] * points_count
 
         for j in range(segments):
-            x_i = trajectory_parameters.key_locations[j].x
-            y_i = trajectory_parameters.key_locations[j].y
-            theta_i = trajectory_parameters.key_locations[j].theta
-            x_f = trajectory_parameters.key_locations[j + 1].x
-            y_f = trajectory_parameters.key_locations[j + 1].y
-            theta_f = trajectory_parameters.key_locations[j + 1].theta
+            x_i = params.key_poses[j].x
+            y_i = params.key_poses[j].y
+            theta_i = params.key_poses[j].theta
+            x_f = params.key_poses[j + 1].x
+            y_f = params.key_poses[j + 1].y
+            theta_f = params.key_poses[j + 1].theta
 
-            alpha_x = trajectory_parameters.constant_k * math.cos(theta_f) - 3 * x_f
-            alpha_y = trajectory_parameters.constant_k * math.sin(theta_f) - 3 * y_f
-            beta_x = trajectory_parameters.constant_k * math.cos(theta_i) + 3 * x_i
-            beta_y = trajectory_parameters.constant_k * math.sin(theta_i) + 3 * y_i
+            alpha_x = params.constant_k * math.cos(theta_f) - 3 * x_f
+            alpha_y = params.constant_k * math.sin(theta_f) - 3 * y_f
+            beta_x = params.constant_k * math.cos(theta_i) + 3 * x_i
+            beta_y = params.constant_k * math.sin(theta_i) + 3 * y_i
 
             positions = []
             for i in range(points_per_segment):
@@ -273,55 +152,14 @@ class CubicTrajectoryPlanner(TrajectoryPlanner):
                 )
                 dtheta = (yd_dot_dot * dx - xd_dot_dot * dy) / (dx * dx + dy * dy)
                 positions.append((x, y))
-                self.reference_speeds[points_per_segment * j + i] = Velocity(
-                    dx / trajectory_parameters.constant_t,
-                    dy / trajectory_parameters.constant_t,
-                    dtheta / trajectory_parameters.constant_t,
+                velocities[points_per_segment * j + i] = Velocity(
+                    dx / params.segment_time, dy / params.segment_time, dtheta / params.segment_time
                 )
 
             theta = theta_i
             for i, (x, y) in enumerate(positions):
                 if i > 0:
-                    theta += (
-                        self.reference_speeds[points_per_segment * j + i - 1].theta
-                        * trajectory_parameters.sample_time
-                    )
-                self.reference_locations[points_per_segment * j + i] = Pose(x, y, theta)
+                    theta += velocities[points_per_segment * j + i - 1].theta * params.sample_time
+                poses[points_per_segment * j + i] = Pose(x, y, theta)
 
-    def get_length(self):
-        """
-        Get the number of points in the trajectory
-
-        @return: The length of the trajectory (number of points)
-        @rtype: int
-        """
-        return self.points_count
-
-    def get_next_point(self):
-        """
-        Get the location and speed for the next point in the trajectory
-
-        @rtype : tuple
-        @return : Tuple containing location(Pose) and speed (Velocity) of
-        the reference robot in the current point
-        """
-        if self.current_point_index >= len(self.reference_locations):
-            self.finished = True
-            return self.reference_locations[-1], self.reference_speeds[-1]
-        result = (
-            self.reference_locations[self.current_point_index],
-            self.reference_speeds[self.current_point_index],
-        )
-        self.current_point_index += 1
-        if self.current_point_index >= len(self.reference_locations):
-            self.finished = True
-        return result
-
-    def has_finished(self):
-        """
-        Return if the trajectory has finished
-
-        @rtype : bool
-        @return: True if the trajectory has finished, False otherwise
-        """
-        return self.finished
+        return poses, velocities

@@ -18,6 +18,18 @@ class Velocity:
 ORIGIN = Pose(0.0, 0.0, 0.0)
 STILL = Velocity(0.0, 0.0, 0.0)
 
+# encoder steps of wheel 1 and 2 since the previous reading, battery voltage (V),
+# current of motor 1 and 2 (A)
+type EncoderReading = tuple[float, float, float, float, float]
+
+
+@dataclass(frozen=True, slots=True)
+class TrajectoryParameters:
+    key_poses: list[Pose]  # the path goes through them, in order
+    segment_time: float  # s from one key pose to the next
+    sample_time: float  # s between control steps
+    constant_k: float  # cubic planner: weight of the key poses' headings
+
 
 @dataclass(frozen=True, slots=True)
 class RobotParameters:
@@ -54,4 +66,6 @@ class RobotState:
     elapsed_time: float  # s since the previous step
 
 
-RESTING = RobotState(ORIGIN, ORIGIN, ORIGIN, STILL, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+RESTING = RobotState(
+    ORIGIN, ORIGIN, ORIGIN, STILL, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+)

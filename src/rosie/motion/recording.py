@@ -9,89 +9,65 @@ The robot's parameters come first, as `# name = value` comment lines
 """
 
 import csv
+import io
 import logging
-import os
 import time
+from dataclasses import astuple
+from pathlib import Path
 
+from rosie.motion.models import STILL, RobotParameters, RobotState
 from rosie.motion.supervisors import MovementSupervisor
 
+logger = logging.getLogger(__name__)
+
+# time: s since the start; elapsed: s since the previous step; location in m, m, rad;
+# tracker: speeds asked by the trajectory tracker; wheels in rad/s and A
 COLUMNS = (
-    "time",
-    "elapsed",  # s since the start, s since the previous step
-    "x",
-    "y",
-    "theta",  # location (m, m, rad)
-    "ref_x",
-    "ref_y",
-    "ref_theta",  # reference location
-    "ref_speed_x",
-    "ref_speed_y",
-    "ref_speed_theta",  # reference speed
-    "tracker_x",
-    "tracker_y",  # speeds asked by the trajectory tracker
-    "wheel_1_speed",
-    "wheel_1_setpoint",
-    "wheel_1_current",  # rad/s, rad/s, A
-    "wheel_2_speed",
-    "wheel_2_setpoint",
-    "wheel_2_current",
-)
+    "time", "elapsed",
+    "x", "y", "theta",
+    "ref_x", "ref_y", "ref_theta",
+    "ref_speed_x", "ref_speed_y", "ref_speed_theta",
+    "tracker_x", "tracker_y",
+    "wheel_1_speed", "wheel_1_setpoint", "wheel_1_current",
+    "wheel_2_speed", "wheel_2_setpoint", "wheel_2_current",
+)  # fmt: skip
 
 PARAMETERS = (
-    "wheel_radius",
-    "wheel_distance",
-    "constant_b",
-    "constant_k1",
-    "constant_k2",
-    "constant_kc",
-    "constant_ki",
-    "constant_kd",
-)
+    "wheel_radius", "wheel_distance",
+    "constant_b", "constant_k1", "constant_k2",
+    "constant_kc", "constant_ki", "constant_kd",
+)  # fmt: skip
+
+type Row = tuple[float | None, ...]
 
 
 class MovementRecorder(MovementSupervisor):
-    """
-    Supervisor that writes each planned movement to a CSV file in `directory`
-    """
-
-    def __init__(self, robot_parameters, directory):
-        super().__init__()
+    def __init__(self, robot_parameters: RobotParameters, directory: Path) -> None:
         self.robot_parameters = robot_parameters
         self.directory = directory
-        os.makedirs(directory, exist_ok=True)
-        self.rows = None  # None: not recording (manual control)
-        self.expected_updates = None
+        directory.mkdir(parents=True, exist_ok=True)
+        self.rows: list[Row] | None = None  # None: not recording (manual control)
+        self.expected_updates = 0
         self.time = 0.0
 
-    def movement_begin(self, expected_updates):
-        """
-        @param expected_updates: number of control steps of the movement,
-            None for manual control (not recorded)
-        """
-        self.expected_updates = expected_updates
+    def movement_begin(self, expected_updates: int | None) -> None:
         self.rows = None if expected_updates is None else []
+        self.expected_updates = expected_updates or 0
         self.time = 0.0
 
-    def movement_update(self, robot_state):
+    def movement_update(self, robot_state: RobotState) -> None:
         if self.rows is None or len(self.rows) >= self.expected_updates:
             return
         self.time += robot_state.elapsed_time
-        location = robot_state.pose
-        reference = robot_state.reference_pose
-        speed = robot_state.reference_velocity
+        reference = robot_state.reference_pose or robot_state.pose
+        velocity = robot_state.reference_velocity or STILL
         self.rows.append(
             (
                 self.time,
                 robot_state.elapsed_time,
-                location.x,
-                location.y,
-                location.theta,
-                reference.x,
-                reference.y,
-                reference.theta,
-                speed.x,
-                speed.y,
-                speed.theta,
+                *astuple(robot_state.pose),
+                *astuple(reference),
+                *astuple(velocity),
                 robot_state.tracker_x,
                 robot_state.tracker_y,
                 robot_state.wheel_1_speed,
@@ -103,15 +79,16 @@ class MovementRecorder(MovementSupervisor):
             )
         )
 
-    def movement_end(self):
+    def movement_end(self) -> None:
         if not self.rows:
             return
-        path = os.path.join(self.directory, time.strftime("E%Y%m%d%H%M%S") + ".csv")
-        with open(path, "w", newline="") as csv_file:
-            for name in PARAMETERS:
-                csv_file.write("# %s = %r\n" % (name, getattr(self.robot_parameters, name)))
-            writer = csv.writer(csv_file, lineterminator="\n")
-            writer.writerow(COLUMNS)
-            writer.writerows(self.rows)
-        logging.info("movement recorded in %s (%d steps)", path, len(self.rows))
+        path = self.directory / f"{time.strftime('E%Y%m%d%H%M%S')}.csv"
+        text = io.StringIO()
+        for name in PARAMETERS:
+            text.write(f"# {name} = {getattr(self.robot_parameters, name)!r}\n")
+        writer = csv.writer(text, lineterminator="\n")
+        writer.writerow(COLUMNS)
+        writer.writerows(self.rows)
+        path.write_text(text.getvalue())
+        logger.info("movement recorded in %s (%d steps)", path, len(self.rows))
         self.rows = None

@@ -1,39 +1,38 @@
 import logging
 import math
+from collections.abc import Callable
 
-from rosie.motion.models import RESTING, RobotState
+from rosie.motion.models import RESTING, RobotParameters, RobotState, TrajectoryParameters
+from rosie.motion.motors import MotorHandler
+from rosie.motion.odometry import OdometryLocalizer
+from rosie.motion.supervisors import MovementSupervisor
+from rosie.motion.tracking import TrajectoryTracker
+from rosie.motion.trajectories import TrajectoryPlanner
+
+logger = logging.getLogger(__name__)
+
+# wheel speed (rad/s) for a fully pressed key under manual control
+MANUAL_SPEED = 8
+# s: shorter steps would divide the encoder steps by (almost) zero
+MIN_ELAPSED_TIME = 0.0000000001
 
 
 class MovementController:
     """
-    Class to control the movement of a differential drive mobile robot
-
-    @param movement_supervisor: Object to supervise the movement
-    @param trajectory_planner: Object to make the trajectory planning
-    @param odometry_localizer: Object to make odometry localization
-    @param trajectory_tracker: Object to make the trajectory tracking
-    @param motor_handler: Object to handle the motors
-    @param robot_parameters: Parameters of the robot
-    @param sample_time: Sample time of the control system
-    @type sample_time: float
-    @type movement_supervisor: motion.MovementSupervisor.MovementSupervisor
-    @type trajectory_planner: motion.TrajectoryPlanner.TrajectoryPlanner
-    @type trajectory_tracker: motion.TrajectoryTracker.TrajectoryTracker
-    @type robot_parameters: motion.RobotParameters.RobotParameters
-    @type motor_handler: motion.MotorHandler.MotorHandler
-    @type odometry_localizer: motion.OdometryLocalizer.OdometryLocalizer
+    Runs the robot's movements, one control step per tick(): follows the
+    planned trajectory (closed loop) or the pressed keys (manual, open loop).
     """
 
     def __init__(
         self,
-        movement_supervisor,
-        trajectory_planner,
-        odometry_localizer,
-        trajectory_tracker,
-        motor_handler,
-        robot_parameters,
-        clock,
-    ):
+        movement_supervisor: MovementSupervisor,
+        trajectory_planner: TrajectoryPlanner,
+        odometry_localizer: OdometryLocalizer,
+        trajectory_tracker: TrajectoryTracker,
+        motor_handler: MotorHandler,
+        robot_parameters: RobotParameters,
+        clock: Callable[[], float],
+    ) -> None:
         self.ordered_stop = True
         self.sample_time = robot_parameters.sample_time
         self.movement_supervisor = movement_supervisor
@@ -45,45 +44,19 @@ class MovementController:
         self.trajectory_planner = trajectory_planner
         self.robot_state = RESTING
 
-        # the control step tick() runs while a movement is active
         self.running = False
         self.step = self.closed_loop_movement_control
         self.prev_time = self.clock()
 
-        self.dir = [0, 0, 0]
+        # pressed keys under manual control: x (steer), y (throttle), rotation, each in [-1, 1]
+        self.direction = [0.0, 0.0, 0.0]
 
-    def measure_speeds(self, delta_encoder_count_1, delta_encoder_count_2, elapsed_time):
-        """
-        Measure speeds of both motors of the robot
+    def tick(self) -> None:
+        if self.running:
+            self.step()
 
-        @param delta_encoder_count_1: encoder count for motor 1 since last measure
-        @param delta_encoder_count_2: encoder count for motor 2 since last measure
-        @param elapsed_time: time elapsed since last measure
-        @type elapsed_time: float
-        @type delta_encoder_count_2: int
-        @type delta_encoder_count_1: int
-        @rtype : tuple
-        @return: The actual speeds of the motors(2 floats)
-        """
-
-        if elapsed_time < 0.0000000001:
-            elapsed_time = 0.0000000001
-            logging.warning("almost dividing by zero")  # TODO: Check warning
-        steps_per_sec_1 = delta_encoder_count_1 / elapsed_time
-        angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
-
-        steps_per_sec_2 = delta_encoder_count_2 / elapsed_time
-        angular_speed_2 = steps_per_sec_2 * 2 * math.pi / self.robot_parameters.steps_per_revolution
-
-        return angular_speed_1, angular_speed_2
-
-    def movement_init(self, trajectory_parameters=None):
-        """
-        Initialize the movement
-
-        @type trajectory_parameters: motion.TrajectoryParameters.TrajectoryParameters
-        @param trajectory_parameters: Parameters for the movement's trajectory
-        """
+    def movement_init(self, trajectory_parameters: TrajectoryParameters | None) -> None:
+        """Prepare a planned movement, or manual control when there are no parameters."""
         if trajectory_parameters:
             self.trajectory_planner.initialize_track(trajectory_parameters)
             self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
@@ -92,76 +65,23 @@ class MovementController:
             self.movement_supervisor.movement_begin(None)
         self.motor_handler.reset()
         self.trajectory_tracker.reset()
-        # self.odometry_localizer.reset_location()
 
-    def open_loop_movement_control(self):
-        """
-        Control the movement
+    def movement_start(self) -> None:
+        self.ordered_stop = False
+        self.prev_time = self.clock()
+        self.running = True
 
-        @type elapsed_time: float
-        @param elapsed_time: elapsed time since last call
-        """
-        now = self.clock()
-        elapsed_time = max(
-            now - self.prev_time, 0.00001
-        )  # TODO:Check for very fast processor, never knows :)
+    def movement_stop(self) -> None:
+        self.ordered_stop = True
 
-        self.prev_time = now
+    def movement_finish(self) -> None:
+        self.running = False
+        self.step = self.closed_loop_movement_control
+        self.movement_stop()
+        self.motor_handler.stop_motors()
+        self.movement_supervisor.movement_end()
 
-        if self.ordered_stop:
-            self.movement_finish()
-            return
-
-        status = self.motor_handler.read_delta_encoders_count_state()
-
-        if status:
-            delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = (
-                status
-            )
-            angular_speed_1, angular_speed_2 = self.measure_speeds(
-                delta_encoder_count_1, delta_encoder_count_2, elapsed_time
-            )
-            self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
-
-            location, global_position = self.odometry_localizer.update_location(
-                delta_encoder_count_1, delta_encoder_count_2
-            )
-
-            x, y, z = self.get_movement_direction_vector()
-
-            set_point_1, set_point_2 = self.follow(x, y, z)
-
-            self.motor_handler.set_speeds(set_point_1, set_point_2)
-
-            self.robot_state = RobotState(
-                location,
-                global_position,
-                None,
-                None,
-                None,
-                None,
-                angular_speed_1,
-                set_point_1,
-                current_1,
-                angular_speed_2,
-                set_point_2,
-                current_2,
-                battery_voltage,
-                elapsed_time,
-            )
-
-            self.movement_supervisor.movement_update(self.robot_state)
-
-        else:
-            print("MOTOR CONTROLER ERROR!!!!!!")
-
-    def closed_loop_movement_control(self):
-        """
-        Control the movement
-
-        @type elapsed_time: float
-        @param elapsed_time: elapsed time since last call
-        """
+    def closed_loop_movement_control(self) -> None:
         now = self.clock()
         elapsed_time = now - self.prev_time
         self.prev_time = now
@@ -170,16 +90,18 @@ class MovementController:
             self.movement_finish()
             return
 
-        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = (
-            self.motor_handler.read_delta_encoders_count_state()
-        )
+        reading = self.motor_handler.read_delta_encoders_count_state()
+        if reading is None:
+            logger.error("no reading from the motor driver")
+            return
+        delta_steps_1, delta_steps_2, battery_voltage, current_1, current_2 = reading
         angular_speed_1, angular_speed_2 = self.measure_speeds(
-            delta_encoder_count_1, delta_encoder_count_2, elapsed_time
+            delta_steps_1, delta_steps_2, elapsed_time
         )
         self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-        location, global_position = self.odometry_localizer.update_location(
-            delta_encoder_count_1, delta_encoder_count_2
+        location, global_location = self.odometry_localizer.update_location(
+            delta_steps_1, delta_steps_2
         )
 
         reference_location, reference_speed = self.trajectory_planner.get_next_point()
@@ -192,7 +114,7 @@ class MovementController:
 
         self.robot_state = RobotState(
             location,
-            global_position,
+            global_location,
             reference_location,
             reference_speed,
             u1,
@@ -209,19 +131,73 @@ class MovementController:
 
         self.movement_supervisor.movement_update(self.robot_state)
 
-    def follow(self, x, y, z):
-        """
-        calculate the wheel speeds for an asynchronous event.
+    def open_loop_movement_control(self) -> None:
+        now = self.clock()
+        elapsed_time = max(now - self.prev_time, 0.00001)
+        self.prev_time = now
 
-        :param x: value of displacement in X axis
-        :type x: float
-        :param y: value of displacement in Y axis
-        :type y: float
-        :return: wheel speeds
-        :type: tuple
+        if self.ordered_stop:
+            self.movement_finish()
+            return
 
-        """
-        if not (x, y) == (0, 0):
+        reading = self.motor_handler.read_delta_encoders_count_state()
+        if not reading:
+            logger.error("no reading from the motor driver")
+            return
+        delta_steps_1, delta_steps_2, battery_voltage, current_1, current_2 = reading
+        angular_speed_1, angular_speed_2 = self.measure_speeds(
+            delta_steps_1, delta_steps_2, elapsed_time
+        )
+        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
+
+        location, global_location = self.odometry_localizer.update_location(
+            delta_steps_1, delta_steps_2
+        )
+
+        set_point_1, set_point_2 = self._wheel_speeds(*self._direction_vector())
+
+        self.motor_handler.set_speeds(set_point_1, set_point_2)
+
+        self.robot_state = RobotState(
+            location,
+            global_location,
+            None,
+            None,
+            None,
+            None,
+            angular_speed_1,
+            set_point_1,
+            current_1,
+            angular_speed_2,
+            set_point_2,
+            current_2,
+            battery_voltage,
+            elapsed_time,
+        )
+
+        self.movement_supervisor.movement_update(self.robot_state)
+
+    def measure_speeds(
+        self, delta_steps_1: float, delta_steps_2: float, elapsed_time: float
+    ) -> tuple[float, float]:
+        if elapsed_time < MIN_ELAPSED_TIME:
+            elapsed_time = MIN_ELAPSED_TIME
+            logger.warning("almost dividing by zero")
+        steps_per_sec_1 = delta_steps_1 / elapsed_time
+        angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
+
+        steps_per_sec_2 = delta_steps_2 / elapsed_time
+        angular_speed_2 = steps_per_sec_2 * 2 * math.pi / self.robot_parameters.steps_per_revolution
+
+        return angular_speed_1, angular_speed_2
+
+    def _direction_vector(self) -> tuple[float, float, float]:
+        dx, dy, dz = (key * MANUAL_SPEED for key in self.direction)
+        return dx, dy, dz
+
+    def _wheel_speeds(self, x: float, y: float, z: float) -> tuple[float, float]:
+        """Racing-game driving: y is the throttle, x steers while moving, z turns on the spot."""
+        if (x, y) != (0, 0):
             left = right = y
             ratio = abs(x / self.robot_parameters.max_speed)
             if x < 0:
@@ -229,65 +205,6 @@ class MovementController:
             elif x > 0:
                 left *= 1 - ratio
             return right, left
-        elif z:
+        if z:
             return z, -z
-        else:
-            return 0, 0
-
-    def get_movement_direction_vector(self):
-        x, y, z = 0, 0, 0
-        # TODO: change 8 for max speed
-        dx, dy, dz = [i * 8 for i in self.dir]
-        # if 87 in keys:  # W
-        #     dy += 8
-        # if 65 in keys:  # A
-        #     dx -= 8
-        # if 83 in keys:  # S
-        #     dy -= 8
-        # if 68 in keys:  # D
-        #     dx += 8
-        # if 81 in keys:  # Q
-        #     dz -= 8
-        # if 69 in keys:  # E
-        #     dz += 8
-
-        # x = (x+dx)/2.0
-        # y = (y+dy)/2.0
-        # z = (z+dz)/2.0
-
-        return dx, dy, dz
-
-    def movement_finish(self):
-        """
-        Finish the movement
-
-        """
-        self.running = False
-        self.step = self.closed_loop_movement_control
-        self.movement_stop()
-        self.motor_handler.stop_motors()
-        self.movement_supervisor.movement_end()
-
-    def movement_start(self):
-        """
-        Start the movement
-
-        """
-        self.ordered_stop = False
-        self.prev_time = self.clock()
-        self.running = True
-
-    def movement_stop(self):
-        """
-        Order to stop the movement
-
-        """
-        self.ordered_stop = True
-
-    def tick(self):
-        """
-        Run one control step, if a movement is active
-
-        """
-        if self.running:
-            self.step()
+        return 0, 0

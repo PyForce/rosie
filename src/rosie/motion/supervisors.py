@@ -1,60 +1,31 @@
 from abc import ABC, abstractmethod
 
+from rosie.motion.models import RobotState
+
 
 class MovementSupervisor(ABC):
-    """
-    Abstract class to supervise a differential drive mobile robot in a movement
-
-    """
-
-    def __init__(self):
-        pass
+    """Follows each movement: its start, every control step, its end."""
 
     @abstractmethod
-    def movement_begin(self, expected_updates):
-        """
-        Method to be called when the movement begins
-
-        @param expected_updates: Number of times movement_updates wil be called
-        @type expected_updates: int
-        """
-        pass
+    def movement_begin(self, expected_updates: int | None) -> None:
+        """`expected_updates`: control steps of a planned movement, None under manual control."""
 
     @abstractmethod
-    def movement_update(self, robot_state):
-        """
-        Method to be called when the state of the robot changes during the movement
-
-        @type robot_state: motion.RobotState.RobotState
-        @param robot_state: the new state of the robot
-        """
-        pass
+    def movement_update(self, robot_state: RobotState) -> None: ...
 
     @abstractmethod
-    def movement_end(self):
-        """
-        Method to be called when the movement ends
-
-        """
-        pass
+    def movement_end(self) -> None: ...
 
 
-class SupervisorContainer(MovementSupervisor, list):
-    """
-    Class that groups multiple supervisors
-    """
-
-    def __init__(self, *supervisors):
-        self.extend(supervisors)
-
-    def movement_begin(self, updates):
+class SupervisorContainer(MovementSupervisor, list[MovementSupervisor]):
+    def movement_begin(self, expected_updates: int | None) -> None:
         for supervisor in self:
-            supervisor.movement_begin(updates)
+            supervisor.movement_begin(expected_updates)
 
-    def movement_update(self, state):
+    def movement_update(self, robot_state: RobotState) -> None:
         for supervisor in self:
-            supervisor.movement_update(state)
+            supervisor.movement_update(robot_state)
 
-    def movement_end(self):
+    def movement_end(self) -> None:
         for supervisor in self:
             supervisor.movement_end()
