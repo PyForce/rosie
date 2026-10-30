@@ -11,7 +11,7 @@ from rosie.motion.motors import HardSpeedControlledMH
 from rosie.motion.motors import SoftSpeedControlledMH
 from rosie.motion.controller import DifferentialDriveMovementController
 from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
-from rosie.motion.pid import PIDSpeedController
+from rosie.motion.motors import PIDSpeedController
 from rosie.motion.trajectories import DifferentialDriveTrajectoryParameters
 from rosie.motion.trajectories import CubicTrajectoryPlanner
 from rosie.motion.trajectories import LinearTrajectoryPlanner
