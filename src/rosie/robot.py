@@ -48,6 +48,8 @@ class Robot:
         self.profile = load_profile(profile)
         self.parameters = robot_parameters(self.profile)
         self.supervisors = SupervisorContainer()
+        # sensor name -> function reading it (plugins add theirs)
+        self.sensors: dict[str, Callable[[], object]] = {}
         self.motion = movement_controller(self.profile, self.parameters, self.supervisors, clock)
         self.planner = Planner(list_maps())
         self.planner.use_map(DEFAULT_MAP)

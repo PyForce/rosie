@@ -55,6 +55,13 @@ def vector(robot: RobotDependency) -> FileResponse:
     return FileResponse(PROFILES_DIR / robot.profile_name / "vector.svg")
 
 
+@router.get("/sensor/{name}")
+def sensor(name: str, robot: RobotDependency) -> dict[str, object]:
+    if name not in robot.sensors:
+        raise HTTPException(status_code=404, detail=f"no sensor {name}")
+    return {name: robot.sensors[name]()}
+
+
 @router.post("/position")
 async def position(request: Request, robot: RobotDependency) -> Response:
     """Teleport the robot."""
