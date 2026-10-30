@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["QA"]
+    branches: [main]
+    types: [completed]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success'
+    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-release.yml@v1.0.3
+    permissions:
+      contents: write
+    with:
+      cookie-pyrate-ref: v1.0.3
+      create-github-release: true
+      attach-distribution: false
+      publish-docker-image: false # if set to true, needs extra config — see DEVELOPMENT.md
+      prepare-next-version: true
+    secrets:
+      # Created by `make repo`; lets the version bumps land on a protected main.
+      RELEASE_SSH_KEY: ${{ secrets.RELEASE_SSH_KEY }}

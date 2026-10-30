@@ -1,0 +1,61 @@
+[project]
+site_name = "rosie"
+site_description = "Modular robot control system"
+site_dir = "dist/docs"
+nav = [
+  { "🏠 Home" = "index.md" },
+  { "📖 Reference" = "reference.md" },
+  { "ℹ️ About" = "about.md" },
+]
+
+[project.plugins.search]
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_if_no_docstring = true
+show_submodules = true
+merge_init_into_class = true
+filters = ["!^_", "!^logger$"]
+
+[project.theme]
+name = "material"
+language = "en"
+logo = "images/logo.svg"
+favicon = "images/logo.svg"
+features = [
+  "navigation.sections", # Separates sections within the navigation
+  "navigation.top", # Moves the navigation to the top bar
+]
+
+[project.theme.font]
+text = "Roboto"
+code = "Roboto Mono"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "white"
+accent = "blue"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "black"
+accent = "blue"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.admonition]
+
+[project.markdown_extensions.codehilite]
+guess_lang = false
+linenums = true
+
+[project.markdown_extensions.pymdownx.superfences] # Enhances fenced code blocks
+
+[project.markdown_extensions.toc]
+permalink = true
