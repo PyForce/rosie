@@ -21,13 +21,13 @@ ENV UV_COMPILE_BYTECODE=1
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock,readonly \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml,readonly \
-    uv sync --locked --no-dev --extra hardware --no-install-project --no-editable
+    uv sync --locked --no-dev --extra robot --no-install-project --no-editable
 
 COPY . /app
 
 # Install the packaged application non-editably for deployment.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra hardware --no-editable
+    uv sync --locked --no-dev --extra robot --no-editable
 
 FROM python:3.15-slim AS webrosie-release
 ARG WEBROSIE_VERSION

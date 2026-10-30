@@ -20,17 +20,23 @@ maintainers = [
 license = { text = "MIT" }
 keywords = ["robotics", "mobile robots", "differential drive", "path planning"]
 
+# the client; the robot itself is the `robot` extra
 dependencies = [
-    "fastapi>=0.162",
-    "numpy>=2.5",
-    "pydantic>=2.14",
-    "shapely>=2.2",
-    "uvicorn[standard]>=0.54",
+    "websockets>=15.0",
 ]
 
 [project.optional-dependencies]
-# the boards of real robots: Arduino (serial) and MD25 or the ultrasound board (I2C)
-hardware = ["pyserial>=3.5", "smbus2>=0.6"]
+# pip install "pyforce-rosie[robot]": rosie start, with the boards of real robots:
+# Arduino (serial) and MD25 or the ultrasound board (I2C)
+robot = [
+    "fastapi>=0.162",
+    "numpy>=2.5",
+    "pydantic>=2.14",
+    "pyserial>=3.5",
+    "shapely>=2.2",
+    "smbus2>=0.6",
+    "uvicorn[standard]>=0.54",
+]
 
 [project.urls]
 Repository = "https://github.com/PyForce/rosie"
@@ -41,6 +47,7 @@ rosie = "rosie.__main__:main"
 
 [dependency-groups]
 dev = [
+    "pyforce-rosie[robot]",
     "httpx2>=2.16",
     "mypy>=2.4",
     "pre-commit>=4.7",
