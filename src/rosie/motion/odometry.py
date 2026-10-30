@@ -1,21 +1,21 @@
 import math
 from abc import ABC, abstractmethod
 
-from rosie.motion.geometry import DifferentialDriveRobotLocation
+from rosie.motion.models import Pose
 
 
-class DifferentialDriveOdometryLocalizer(ABC):
+class OdometryLocalizer(ABC):
     """
     Abstract class to localize a differential drive mobile robot using odometry
 
     @param robot_parameters: Parameters of the robot
-    @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
+    @type robot_parameters: motion.RobotParameters.RobotParameters
     """
 
     def __init__(self, robot_parameters):
         self.robot_parameters = robot_parameters
-        self.location = DifferentialDriveRobotLocation()
-        self.globalLocation = DifferentialDriveRobotLocation()
+        self.location = Pose()
+        self.globalLocation = Pose()
 
     @abstractmethod
     def update_location(self, delta_encoder_count_1, delta_encoder_count_2):
@@ -23,7 +23,7 @@ class DifferentialDriveOdometryLocalizer(ABC):
         Update the robot's location
 
         @rtype : tuple
-        @return: Updated local and global locations (DifferentialDriveRobotLocation, DifferentialDriveRobotLocation)
+        @return: Updated local and global locations (Pose, Pose)
         @param delta_encoder_count_1: Count of wheel 1's encoder since last update
         @param delta_encoder_count_2: Count of wheel 2's encoder since last update
         @type delta_encoder_count_1: int
@@ -46,12 +46,12 @@ class DifferentialDriveOdometryLocalizer(ABC):
         self.globalLocation.reset()
 
 
-class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
+class RungeKutta2Localizer(OdometryLocalizer):
     """
     Class to localize a differential drive mobile robot using odometry and Runge Kutta method
 
     @param robot_parameters: Parameters of the robot
-    @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
+    @type robot_parameters: motion.RobotParameters.RobotParameters
     """
 
     def __init__(self, robot_parameters):
@@ -67,7 +67,7 @@ class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
         """
         Update the robot's location
 
-        @rtype : DifferentialDriveRobotLocation
+        @rtype : Pose
         @return: Updated location
         @param delta_encoder_count_1: Count of wheel 1's encoder since last update
         @param delta_encoder_count_2: Count of wheel 2's encoder since last update
@@ -80,12 +80,12 @@ class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
         ds = (dfr + dfl) * self.robot_parameters.wheel_radius / 2
         dz = (dfr - dfl) * self.robot_parameters.wheel_radius / self.robot_parameters.wheel_distance
 
-        self.location.x_position += ds * math.cos(self.location.z_position + dz / 2)
-        self.location.y_position += ds * math.sin(self.location.z_position + dz / 2)
-        self.location.z_position += dz
+        self.location.x += ds * math.cos(self.location.theta + dz / 2)
+        self.location.y += ds * math.sin(self.location.theta + dz / 2)
+        self.location.theta += dz
 
-        self.globalLocation.x_position += ds * math.cos(self.globalLocation.z_position + dz / 2)
-        self.globalLocation.y_position += ds * math.sin(self.globalLocation.z_position + dz / 2)
-        self.globalLocation.z_position += dz
+        self.globalLocation.x += ds * math.cos(self.globalLocation.theta + dz / 2)
+        self.globalLocation.y += ds * math.sin(self.globalLocation.theta + dz / 2)
+        self.globalLocation.theta += dz
 
         return self.location, self.globalLocation

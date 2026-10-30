@@ -4,16 +4,16 @@ import os
 import numpy as np
 
 from rosie.config import config as global_settings
-from rosie.motion.controller import DifferentialDriveMovementController
-from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
-from rosie.motion.motors import HardSpeedControlledMH, PIDSpeedController, SoftSpeedControlledMH
-from rosie.motion.odometry import RungeKutta2OdometryLocalizer
+from rosie.motion.controller import MovementController
+from rosie.motion.models import Pose, RobotParameters
+from rosie.motion.motors import HardwareSpeedMotorHandler, PIDSpeedController, SoftwareSpeedMotorHandler
+from rosie.motion.odometry import RungeKutta2Localizer
 from rosie.motion.recording import MovementRecorder
 from rosie.motion.supervisors import SupervisorContainer
-from rosie.motion.tracking import IOLinearizationTrajectoryTracker
+from rosie.motion.tracking import IOLinearizationTracker
 from rosie.motion.trajectories import (
     CubicTrajectoryPlanner,
-    DifferentialDriveTrajectoryParameters,
+    TrajectoryParameters,
     LinearTrajectoryPlanner,
 )
 from rosie.planning.maps import list_maps
@@ -46,7 +46,7 @@ class SettingHandler:
             tracker = self.buildTrajectoryTracker()
             motror_handler = self.buildMotorHandler()
 
-            return DifferentialDriveMovementController(
+            return MovementController(
                 supervisor, planner, localizer, tracker, motror_handler, self.parameters
             )
         else:
@@ -56,7 +56,7 @@ class SettingHandler:
     def buildLocalizer(self):
         if self.settings.KINEMATICS == "DIFFERENTIAL":
             if self.settings.LOCALIZER == "ODOMETRY_RK2":
-                return RungeKutta2OdometryLocalizer(self.parameters)
+                return RungeKutta2Localizer(self.parameters)
             else:
                 logging.error("localizer model not supported")
                 return None
@@ -85,7 +85,7 @@ class SettingHandler:
         if self.settings.KINEMATICS == "DIFFERENTIAL":
             # TODO:Add if for selecting tracker
             if True:
-                return IOLinearizationTrajectoryTracker(self.parameters)
+                return IOLinearizationTracker(self.parameters)
             else:
                 logging.error("trajectory tracker not supported")
                 return None
@@ -101,17 +101,17 @@ class SettingHandler:
                 speed_motor_driver = VirtualMotorDriver(
                     self.parameters.steps_per_revolution, self.parameters.max_speed
                 )
-                return HardSpeedControlledMH(speed_motor_driver)
+                return HardwareSpeedMotorHandler(speed_motor_driver)
             if self.settings.FILENAME == "ArduinoMD.py":
-                from rosie.motion.drivers.arduino import Arduino
+                from rosie.motion.drivers.arduino import ArduinoMotorDriver
 
-                speed_motor_driver = Arduino(self.settings.MAX_SPEED)
+                speed_motor_driver = ArduinoMotorDriver(self.settings.MAX_SPEED)
                 speed_motor_driver.set_constants(
                     self.parameters.constant_kc,
                     self.parameters.constant_ki,
                     self.parameters.constant_kd,
                 )
-                return HardSpeedControlledMH(speed_motor_driver)
+                return HardwareSpeedMotorHandler(speed_motor_driver)
             elif self.settings.FILENAME == "MD25.py":
                 from rosie.motion.drivers.md25 import MD25MotorDriver
 
@@ -123,7 +123,7 @@ class SettingHandler:
                     self.parameters.min_value_power,
                 )
                 power_motor_driver = MD25MotorDriver(1, 0x58)
-                return SoftSpeedControlledMH(speed_controller, power_motor_driver)
+                return SoftwareSpeedMotorHandler(speed_controller, power_motor_driver)
             else:
                 logging.error("motor driver not supported")
                 return None
@@ -133,7 +133,7 @@ class SettingHandler:
 
     def buildRobotParameters(self):
         if self.settings.KINEMATICS == "DIFFERENTIAL":
-            return DifferentialDriveRobotParameters(
+            return RobotParameters(
                 self.settings.RADIUS,
                 self.settings.DISTANCE,
                 self.settings.ENCODER_STEPS,
@@ -202,10 +202,10 @@ class Robot:
         >>> r.go_to(3, 4, 10) # Goes to (3,4) in 10s
         """
 
-        trajectory = DifferentialDriveTrajectoryParameters(
+        trajectory = TrajectoryParameters(
             (
-                DifferentialDriveRobotLocation(*self.position()),
-                DifferentialDriveRobotLocation(x, y, 0.0),
+                Pose(*self.position()),
+                Pose(x, y, 0.0),
             ),
             t,
             self.motion.robot_parameters.sample_time,
@@ -246,11 +246,11 @@ class Robot:
         >>> r.follow(trajectory, t)
         """
 
-        locations = [DifferentialDriveRobotLocation(p[0], p[1], 0.0) for p in points]
+        locations = [Pose(p[0], p[1], 0.0) for p in points]
         pos = self.position()
-        locations.insert(0, DifferentialDriveRobotLocation(pos[0], pos[1], 0))
+        locations.insert(0, Pose(pos[0], pos[1], 0))
 
-        trajectory = DifferentialDriveTrajectoryParameters(
+        trajectory = TrajectoryParameters(
             locations, t, self.motion.robot_parameters.sample_time
         )
 
@@ -292,15 +292,15 @@ class Robot:
         """
         # ---- get position ----
         if x is y is theta is None:
-            x = self.motion.odometry_localizer.globalLocation.x_position
-            y = self.motion.odometry_localizer.globalLocation.y_position
-            z = self.motion.odometry_localizer.globalLocation.z_position
+            x = self.motion.odometry_localizer.globalLocation.x
+            y = self.motion.odometry_localizer.globalLocation.y
+            z = self.motion.odometry_localizer.globalLocation.theta
             return x, y, z
 
         # ---- set position ----
-        self.motion.odometry_localizer.globalLocation.x_position = x
-        self.motion.odometry_localizer.globalLocation.y_position = y
-        self.motion.odometry_localizer.globalLocation.z_position = theta
+        self.motion.odometry_localizer.globalLocation.x = x
+        self.motion.odometry_localizer.globalLocation.y = y
+        self.motion.odometry_localizer.globalLocation.theta = theta
 
     def supervisor(self):
         return self.motion.movement_supervisor

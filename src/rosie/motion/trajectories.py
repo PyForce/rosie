@@ -1,10 +1,10 @@
 import math
 from abc import ABC, abstractmethod
 
-from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotSpeed
+from rosie.motion.models import Pose, Velocity
 
 
-class DifferentialDriveTrajectoryParameters:
+class TrajectoryParameters:
     """
     Structure containing data to generate trajectories
 
@@ -14,7 +14,7 @@ class DifferentialDriveTrajectoryParameters:
     @type constant_k: float
     @param sample_time: Sample time between two interpolated points
     @type sample_time: float
-    @param key_locations: Tuple (n DifferentialDriveRobotLocation) containing all points to generate path by interpolation
+    @param key_locations: Tuple (n Pose) containing all points to generate path by interpolation
     @type key_locations: tuple
     """
 
@@ -25,7 +25,7 @@ class DifferentialDriveTrajectoryParameters:
         self.key_locations = key_locations
 
 
-class DifferentialDriveTrajectoryPlanner(ABC):
+class TrajectoryPlanner(ABC):
     """
     Abstract class to plan trajectories for a differential drive mobile robot
 
@@ -40,7 +40,7 @@ class DifferentialDriveTrajectoryPlanner(ABC):
         Build the trajectory
 
         @param trajectory_parameters: Parameters of the trajectory
-        @type trajectory_parameters: motion.TrajectoryParameters.DifferentialDriveTrajectoryParameters
+        @type trajectory_parameters: motion.TrajectoryParameters.TrajectoryParameters
         """
         pass
 
@@ -60,7 +60,7 @@ class DifferentialDriveTrajectoryPlanner(ABC):
         Get the location and speed for the next point in the trajectory
 
         @rtype : tuple
-        @return : Tuple containing location(DifferentialDriveRobotLocation) and speed (DifferentialDriveRobotSpeed) of
+        @return : Tuple containing location(Pose) and speed (Velocity) of
         the reference robot in the current point
         """
         pass
@@ -76,7 +76,7 @@ class DifferentialDriveTrajectoryPlanner(ABC):
         pass
 
 
-class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
+class LinearTrajectoryPlanner(TrajectoryPlanner):
     """
     Class to plan trajectories for a differential drive mobile robot using lineal interpolation
 
@@ -95,7 +95,7 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         Build the trajectory
 
         @param trajectory_parameters: Parameters of the trajectory
-        @type trajectory_parameters:  motion.TrajectoryParameters.DifferentialDriveTrajectoryParameters
+        @type trajectory_parameters:  motion.TrajectoryParameters.TrajectoryParameters
         """
         self.current_point_index = 0
         self.finished = False
@@ -105,9 +105,9 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         self.points_count = int(total_time / trajectory_parameters.sample_time)
 
         self.reference_locations = [
-            DifferentialDriveRobotLocation() for i in range(self.points_count)
+            Pose() for i in range(self.points_count)
         ]
-        self.reference_speeds = [DifferentialDriveRobotSpeed() for i in range(self.points_count)]
+        self.reference_speeds = [Velocity() for i in range(self.points_count)]
 
         theta_prev_interval = 0
         points_per_segment = int(
@@ -117,12 +117,12 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
             segment_base_index = i * points_per_segment
 
             delta_x = (
-                trajectory_parameters.key_locations[i + 1].x_position
-                - trajectory_parameters.key_locations[i].x_position
+                trajectory_parameters.key_locations[i + 1].x
+                - trajectory_parameters.key_locations[i].x
             ) / float(points_per_segment)
             delta_y = (
-                trajectory_parameters.key_locations[i + 1].y_position
-                - trajectory_parameters.key_locations[i].y_position
+                trajectory_parameters.key_locations[i + 1].y
+                - trajectory_parameters.key_locations[i].y
             ) / float(points_per_segment)
 
             speed_x = delta_x / trajectory_parameters.sample_time
@@ -145,32 +145,32 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
 
             self.reference_locations[
                 segment_base_index
-            ].x_position = trajectory_parameters.key_locations[i].x_position
+            ].x = trajectory_parameters.key_locations[i].x
             self.reference_locations[
                 segment_base_index
-            ].y_position = trajectory_parameters.key_locations[i].y_position
-            self.reference_locations[segment_base_index].z_position = theta_interval
+            ].y = trajectory_parameters.key_locations[i].y
+            self.reference_locations[segment_base_index].theta = theta_interval
 
-            self.reference_speeds[segment_base_index].x_speed = speed_x
-            self.reference_speeds[segment_base_index].y_speed = speed_y
-            self.reference_speeds[segment_base_index].z_speed = (
+            self.reference_speeds[segment_base_index].x = speed_x
+            self.reference_speeds[segment_base_index].y = speed_y
+            self.reference_speeds[segment_base_index].theta = (
                 theta_interval - theta_prev_interval
             ) / float(trajectory_parameters.sample_time)
 
             theta_prev_interval = theta_interval
 
             for j in range(1, points_per_segment):
-                self.reference_locations[segment_base_index + j].x_position = (
-                    self.reference_locations[segment_base_index + j - 1].x_position + delta_x
+                self.reference_locations[segment_base_index + j].x = (
+                    self.reference_locations[segment_base_index + j - 1].x + delta_x
                 )
-                self.reference_locations[segment_base_index + j].y_position = (
-                    self.reference_locations[segment_base_index + j - 1].y_position + delta_y
+                self.reference_locations[segment_base_index + j].y = (
+                    self.reference_locations[segment_base_index + j - 1].y + delta_y
                 )
-                self.reference_locations[segment_base_index + j].z_position = theta_interval
+                self.reference_locations[segment_base_index + j].theta = theta_interval
 
-                self.reference_speeds[segment_base_index + j].x_speed = speed_x
-                self.reference_speeds[segment_base_index + j].y_speed = speed_y
-                self.reference_speeds[segment_base_index + j].z_speed = 0.0
+                self.reference_speeds[segment_base_index + j].x = speed_x
+                self.reference_speeds[segment_base_index + j].y = speed_y
+                self.reference_speeds[segment_base_index + j].theta = 0.0
 
     def get_length(self):
         """
@@ -186,7 +186,7 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         Get the location and speed for the next point in the trajectory
 
         @rtype : tuple
-        @return : Tuple containing location(DifferentialDriveRobotLocation) and speed (DifferentialDriveRobotSpeed) of
+        @return : Tuple containing location(Pose) and speed (Velocity) of
         the reference robot in the current point
         """
         if self.current_point_index >= len(self.reference_locations):
@@ -211,7 +211,7 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         return self.finished
 
 
-class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
+class CubicTrajectoryPlanner(TrajectoryPlanner):
     """
     Class to plan trajectories for a differential drive mobile robot using cubic interpolation
 
@@ -230,7 +230,7 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         Build the trajectory
 
         @param trajectory_parameters: Parameters of the trajectory
-        @type trajectory_parameters:  motion.TrajectoryParameters.DifferentialDriveTrajectoryParameters
+        @type trajectory_parameters:  motion.TrajectoryParameters.TrajectoryParameters
         """
         points_per_segment = int(
             trajectory_parameters.constant_t / float(trajectory_parameters.sample_time)
@@ -244,18 +244,18 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         self.points_count = points_per_segment * segments
 
         self.reference_locations = [
-            DifferentialDriveRobotLocation() for i in range(self.points_count)
+            Pose() for i in range(self.points_count)
         ]
-        self.reference_speeds = [DifferentialDriveRobotSpeed() for i in range(self.points_count)]
+        self.reference_speeds = [Velocity() for i in range(self.points_count)]
 
         for j in range(segments):
-            x_i = trajectory_parameters.key_locations[j].x_position
-            y_i = trajectory_parameters.key_locations[j].y_position
-            theta_i = trajectory_parameters.key_locations[j].z_position
+            x_i = trajectory_parameters.key_locations[j].x
+            y_i = trajectory_parameters.key_locations[j].y
+            theta_i = trajectory_parameters.key_locations[j].theta
 
-            x_f = trajectory_parameters.key_locations[j + 1].x_position
-            y_f = trajectory_parameters.key_locations[j + 1].y_position
-            theta_f = trajectory_parameters.key_locations[j + 1].z_position
+            x_f = trajectory_parameters.key_locations[j + 1].x
+            y_f = trajectory_parameters.key_locations[j + 1].y
+            theta_f = trajectory_parameters.key_locations[j + 1].theta
 
             alpha_x = trajectory_parameters.constant_k * math.cos(theta_f) - 3 * x_f
             alpha_y = trajectory_parameters.constant_k * math.sin(theta_f) - 3 * y_f
@@ -265,26 +265,26 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
 
             for i in range(points_per_segment):
                 s = i / float(points_per_segment)
-                self.reference_locations[points_per_segment * j + i].x_position = (
+                self.reference_locations[points_per_segment * j + i].x = (
                     -(s - 1) * (s - 1) * (s - 1) * x_i
                     + s * s * s * x_f
                     + alpha_x * (s * s) * (s - 1)
                     + beta_x * s * ((s - 1) * (s - 1))
                 )
-                self.reference_locations[points_per_segment * j + i].y_position = (
+                self.reference_locations[points_per_segment * j + i].y = (
                     -(s - 1) * (s - 1) * (s - 1) * y_i
                     + s * s * s * y_f
                     + alpha_y * (s * s) * (s - 1)
                     + beta_y * s * ((s - 1) * (s - 1))
                 )
 
-                self.reference_speeds[points_per_segment * j + i].x_speed = (
+                self.reference_speeds[points_per_segment * j + i].x = (
                     -3 * (s - 1) * (s - 1) * x_i
                     + 3 * s * s * x_f
                     + alpha_x * (3 * s * s - 2 * s)
                     + beta_x * (3 * s * s - 4 * s + 1)
                 )
-                self.reference_speeds[points_per_segment * j + i].y_speed = (
+                self.reference_speeds[points_per_segment * j + i].y = (
                     -3 * (s - 1) * (s - 1) * y_i
                     + 3 * s * s * y_f
                     + alpha_y * (3 * s * s - 2 * s)
@@ -298,34 +298,34 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
                     -6 * (s - 1) * y_i + 6 * s * y_f + alpha_y * (6 * s - 2) + beta_y * (6 * s - 4)
                 )
 
-                self.reference_speeds[points_per_segment * j + i].z_speed = (
-                    yd_dot_dot * self.reference_speeds[points_per_segment * j + i].x_speed
-                    - xd_dot_dot * self.reference_speeds[points_per_segment * j + i].y_speed
+                self.reference_speeds[points_per_segment * j + i].theta = (
+                    yd_dot_dot * self.reference_speeds[points_per_segment * j + i].x
+                    - xd_dot_dot * self.reference_speeds[points_per_segment * j + i].y
                 ) / (
-                    self.reference_speeds[points_per_segment * j + i].x_speed
-                    * self.reference_speeds[points_per_segment * j + i].x_speed
-                    + self.reference_speeds[points_per_segment * j + i].y_speed
-                    * self.reference_speeds[points_per_segment * j + i].y_speed
+                    self.reference_speeds[points_per_segment * j + i].x
+                    * self.reference_speeds[points_per_segment * j + i].x
+                    + self.reference_speeds[points_per_segment * j + i].y
+                    * self.reference_speeds[points_per_segment * j + i].y
                 )
 
-                self.reference_speeds[points_per_segment * j + i].x_speed = (
-                    self.reference_speeds[points_per_segment * j + i].x_speed
+                self.reference_speeds[points_per_segment * j + i].x = (
+                    self.reference_speeds[points_per_segment * j + i].x
                     / trajectory_parameters.constant_t
                 )
-                self.reference_speeds[points_per_segment * j + i].y_speed = (
-                    self.reference_speeds[points_per_segment * j + i].y_speed
+                self.reference_speeds[points_per_segment * j + i].y = (
+                    self.reference_speeds[points_per_segment * j + i].y
                     / trajectory_parameters.constant_t
                 )
-                self.reference_speeds[points_per_segment * j + i].z_speed = (
-                    self.reference_speeds[points_per_segment * j + i].z_speed
+                self.reference_speeds[points_per_segment * j + i].theta = (
+                    self.reference_speeds[points_per_segment * j + i].theta
                     / trajectory_parameters.constant_t
                 )
 
-            self.reference_locations[points_per_segment * j].z_position = theta_i
+            self.reference_locations[points_per_segment * j].theta = theta_i
             for i in range(points_per_segment - 1):
-                self.reference_locations[points_per_segment * j + i + 1].z_position = (
-                    self.reference_locations[points_per_segment * j + i].z_position
-                    + self.reference_speeds[points_per_segment * j + i].z_speed
+                self.reference_locations[points_per_segment * j + i + 1].theta = (
+                    self.reference_locations[points_per_segment * j + i].theta
+                    + self.reference_speeds[points_per_segment * j + i].theta
                     * trajectory_parameters.sample_time
                 )
 
@@ -343,7 +343,7 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
         Get the location and speed for the next point in the trajectory
 
         @rtype : tuple
-        @return : Tuple containing location(DifferentialDriveRobotLocation) and speed (DifferentialDriveRobotSpeed) of
+        @return : Tuple containing location(Pose) and speed (Velocity) of
         the reference robot in the current point
         """
         if self.current_point_index >= len(self.reference_locations):

@@ -2,7 +2,7 @@ import math
 from abc import ABC, abstractmethod
 
 
-class DifferentialDriveTrajectoryTracker(ABC):
+class TrajectoryTracker(ABC):
     """
     Abstract class to make trajectory tracking of a differential drive mobile robot
 
@@ -21,9 +21,9 @@ class DifferentialDriveTrajectoryTracker(ABC):
         @param robot_location: actual robot's location
         @param reference_speed: speed of reference for the robot
         @param reference_location: location of reference for the robot
-        @type robot_location: motion.RobotLocation.DifferentialDriveRobotLocation
-        @type reference_speed: motion.RobotSpeed.DifferentialDriveRobotSpeed
-        @type reference_location: motion.RobotLocation.DifferentialDriveRobotLocation
+        @type robot_location: motion.RobotLocation.Pose
+        @type reference_speed: motion.RobotSpeed.Velocity
+        @type reference_location: motion.RobotLocation.Pose
         """
         pass
 
@@ -36,7 +36,7 @@ class DifferentialDriveTrajectoryTracker(ABC):
         pass
 
 
-class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
+class IOLinearizationTracker(TrajectoryTracker):
     """
     Class to make trajectory tracking of a differential drive mobile robot using IO Linearization Method
 
@@ -45,7 +45,7 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
     @param constant_k1: constant k1 of the tracker
     @param constant_b: constant b of the tracker
     @param smooth_flag: don't use P point as reference("smooth control")
-    @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
+    @type robot_parameters: motion.RobotParameters.RobotParameters
     @type constant_k2: float
     @type constant_k1: float
     @type constant_b: float
@@ -76,27 +76,27 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
         @param robot_location: actual robot's location
         @param reference_speed: speed of reference for the robot
         @param reference_location: location of reference for the robot
-        @type robot_location: motion.RobotLocation.DifferentialDriveRobotLocation
-        @type reference_speed: motion.RobotSpeed.DifferentialDriveRobotSpeed
-        @type reference_location: motion.RobotLocation.DifferentialDriveRobotLocation
+        @type robot_location: motion.RobotLocation.Pose
+        @type reference_speed: motion.RobotSpeed.Velocity
+        @type reference_location: motion.RobotLocation.Pose
         """
-        xd = reference_location.x_position
-        yd = reference_location.y_position
-        zd = reference_location.z_position
+        xd = reference_location.x
+        yd = reference_location.y
+        zd = reference_location.theta
 
-        xd_dot = reference_speed.x_speed
-        yd_dot = reference_speed.y_speed
-        zd_dot = reference_speed.z_speed
+        xd_dot = reference_speed.x
+        yd_dot = reference_speed.y
+        zd_dot = reference_speed.theta
 
-        y1 = robot_location.x_position + self.constant_b * math.cos(robot_location.z_position)
-        y2 = robot_location.y_position + self.constant_b * math.sin(robot_location.z_position)
+        y1 = robot_location.x + self.constant_b * math.cos(robot_location.theta)
+        y2 = robot_location.y + self.constant_b * math.sin(robot_location.theta)
 
         if self.smooth_flag:
-            y1d = reference_location.x_position
-            y2d = reference_location.y_position
+            y1d = reference_location.x
+            y2d = reference_location.y
 
-            y1d_dot = reference_speed.x_speed
-            y2d_dot = reference_speed.y_speed
+            y1d_dot = reference_speed.x
+            y2d_dot = reference_speed.y
         else:
             y1d = xd + self.constant_b * math.cos(zd)
             y2d = yd + self.constant_b * math.sin(zd)
@@ -107,10 +107,10 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
         u2 = y2d_dot + self.constant_k2 * (y2d - y2)
         u1 = y1d_dot + self.constant_k1 * (y1d - y1)
 
-        the_v = math.cos(robot_location.z_position) * u1 + u2 * math.sin(robot_location.z_position)
+        the_v = math.cos(robot_location.theta) * u1 + u2 * math.sin(robot_location.theta)
         the_omega = (
-            u1 * (-math.sin(robot_location.z_position) / self.constant_b)
-            + u2 * math.cos(robot_location.z_position) / self.constant_b
+            u1 * (-math.sin(robot_location.theta) / self.constant_b)
+            + u2 * math.cos(robot_location.theta) / self.constant_b
         )
 
         set_point_2 = (

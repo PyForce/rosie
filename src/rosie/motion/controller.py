@@ -2,10 +2,10 @@ import logging
 import math
 import time
 
-from rosie.motion.geometry import DifferentialDriveRobotState
+from rosie.motion.models import RobotState
 
 
-class DifferentialDriveMovementController:
+class MovementController:
     """
     Class to control the movement of a differential drive mobile robot
 
@@ -17,12 +17,12 @@ class DifferentialDriveMovementController:
     @param robot_parameters: Parameters of the robot
     @param sample_time: Sample time of the control system
     @type sample_time: float
-    @type movement_supervisor: motion.MovementSupervisor.DifferentialDriveMovementSupervisor
-    @type trajectory_planner: motion.TrajectoryPlanner.DifferentialDriveTrajectoryPlanner
-    @type trajectory_tracker: motion.TrajectoryTracker.DifferentialDriveTrajectoryTracker
-    @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
-    @type motor_handler: motion.MotorHandler.DifferentialDriveMotorHandler
-    @type odometry_localizer: motion.OdometryLocalizer.DifferentialDriveOdometryLocalizer
+    @type movement_supervisor: motion.MovementSupervisor.MovementSupervisor
+    @type trajectory_planner: motion.TrajectoryPlanner.TrajectoryPlanner
+    @type trajectory_tracker: motion.TrajectoryTracker.TrajectoryTracker
+    @type robot_parameters: motion.RobotParameters.RobotParameters
+    @type motor_handler: motion.MotorHandler.MotorHandler
+    @type odometry_localizer: motion.OdometryLocalizer.OdometryLocalizer
     """
 
     def __init__(
@@ -42,7 +42,7 @@ class DifferentialDriveMovementController:
         self.trajectory_tracker = trajectory_tracker
         self.odometry_localizer = odometry_localizer
         self.trajectory_planner = trajectory_planner
-        self.robot_state = DifferentialDriveRobotState()
+        self.robot_state = RobotState()
 
         # the control step tick() runs while a movement is active
         self.running = False
@@ -80,7 +80,7 @@ class DifferentialDriveMovementController:
         """
         Initialize the movement
 
-        @type trajectory_parameters: motion.TrajectoryParameters.DifferentialDriveTrajectoryParameters
+        @type trajectory_parameters: motion.TrajectoryParameters.TrajectoryParameters
         @param trajectory_parameters: Parameters for the movement's trajectory
         """
         if trajectory_parameters:

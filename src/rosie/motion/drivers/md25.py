@@ -4,10 +4,10 @@ try:
     import smbus
 except:
     logging.error("smbus unavailable")
-from rosie.motion.drivers.base import DualPowerMotorDriver
+from rosie.motion.drivers.base import PowerMotorDriver
 
 
-class MD25MotorDriver(DualPowerMotorDriver):
+class MD25MotorDriver(PowerMotorDriver):
     """
     Class to use MD25 motor controller board using I2C bus
 

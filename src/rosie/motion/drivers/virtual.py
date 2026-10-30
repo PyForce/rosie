@@ -1,10 +1,10 @@
 import math
 import time
 
-from rosie.motion.drivers.base import DualSpeedMotorDriver
+from rosie.motion.drivers.base import SpeedMotorDriver
 
 
-class VirtualMotorDriver(DualSpeedMotorDriver):
+class VirtualMotorDriver(SpeedMotorDriver):
     """
     A class to represent a virtual robot
 

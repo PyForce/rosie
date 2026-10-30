@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class DifferentialDriveMotorHandler(ABC):
+class MotorHandler(ABC):
     """
     Abstract class representing a handler to control the motors of a differential drive robot
 
@@ -61,12 +61,12 @@ class DifferentialDriveMotorHandler(ABC):
         pass
 
 
-class HardSpeedControlledMH(DifferentialDriveMotorHandler):
+class HardwareSpeedMotorHandler(MotorHandler):
     """
     Class to handle the speed of motors using a driver that make control of the speeds directly
 
     @param speed_motor_driver: Driver to be used to set the speeds of the motors
-    @type speed_motor_driver: motion.MotorDriver.DualSpeedMotorDriver
+    @type speed_motor_driver: motion.MotorDriver.SpeedMotorDriver
     """
 
     def __init__(self, speed_motor_driver):
@@ -119,14 +119,14 @@ class HardSpeedControlledMH(DifferentialDriveMotorHandler):
         pass
 
 
-class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
+class SoftwareSpeedMotorHandler(MotorHandler):
     """
     Class to handle the speed of motors using an speed controller
 
     @param speed_controller: Controller to be used to control the speeds of the motors
     @param power_motor_driver: Drive to be used to set the power of the motors
-    @type power_motor_driver: motion.MotorDriver.DualPowerMotorDriver
-    @type speed_controller: motion.SpeedController.DualSpeedController
+    @type power_motor_driver: motion.MotorDriver.PowerMotorDriver
+    @type speed_controller: motion.SpeedController.SpeedController
     """
 
     def __init__(self, speed_controller, power_motor_driver):
@@ -185,7 +185,7 @@ class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
         self.power_motor_driver.reset()
 
 
-class DualSpeedController(ABC):
+class SpeedController(ABC):
     """
     Abstract class to make speed control for two motors
 
@@ -221,7 +221,7 @@ class DualSpeedController(ABC):
         pass
 
 
-class PIDSpeedController(DualSpeedController):
+class PIDSpeedController(SpeedController):
     """
     Implementation of a PID controller to make control of the speed of two motors
 

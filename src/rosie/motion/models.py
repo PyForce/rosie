@@ -3,34 +3,34 @@ Locations, speeds, state and parameters of a differential drive robot
 """
 
 
-class DifferentialDriveRobotLocation:
+class Pose:
     """
     Structure containing the cartesian coordinates of a robot
 
-    @param x_position: Position on the X axis
-    @param y_position: Position on the Y axis
-    @param z_position: Position on the Z axis (angle, pose)
+    @param x: Position on the X axis
+    @param y: Position on the Y axis
+    @param theta: Position on the Z axis (angle, pose)
     """
 
-    def __init__(self, x_position=0.0, y_position=0.0, z_position=0.0):
-        self.z_position = z_position
-        self.y_position = y_position
-        self.x_position = x_position
+    def __init__(self, x=0.0, y=0.0, theta=0.0):
+        self.theta = theta
+        self.y = y
+        self.x = x
 
     def reset(self):
         """
         Reset the location to the origin
 
         """
-        self.z_position = 0.0
-        self.y_position = 0.0
-        self.x_position = 0.0
+        self.theta = 0.0
+        self.y = 0.0
+        self.x = 0.0
 
     def __repr__(self):
-        return "(%f,%f,%f)" % (self.x_position, self.y_position, self.z_position)
+        return "(%f,%f,%f)" % (self.x, self.y, self.theta)
 
 
-class DifferentialDriveRobotParameters:
+class RobotParameters:
     """
     Structure containing parameters for a differential drive mobile robot
 
@@ -92,28 +92,28 @@ class DifferentialDriveRobotParameters:
         self.max_speed = max_speed
 
 
-class DifferentialDriveRobotSpeed:
+class Velocity:
     """
     Structure containing speeds of a robot
 
-    @param x_speed: Component of the speed on the X axis
-    @type x_speed: float
-    @param y_speed: Component of the speed on the Y axis
-    @type x_speed: float
-    @param z_speed: Component of the speed on the Z axis (angular speed)
-    @type x_speed: float
+    @param x: Component of the speed on the X axis
+    @type x: float
+    @param y: Component of the speed on the Y axis
+    @type x: float
+    @param theta: Component of the speed on the Z axis (angular speed)
+    @type x: float
     """
 
-    def __init__(self, x_speed=0.0, y_speed=0.0, z_speed=0.0):
-        self.z_speed = z_speed
-        self.y_speed = y_speed
-        self.x_speed = x_speed
+    def __init__(self, x=0.0, y=0.0, theta=0.0):
+        self.theta = theta
+        self.y = y
+        self.x = x
 
     def __repr__(self):
-        return "(%f,%f,%f)" % (self.x_speed, self.y_speed, self.z_speed)
+        return "(%f,%f,%f)" % (self.x, self.y, self.theta)
 
 
-class DifferentialDriveRobotState:
+class RobotState:
     """
     Class to represent the state of a differential drive mobile robot
 
@@ -142,18 +142,18 @@ class DifferentialDriveRobotState:
     @type angular_speed_1: float
     @type y_speed_ref: float
     @type x_speed_ref: float
-    @type reference_speed: motion.RobotSpeed.DifferentialDriveRobotSpeed
-    @type location: motion.RobotLocation.DifferentialDriveRobotLocation
-    @type global_location: motion.RobotLocation.DifferentialDriveRobotLocation
-    @type reference_location: motion.RobotLocation.DifferentialDriveRobotLocation
+    @type reference_speed: motion.RobotSpeed.Velocity
+    @type location: motion.RobotLocation.Pose
+    @type global_location: motion.RobotLocation.Pose
+    @type reference_location: motion.RobotLocation.Pose
     """
 
     def __init__(
         self,
-        location=DifferentialDriveRobotLocation(),
-        global_location=DifferentialDriveRobotLocation(),
-        reference_location=DifferentialDriveRobotLocation(),
-        reference_speed=DifferentialDriveRobotSpeed,
+        location=Pose(),
+        global_location=Pose(),
+        reference_location=Pose(),
+        reference_speed=Velocity,
         x_speed_ref=0.0,
         y_speed_ref=0.0,
         angular_speed_1=0.0,
@@ -225,10 +225,10 @@ class DifferentialDriveRobotState:
         @type angular_speed_1: float
         @type y_speed_ref: float
         @type x_speed_ref: float
-        @type reference_speed: motion.RobotSpeed.DifferentialDriveRobotSpeed
-        @type location: motion.RobotLocation.DifferentialDriveRobotLocation
-        @type global_location: motion.RobotLocation.DifferentialDriveRobotLocation
-        @type reference_location: motion.RobotLocation.DifferentialDriveRobotLocation
+        @type reference_speed: motion.RobotSpeed.Velocity
+        @type location: motion.RobotLocation.Pose
+        @type global_location: motion.RobotLocation.Pose
+        @type reference_location: motion.RobotLocation.Pose
         """
         self.global_location = global_location
         self.elapsed_time = elapsed_time

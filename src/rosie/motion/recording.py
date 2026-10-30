@@ -13,7 +13,7 @@ import logging
 import os
 import time
 
-from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
+from rosie.motion.supervisors import MovementSupervisor
 
 COLUMNS = (
     "time",
@@ -49,7 +49,7 @@ PARAMETERS = (
 )
 
 
-class MovementRecorder(DifferentialDriveMovementSupervisor):
+class MovementRecorder(MovementSupervisor):
     """
     Supervisor that writes each planned movement to a CSV file in `directory`
     """
@@ -83,15 +83,15 @@ class MovementRecorder(DifferentialDriveMovementSupervisor):
             (
                 self.time,
                 robot_state.elapsed_time,
-                location.x_position,
-                location.y_position,
-                location.z_position,
-                reference.x_position,
-                reference.y_position,
-                reference.z_position,
-                speed.x_speed,
-                speed.y_speed,
-                speed.z_speed,
+                location.x,
+                location.y,
+                location.theta,
+                reference.x,
+                reference.y,
+                reference.theta,
+                speed.x,
+                speed.y,
+                speed.theta,
                 robot_state.x_speed_ref,
                 robot_state.y_speed_ref,
                 robot_state.angular_speed_1,

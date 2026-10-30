@@ -10,7 +10,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse, Response
 
-from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
+from rosie.motion.supervisors import MovementSupervisor
 from rosie.robot import PROFILES_DIR, Robot
 
 router = APIRouter()
@@ -181,7 +181,7 @@ def getmap(name: str = "", robot: Robot = Depends(get_robot)):
     return worldmap
 
 
-class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
+class WebSupervisor(MovementSupervisor):
     """
     Supervisor to send movement updates to rosie web clients
     """
@@ -222,9 +222,9 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
 
     def movement_update(self, state):
         move_x, move_y, move_theta = (
-            state.global_location.x_position,
-            state.global_location.y_position,
-            state.global_location.z_position,
+            state.global_location.x,
+            state.global_location.y,
+            state.global_location.theta,
         )
 
         prev_x, prev_y, prev_theta = self.last_location

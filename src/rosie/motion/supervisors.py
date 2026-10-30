@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class DifferentialDriveMovementSupervisor(ABC):
+class MovementSupervisor(ABC):
     """
     Abstract class to supervise a differential drive mobile robot in a movement
 
@@ -25,7 +25,7 @@ class DifferentialDriveMovementSupervisor(ABC):
         """
         Method to be called when the state of the robot changes during the movement
 
-        @type robot_state: motion.RobotState.DifferentialDriveRobotState
+        @type robot_state: motion.RobotState.RobotState
         @param robot_state: the new state of the robot
         """
         pass
@@ -39,7 +39,7 @@ class DifferentialDriveMovementSupervisor(ABC):
         pass
 
 
-class SupervisorContainer(DifferentialDriveMovementSupervisor, list):
+class SupervisorContainer(MovementSupervisor, list):
     """
     Class that groups multiple supervisors
     """

@@ -21,7 +21,7 @@ def create_app(robot):
     app.state.robot = robot
     app.include_router(routes.router)
 
-    supervisor = routes.RestAPIMovementSupervisor(robot)
+    supervisor = routes.WebSupervisor(robot)
     robot.supervisor().append(supervisor)
     # bound methods can't use the decorators
     app.add_api_websocket_route("/websocket", supervisor.websocket)

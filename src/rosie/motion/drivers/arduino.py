@@ -9,7 +9,7 @@ except:
 from struct import *
 from time import sleep
 
-from rosie.motion.drivers.base import DualSpeedMotorDriver
+from rosie.motion.drivers.base import SpeedMotorDriver
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7
@@ -20,7 +20,7 @@ COMMAND_START_SAMPLING_SPEEDS = b"\xab"
 COMMAND_STOP_SAMPLING_SPEEDS = b"\xac"
 
 
-class Arduino(DualSpeedMotorDriver):
+class ArduinoMotorDriver(SpeedMotorDriver):
     """
     A class to represent an Arduino Motor Driver
 

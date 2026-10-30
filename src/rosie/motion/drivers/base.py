@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class DualMotorDriver(ABC):
+class MotorDriver(ABC):
     """
     Abstract class representing a driver used to control 2 motors
 
@@ -21,7 +21,7 @@ class DualMotorDriver(ABC):
         pass
 
 
-class DualSpeedMotorDriver(DualMotorDriver):
+class SpeedMotorDriver(MotorDriver):
     """
     Abstract class representing a driver used to control 2 motors using their speeds
 
@@ -43,7 +43,7 @@ class DualSpeedMotorDriver(DualMotorDriver):
         pass
 
 
-class DualPowerMotorDriver(DualMotorDriver):
+class PowerMotorDriver(MotorDriver):
     """
     Abstract class representing a driver used to control 2 motors using their powers
 
