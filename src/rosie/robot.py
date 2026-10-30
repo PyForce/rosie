@@ -6,7 +6,7 @@ import numpy as np
 
 from rosie.config import config as global_settings
 
-from rosie.motion.runge_kutta import RungeKutta2OdometryLocalizer
+from rosie.motion.odometry import RungeKutta2OdometryLocalizer
 from rosie.motion.motors import HardSpeedControlledMH
 from rosie.motion.motors import SoftSpeedControlledMH
 from rosie.motion.controller import DifferentialDriveMovementController
