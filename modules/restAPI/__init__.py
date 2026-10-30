@@ -1,15 +1,13 @@
-from flask import Flask
-from flask_sockets import Sockets
-from flask_cors import CORS
-from geventwebsocket import WebSocketServer
-from geventwebsocket.handler import WebSocketHandler
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-app = Flask(__name__)
+app = FastAPI()
 
 # allow CORS on all requests
-CORS(app)
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'],
+                   allow_headers=['*'])
 
-ws = Sockets(app)
 server = None
 
 from . import restapi
@@ -23,12 +21,12 @@ def init():
     host = config.get('restAPI', 'host', fallback='0.0.0.0')
     port = config.getint('restAPI', 'port', fallback=5000)
     debug = config.getboolean('restAPI', 'debug', fallback=False)
-    app.debug = debug
 
     global server
-    server = WebSocketServer((host, port), app, handler_class=WebSocketHandler)
-    server.serve_forever()
+    server = uvicorn.Server(uvicorn.Config(
+        app, host=host, port=port, log_level='debug' if debug else 'warning'))
+    server.run()
 
 
 def end():
-    server.stop()
+    server.should_exit = True

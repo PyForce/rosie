@@ -57,16 +57,12 @@ def start(args):
             logging.info('closing %s...', module.__name__)
             if hasattr(module, 'end'):
                 module.end()
-            while thr and thr.isAlive():
+            if thr:
                 thr.join(3)
                 if thr.is_alive():
-                    logging.warning(
-                        'join timed out, killing thread!!')
-                    if sys.version_info.major == 3:
-                        thr._tstate_lock.release()
-                        thr._stop()
-                    else:
-                        thr._Thread__stop()
+                    # daemon thread: it ends with the process
+                    logging.warning('join timed out, leaving %s behind',
+                                    module.__name__)
             logging.info('closed %s...', module.__name__)
         event.clear()
 
@@ -86,7 +82,7 @@ def start(args):
             logging.info('loaded %s', sect)
             thr = None
             if hasattr(module, 'init'):
-                thr = threading.Thread(target=module.init)
+                thr = threading.Thread(target=module.init, daemon=True)
                 thr.start()
             modules.append((module, thr))
 

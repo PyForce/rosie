@@ -9,7 +9,7 @@ from itertools import chain
 
 import numpy as np
 from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
-from shapely.ops import cascaded_union
+from shapely.ops import unary_union
 
 
 def _get_all_features(item):
@@ -200,7 +200,7 @@ class Map(object):
         return self.__items_border_points
 
     def __generate_borders_points(self):
-        polygon = cascaded_union([Polygon(room.borders_points) for room in self.rooms])
+        polygon = unary_union([Polygon(room.borders_points) for room in self.rooms])
         return np.array(polygon.exterior.coords)[:-1]
 
     def __generate_items_border_points(self):
@@ -251,6 +251,8 @@ class Map(object):
         if map_po.geom_type == 'MultiLineString':
             geoms = list(map_po.geoms)
             map_po = list(chain(geoms[0].coords, geoms[1].coords))
+        else:
+            map_po = list(map_po.coords)
 
         self.__support_points = np.array(map_po)
         self.__holes = []
@@ -266,6 +268,8 @@ class Map(object):
                 if item_po.geom_type == 'MultiLineString':
                     geoms = list(item_po.geoms)
                     item_po = list(chain(geoms[0].coords, geoms[1].coords))
+                else:
+                    item_po = list(item_po.coords)
                 support_item_points = np.array(item_po)
                 self.__holes.append(support_item_points)
 

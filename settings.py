@@ -46,4 +46,4 @@ if 'config.ini' not in read:
         configparser.DEFAULTSECT = _
         config.defaults()['active'] = 'False'
         fp.seek(0)
-        config.readfp(fp)
+        config.read_file(fp)
