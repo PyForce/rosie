@@ -40,8 +40,8 @@ if 'config.ini' not in read:
     with open('config.ini', 'w+') as fp:
         del config.defaults()['active']
         _, configparser.DEFAULTSECT = configparser.DEFAULTSECT, 'general'
-        config.add_section("rest_api")
-        config.set("rest_api", "active", True)
+        config.add_section("web")
+        config.set("web", "active", True)
         config.write(fp)
         configparser.DEFAULTSECT = _
         config.defaults()['active'] = 'False'

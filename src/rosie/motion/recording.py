@@ -2,6 +2,7 @@ import thread
 from string import Template
 import os
 
+from rosie.file_names import FileNameProviderByTime
 from rosie.motion.supervisor import DifferentialDriveMovementSupervisor
 
 
@@ -316,3 +317,8 @@ class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):
 
         save_file.write(current_log)
         save_file.close()
+
+
+async def run(robot, settings):
+    robot.motion.movement_supervisor.append(FileLoggerMovementSupervisor(robot.setting_handler.parameters,
+                                                                         FileNameProviderByTime()))

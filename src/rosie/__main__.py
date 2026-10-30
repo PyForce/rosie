@@ -17,6 +17,13 @@ import traceback
 
 from rosie.config import config
 
+# config section -> module with `async def run(robot, settings)`
+PLUGINS = {
+    'web': 'rosie.apis.web.server',
+    'usound': 'rosie.sensors.usound',
+    'file_logger': 'rosie.motion.recording',
+}
+
 FORMAT = '[%(asctime)-15s] %(levelname)s %(message)s'
 logging.basicConfig(format=FORMAT,
                     level=getattr(logging, config.get(
@@ -42,7 +49,7 @@ def start(args):
 
 async def run():
     """
-    Run the robot, and every active extension next to it, until a signal
+    Run the robot, and every active plugin next to it, until a signal
     """
     from rosie.robot import Robot
     from rosie import runner
@@ -58,12 +65,16 @@ async def run():
 
     running = asyncio.create_task(runner.run(robot))
 
-    extensions = []
+    plugins = []
     for sect in (s for s in config.sections()
                  if config.getboolean(s, 'active')):
         logging.info('loading %s...', sect)
+        if sect not in PLUGINS:
+            logging.error('unknown section [%s], known: %s', sect,
+                          ', '.join(PLUGINS))
+            continue
         try:
-            module = importlib.import_module('rosie.extensions.' + sect)
+            module = importlib.import_module(PLUGINS[sect])
         except ImportError:
             logging.error(traceback.format_exc())
             logging.error('module %s not loaded\033[0m', sect)
@@ -73,26 +84,26 @@ async def run():
             if hasattr(module, 'run'):
                 task = asyncio.create_task(module.run(robot, config[sect]),
                                            name=sect)
-                task.add_done_callback(report_extension_end)
-                extensions.append(task)
+                task.add_done_callback(report_plugin_end)
+                plugins.append(task)
 
     await stopping.wait()
     logging.info('stopping...')
     running.cancel()
-    # the motors first, then the extensions
+    # the motors first, then the plugins
     robot.stop()
-    for task in extensions:
+    for task in plugins:
         task.cancel()
-    await asyncio.gather(running, *extensions, return_exceptions=True)
+    await asyncio.gather(running, *plugins, return_exceptions=True)
     logging.info('stopped')
 
 
-def report_extension_end(task):
+def report_plugin_end(task):
     """
-    Log an extension that ended with an error (the robot keeps running)
+    Log a plugin that ended with an error (the robot keeps running)
     """
     if not task.cancelled() and task.exception():
-        logging.error('extension %s failed', task.get_name(),
+        logging.error('plugin %s failed', task.get_name(),
                       exc_info=task.exception())
 
 
