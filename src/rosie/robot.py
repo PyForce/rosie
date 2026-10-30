@@ -15,7 +15,7 @@ from rosie.motion.pid import PIDSpeedController
 from rosie.motion.trajectories import DifferentialDriveTrajectoryParameters
 from rosie.motion.trajectories import CubicTrajectoryPlanner
 from rosie.motion.trajectories import LinearTrajectoryPlanner
-from rosie.motion.io_linearization import IOLinearizationTrajectoryTracker
+from rosie.motion.tracking import IOLinearizationTrajectoryTracker
 from rosie.motion.supervisors import SupervisorContainer
 
 
