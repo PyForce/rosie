@@ -5,14 +5,18 @@ Tests for the robot
 import time
 import unittest
 
-from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR, list_maps
 from rosie.profile import PROFILES_DIR, load_profile
 from rosie.robot import Robot
 
 
 def simubot() -> Robot:
     return Robot(
-        load_profile("simubot", [PROFILES_DIR]), list_maps([MAPS_DIR]), None, time.monotonic
+        load_profile("simubot", [PROFILES_DIR]),
+        list_maps([MAPS_DIR]),
+        DEFAULT_MAP,
+        None,
+        time.monotonic,
     )
 
 

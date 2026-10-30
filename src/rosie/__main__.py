@@ -18,7 +18,7 @@ from pathlib import Path
 
 from rosie import runner
 from rosie.config import load_config
-from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR, list_maps
 from rosie.profile import PROFILES_DIR, load_profile
 from rosie.robot import Robot
 
@@ -54,6 +54,7 @@ async def run(config: configparser.ConfigParser) -> None:
             _search(config, "profiles", PROFILES_DIR),
         ),
         list_maps(_search(config, "maps", MAPS_DIR)),
+        config.get("general", "map", fallback=DEFAULT_MAP),
         _optional_path(config.get("recording", "directory", fallback=None)),
         time.monotonic,
     )

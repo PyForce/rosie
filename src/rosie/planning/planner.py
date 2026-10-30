@@ -15,6 +15,7 @@ class Planner:
     def __init__(self, maps: dict[str, Path]) -> None:
         self.maps = maps
         self.world: Map | None = None
+        self.map_name: str | None = None
         self._graph: VisibilityGraph | None = None
         self._clearance = 0.0
 
@@ -22,6 +23,7 @@ class Planner:
         if name not in self.maps:
             raise ValueError(f"unknown map: {name}")
         self.world = load_map(self.maps[name])
+        self.map_name = name
         self._graph = None
 
     def get_map(self, name: str) -> dict[str, Any] | None:

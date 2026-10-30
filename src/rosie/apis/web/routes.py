@@ -102,12 +102,29 @@ def maps(robot: RobotDependency) -> Maps:
 
 
 @router.get("/map")
+def current_map(robot: RobotDependency) -> dict[str, Any]:
+    """The map the planner uses."""
+    worldmap = robot.get_map(robot.map_name) if robot.map_name else None
+    if not worldmap:
+        raise HTTPException(status_code=404)
+    return worldmap
+
+
 @router.get("/map/{name}")
-def getmap(robot: RobotDependency, name: str = "") -> dict[str, Any]:
+def getmap(name: str, robot: RobotDependency) -> dict[str, Any]:
     worldmap = robot.get_map(name)
     if not worldmap:
         raise HTTPException(status_code=404)
     return worldmap
+
+
+@router.post("/map/{name}")
+def use_map(name: str, robot: RobotDependency) -> Response:
+    """Plan routes on this map from now on."""
+    if name not in robot.maps():
+        raise HTTPException(status_code=404, detail=f"no map {name}")
+    robot.use_map(name)
+    return Response()
 
 
 class WebSupervisor(MovementSupervisor):

@@ -28,7 +28,6 @@ from rosie.profile import Profile
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MAP = "Gustavo's House"
 
 ARDUINO_PORT = "/dev/ttyACM0"
 ARDUINO_BAUDRATE = 9600
@@ -41,7 +40,12 @@ class Robot:
     """The robot core: everything rosie's interfaces can ask of the robot."""
 
     def __init__(
-        self, profile: Profile, maps: dict[str, Path], recordings: Path | None, clock: Clock
+        self,
+        profile: Profile,
+        maps: dict[str, Path],
+        map_name: str,
+        recordings: Path | None,
+        clock: Clock,
     ) -> None:
         self.profile = profile
         self.parameters = robot_parameters(profile)
@@ -50,7 +54,7 @@ class Robot:
         self.sensors: dict[str, Callable[[], object]] = {}
         self.motion = movement_controller(profile, self.parameters, self.supervisors, clock)
         self.planner = Planner(maps)
-        self.planner.use_map(DEFAULT_MAP)
+        self.planner.use_map(map_name)
         if recordings:
             self.supervisor().append(MovementRecorder(self.parameters, recordings))
         logger.info("profile: %s", profile.id)
@@ -113,6 +117,14 @@ class Robot:
 
     def get_map(self, map_name: str) -> dict[str, Any] | None:
         return self.planner.get_map(map_name)
+
+    @property
+    def map_name(self) -> str | None:
+        return self.planner.map_name
+
+    def use_map(self, map_name: str) -> None:
+        """Plan routes on this map from now on (ValueError if there's no such map)."""
+        self.planner.use_map(map_name)
 
     def _check_duration(self, t: float) -> None:
         if t < self.sample_time:
