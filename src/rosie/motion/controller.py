@@ -2,7 +2,7 @@ import logging
 import math
 import time
 
-from rosie.motion.models import RobotState
+from rosie.motion.models import RESTING, RobotState
 
 
 class MovementController:
@@ -42,7 +42,7 @@ class MovementController:
         self.trajectory_tracker = trajectory_tracker
         self.odometry_localizer = odometry_localizer
         self.trajectory_planner = trajectory_planner
-        self.robot_state = RobotState()
+        self.robot_state = RESTING
 
         # the control step tick() runs while a movement is active
         self.running = False
@@ -132,7 +132,7 @@ class MovementController:
 
             self.motor_handler.set_speeds(set_point_1, set_point_2)
 
-            self.robot_state.update(
+            self.robot_state = RobotState(
                 location,
                 global_position,
                 None,
@@ -189,7 +189,7 @@ class MovementController:
 
         self.motor_handler.set_speeds(set_point_1, set_point_2)
 
-        self.robot_state.update(
+        self.robot_state = RobotState(
             location,
             global_position,
             reference_location,

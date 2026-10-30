@@ -222,9 +222,9 @@ class WebSupervisor(MovementSupervisor):
 
     def movement_update(self, state):
         move_x, move_y, move_theta = (
-            state.global_location.x,
-            state.global_location.y,
-            state.global_location.theta,
+            state.global_pose.x,
+            state.global_pose.y,
+            state.global_pose.theta,
         )
 
         prev_x, prev_y, prev_theta = self.last_location

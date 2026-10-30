@@ -292,15 +292,13 @@ class Robot:
         """
         # ---- get position ----
         if x is y is theta is None:
-            x = self.motion.odometry_localizer.globalLocation.x
-            y = self.motion.odometry_localizer.globalLocation.y
-            z = self.motion.odometry_localizer.globalLocation.theta
+            x = self.motion.odometry_localizer.global_location.x
+            y = self.motion.odometry_localizer.global_location.y
+            z = self.motion.odometry_localizer.global_location.theta
             return x, y, z
 
         # ---- set position ----
-        self.motion.odometry_localizer.globalLocation.x = x
-        self.motion.odometry_localizer.globalLocation.y = y
-        self.motion.odometry_localizer.globalLocation.theta = theta
+        self.motion.odometry_localizer.global_location = Pose(x, y, theta)
 
     def supervisor(self):
         return self.motion.movement_supervisor

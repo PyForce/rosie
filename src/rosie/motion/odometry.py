@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 
-from rosie.motion.models import Pose
+from rosie.motion.models import ORIGIN, Pose
 
 
 class OdometryLocalizer(ABC):
@@ -14,8 +14,8 @@ class OdometryLocalizer(ABC):
 
     def __init__(self, robot_parameters):
         self.robot_parameters = robot_parameters
-        self.location = Pose()
-        self.globalLocation = Pose()
+        self.location = ORIGIN
+        self.global_location = ORIGIN
 
     @abstractmethod
     def update_location(self, delta_encoder_count_1, delta_encoder_count_2):
@@ -30,20 +30,6 @@ class OdometryLocalizer(ABC):
         @type delta_encoder_count_2: int
         """
         pass
-
-    def reset_location(self):
-        """
-        Reset the robot's location
-
-        """
-        self.location.reset()
-
-    def reset_global_location(self):
-        """
-        Reset the robot's global location
-
-        """
-        self.globalLocation.reset()
 
 
 class RungeKutta2Localizer(OdometryLocalizer):
@@ -80,12 +66,11 @@ class RungeKutta2Localizer(OdometryLocalizer):
         ds = (dfr + dfl) * self.robot_parameters.wheel_radius / 2
         dz = (dfr - dfl) * self.robot_parameters.wheel_radius / self.robot_parameters.wheel_distance
 
-        self.location.x += ds * math.cos(self.location.theta + dz / 2)
-        self.location.y += ds * math.sin(self.location.theta + dz / 2)
-        self.location.theta += dz
+        self.location = _advance(self.location, ds, dz)
+        self.global_location = _advance(self.global_location, ds, dz)
+        return self.location, self.global_location
 
-        self.globalLocation.x += ds * math.cos(self.globalLocation.theta + dz / 2)
-        self.globalLocation.y += ds * math.sin(self.globalLocation.theta + dz / 2)
-        self.globalLocation.theta += dz
 
-        return self.location, self.globalLocation
+def _advance(pose: Pose, ds: float, dz: float) -> Pose:
+    heading = pose.theta + dz / 2
+    return Pose(pose.x + ds * math.cos(heading), pose.y + ds * math.sin(heading), pose.theta + dz)

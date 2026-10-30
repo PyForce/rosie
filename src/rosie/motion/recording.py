@@ -76,9 +76,9 @@ class MovementRecorder(MovementSupervisor):
         if self.rows is None or len(self.rows) >= self.expected_updates:
             return
         self.time += robot_state.elapsed_time
-        location = robot_state.location
-        reference = robot_state.reference_location
-        speed = robot_state.reference_speed
+        location = robot_state.pose
+        reference = robot_state.reference_pose
+        speed = robot_state.reference_velocity
         self.rows.append(
             (
                 self.time,
@@ -92,14 +92,14 @@ class MovementRecorder(MovementSupervisor):
                 speed.x,
                 speed.y,
                 speed.theta,
-                robot_state.x_speed_ref,
-                robot_state.y_speed_ref,
-                robot_state.angular_speed_1,
-                robot_state.set_point_1,
-                robot_state.current_1,
-                robot_state.angular_speed_2,
-                robot_state.set_point_2,
-                robot_state.current_2,
+                robot_state.tracker_x,
+                robot_state.tracker_y,
+                robot_state.wheel_1_speed,
+                robot_state.wheel_1_setpoint,
+                robot_state.wheel_1_current,
+                robot_state.wheel_2_speed,
+                robot_state.wheel_2_setpoint,
+                robot_state.wheel_2_current,
             )
         )
 

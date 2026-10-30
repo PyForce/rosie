@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 
-from rosie.motion.models import Pose, Velocity
+from rosie.motion.models import ORIGIN, STILL, Pose, Velocity
 
 
 class TrajectoryParameters:
@@ -104,26 +104,19 @@ class LinearTrajectoryPlanner(TrajectoryPlanner):
         total_time = segments * trajectory_parameters.constant_t
         self.points_count = int(total_time / trajectory_parameters.sample_time)
 
-        self.reference_locations = [
-            Pose() for i in range(self.points_count)
-        ]
-        self.reference_speeds = [Velocity() for i in range(self.points_count)]
+        self.reference_locations = [ORIGIN] * self.points_count
+        self.reference_speeds = [STILL] * self.points_count
 
         theta_prev_interval = 0
-        points_per_segment = int(
-            trajectory_parameters.constant_t / trajectory_parameters.sample_time
-        )
+        points_per_segment = int(trajectory_parameters.constant_t / trajectory_parameters.sample_time)
+
         for i in range(segments):
             segment_base_index = i * points_per_segment
+            start = trajectory_parameters.key_locations[i]
+            end = trajectory_parameters.key_locations[i + 1]
 
-            delta_x = (
-                trajectory_parameters.key_locations[i + 1].x
-                - trajectory_parameters.key_locations[i].x
-            ) / float(points_per_segment)
-            delta_y = (
-                trajectory_parameters.key_locations[i + 1].y
-                - trajectory_parameters.key_locations[i].y
-            ) / float(points_per_segment)
+            delta_x = (end.x - start.x) / float(points_per_segment)
+            delta_y = (end.y - start.y) / float(points_per_segment)
 
             speed_x = delta_x / trajectory_parameters.sample_time
             speed_y = delta_y / trajectory_parameters.sample_time
@@ -139,38 +132,24 @@ class LinearTrajectoryPlanner(TrajectoryPlanner):
                     theta_interval += 2 * math.pi
                 else:
                     theta_interval -= 2 * math.pi
-            else:
-                if diff3 < diff1:
-                    theta_interval += 2 * math.pi
+            elif diff3 < diff1:
+                theta_interval += 2 * math.pi
 
-            self.reference_locations[
-                segment_base_index
-            ].x = trajectory_parameters.key_locations[i].x
-            self.reference_locations[
-                segment_base_index
-            ].y = trajectory_parameters.key_locations[i].y
-            self.reference_locations[segment_base_index].theta = theta_interval
-
-            self.reference_speeds[segment_base_index].x = speed_x
-            self.reference_speeds[segment_base_index].y = speed_y
-            self.reference_speeds[segment_base_index].theta = (
-                theta_interval - theta_prev_interval
-            ) / float(trajectory_parameters.sample_time)
+            self.reference_locations[segment_base_index] = Pose(start.x, start.y, theta_interval)
+            self.reference_speeds[segment_base_index] = Velocity(
+                speed_x,
+                speed_y,
+                (theta_interval - theta_prev_interval) / float(trajectory_parameters.sample_time),
+            )
 
             theta_prev_interval = theta_interval
 
             for j in range(1, points_per_segment):
-                self.reference_locations[segment_base_index + j].x = (
-                    self.reference_locations[segment_base_index + j - 1].x + delta_x
+                previous = self.reference_locations[segment_base_index + j - 1]
+                self.reference_locations[segment_base_index + j] = Pose(
+                    previous.x + delta_x, previous.y + delta_y, theta_interval
                 )
-                self.reference_locations[segment_base_index + j].y = (
-                    self.reference_locations[segment_base_index + j - 1].y + delta_y
-                )
-                self.reference_locations[segment_base_index + j].theta = theta_interval
-
-                self.reference_speeds[segment_base_index + j].x = speed_x
-                self.reference_speeds[segment_base_index + j].y = speed_y
-                self.reference_speeds[segment_base_index + j].theta = 0.0
+                self.reference_speeds[segment_base_index + j] = Velocity(speed_x, speed_y, 0.0)
 
     def get_length(self):
         """
@@ -243,91 +222,71 @@ class CubicTrajectoryPlanner(TrajectoryPlanner):
 
         self.points_count = points_per_segment * segments
 
-        self.reference_locations = [
-            Pose() for i in range(self.points_count)
-        ]
-        self.reference_speeds = [Velocity() for i in range(self.points_count)]
+        self.reference_locations = [ORIGIN] * self.points_count
+        self.reference_speeds = [STILL] * self.points_count
 
         for j in range(segments):
             x_i = trajectory_parameters.key_locations[j].x
             y_i = trajectory_parameters.key_locations[j].y
             theta_i = trajectory_parameters.key_locations[j].theta
-
             x_f = trajectory_parameters.key_locations[j + 1].x
             y_f = trajectory_parameters.key_locations[j + 1].y
             theta_f = trajectory_parameters.key_locations[j + 1].theta
 
             alpha_x = trajectory_parameters.constant_k * math.cos(theta_f) - 3 * x_f
             alpha_y = trajectory_parameters.constant_k * math.sin(theta_f) - 3 * y_f
-
             beta_x = trajectory_parameters.constant_k * math.cos(theta_i) + 3 * x_i
             beta_y = trajectory_parameters.constant_k * math.sin(theta_i) + 3 * y_i
 
+            positions = []
             for i in range(points_per_segment):
                 s = i / float(points_per_segment)
-                self.reference_locations[points_per_segment * j + i].x = (
+                x = (
                     -(s - 1) * (s - 1) * (s - 1) * x_i
                     + s * s * s * x_f
                     + alpha_x * (s * s) * (s - 1)
                     + beta_x * s * ((s - 1) * (s - 1))
                 )
-                self.reference_locations[points_per_segment * j + i].y = (
+                y = (
                     -(s - 1) * (s - 1) * (s - 1) * y_i
                     + s * s * s * y_f
                     + alpha_y * (s * s) * (s - 1)
                     + beta_y * s * ((s - 1) * (s - 1))
                 )
-
-                self.reference_speeds[points_per_segment * j + i].x = (
+                dx = (
                     -3 * (s - 1) * (s - 1) * x_i
                     + 3 * s * s * x_f
                     + alpha_x * (3 * s * s - 2 * s)
                     + beta_x * (3 * s * s - 4 * s + 1)
                 )
-                self.reference_speeds[points_per_segment * j + i].y = (
+                dy = (
                     -3 * (s - 1) * (s - 1) * y_i
                     + 3 * s * s * y_f
                     + alpha_y * (3 * s * s - 2 * s)
                     + beta_y * (3 * s * s - 4 * s + 1)
                 )
-
                 xd_dot_dot = (
                     -6 * (s - 1) * x_i + 6 * s * x_f + alpha_x * (6 * s - 2) + beta_x * (6 * s - 4)
                 )
                 yd_dot_dot = (
                     -6 * (s - 1) * y_i + 6 * s * y_f + alpha_y * (6 * s - 2) + beta_y * (6 * s - 4)
                 )
-
-                self.reference_speeds[points_per_segment * j + i].theta = (
-                    yd_dot_dot * self.reference_speeds[points_per_segment * j + i].x
-                    - xd_dot_dot * self.reference_speeds[points_per_segment * j + i].y
-                ) / (
-                    self.reference_speeds[points_per_segment * j + i].x
-                    * self.reference_speeds[points_per_segment * j + i].x
-                    + self.reference_speeds[points_per_segment * j + i].y
-                    * self.reference_speeds[points_per_segment * j + i].y
+                dtheta = (yd_dot_dot * dx - xd_dot_dot * dy) / (dx * dx + dy * dy)
+                positions.append((x, y))
+                self.reference_speeds[points_per_segment * j + i] = Velocity(
+                    dx / trajectory_parameters.constant_t,
+                    dy / trajectory_parameters.constant_t,
+                    dtheta / trajectory_parameters.constant_t,
                 )
 
-                self.reference_speeds[points_per_segment * j + i].x = (
-                    self.reference_speeds[points_per_segment * j + i].x
-                    / trajectory_parameters.constant_t
-                )
-                self.reference_speeds[points_per_segment * j + i].y = (
-                    self.reference_speeds[points_per_segment * j + i].y
-                    / trajectory_parameters.constant_t
-                )
-                self.reference_speeds[points_per_segment * j + i].theta = (
-                    self.reference_speeds[points_per_segment * j + i].theta
-                    / trajectory_parameters.constant_t
-                )
-
-            self.reference_locations[points_per_segment * j].theta = theta_i
-            for i in range(points_per_segment - 1):
-                self.reference_locations[points_per_segment * j + i + 1].theta = (
-                    self.reference_locations[points_per_segment * j + i].theta
-                    + self.reference_speeds[points_per_segment * j + i].theta
-                    * trajectory_parameters.sample_time
-                )
+            theta = theta_i
+            for i, (x, y) in enumerate(positions):
+                if i > 0:
+                    theta += (
+                        self.reference_speeds[points_per_segment * j + i - 1].theta
+                        * trajectory_parameters.sample_time
+                    )
+                self.reference_locations[points_per_segment * j + i] = Pose(x, y, theta)
 
     def get_length(self):
         """
