@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from rosie.motion.controller import DifferentialDriveRobotLocation
+from rosie.motion.geometry import DifferentialDriveRobotLocation
 
 __author__ = 'Silvio'
 

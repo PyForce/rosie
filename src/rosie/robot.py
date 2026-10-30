@@ -9,9 +9,8 @@ from rosie.config import config as global_settings
 from rosie.motion.runge_kutta import RungeKutta2OdometryLocalizer
 from rosie.motion.motor_handler import HardSpeedControlledMH
 from rosie.motion.motor_handler import SoftSpeedControlledMH
-from rosie.motion.controller import DifferentialDriveRobotParameters, \
-    DifferentialDriveMovementController, \
-    DifferentialDriveRobotLocation
+from rosie.motion.controller import DifferentialDriveMovementController
+from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
 from rosie.motion.pid import PIDSpeedController
 from rosie.motion.trajectory import DifferentialDriveTrajectoryParameters
 from rosie.motion.cubic_planner import CubicTrajectoryPlanner

@@ -1,6 +1,6 @@
 import math
 
-from rosie.motion.controller import DifferentialDriveRobotLocation, DifferentialDriveRobotSpeed
+from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotSpeed
 from rosie.motion.trajectory import DifferentialDriveTrajectoryPlanner
 
 __author__ = 'Silvio'
