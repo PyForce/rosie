@@ -37,7 +37,7 @@ rosie = "rosie.__main__:main"
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28",
+    "httpx2>=2.16",
     "mypy>=2.4",
     "pre-commit>=4.7",
     "pytest>=9.1",
