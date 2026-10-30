@@ -62,7 +62,9 @@ def with_endpoints(graph: VisibilityGraph, start: Points, end: Points) -> Visibi
 def _offset(outline: Points, clearance: float, side_if_ccw: str, side_if_cw: str) -> Points:
     closed = np.append(outline, [outline[0], outline[1]], axis=0)
     side = side_if_ccw if LinearRing(outline).is_ccw else side_if_cw
-    offset = LineString(closed).parallel_offset(clearance, side, join_style=JOIN_STYLE.mitre)
+    # offset_curve goes left for positive distances, right for negative ones
+    distance = clearance if side == "left" else -clearance
+    offset = LineString(closed).offset_curve(distance, join_style=JOIN_STYLE.mitre)
     if offset.geom_type == "MultiLineString":
         first, second, *_ = offset.geoms
         return np.array(list(chain(first.coords, second.coords)))
