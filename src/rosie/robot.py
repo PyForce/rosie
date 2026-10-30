@@ -68,14 +68,15 @@ class Robot:
         self.motion.movement_finish()
 
     def position(self) -> tuple[float, float, float]:
-        pose = self.motion.odometry_localizer.global_location
+        pose = self.motion.odometry_localizer.pose
         return pose.x, pose.y, pose.theta
 
     def teleport(self, x: float, y: float, theta: float) -> None:
-        self.motion.odometry_localizer.global_location = Pose(x, y, theta)
+        self.motion.odometry_localizer.pose = Pose(x, y, theta)
 
     def go_to(self, x: float, y: float, t: float) -> None:
         """Drive straight to (x, y) in t seconds."""
+        self._check_duration(t)
         trajectory = TrajectoryParameters(
             [Pose(*self.position()), Pose(x, y, 0.0)], t, self.sample_time, 0.0
         )
@@ -83,12 +84,15 @@ class Robot:
 
     def go_to_with_planner(self, x: float, y: float, t: float) -> None:
         """Drive to (x, y) around walls and furniture, t seconds per straight stretch."""
+        self._check_duration(t)
         x0, y0, _ = self.position()
         clearance = 0.2 * max(self.profile.WIDTH, self.profile.LARGE)
-        self.follow(self.planner.route((x0, y0), (x, y), clearance), t)
+        _start, *corners = self.planner.route((x0, y0), (x, y), clearance)
+        self.follow(corners, t)
 
     def follow(self, points: Sequence[Sequence[float]], t: float) -> None:
         """Drive through the points in order, t seconds from one to the next."""
+        self._check_duration(t)
         x0, y0, _ = self.position()
         poses = [Pose(x0, y0, 0), *(Pose(p[0], p[1], 0.0) for p in points)]
         self._track(TrajectoryParameters(poses, t, self.sample_time, 0.0))
@@ -113,6 +117,10 @@ class Robot:
 
     def get_map(self, map_name: str) -> dict[str, Any] | None:
         return self.planner.get_map(map_name)
+
+    def _check_duration(self, t: float) -> None:
+        if t < self.sample_time:
+            raise ValueError(f"the time must be at least one control step ({self.sample_time} s)")
 
     def _track(self, trajectory: TrajectoryParameters) -> None:
         self.motion.movement_init(trajectory)

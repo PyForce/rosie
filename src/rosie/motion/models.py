@@ -50,8 +50,7 @@ class RobotParameters:
 
 @dataclass(frozen=True, slots=True)
 class RobotState:
-    pose: Pose  # where the controller thinks the robot is
-    global_pose: Pose  # where the robot is on the map
+    pose: Pose  # where the robot is on the map
     reference_pose: Pose | None  # None under manual control
     reference_velocity: Velocity | None
     tracker_x: float | None  # speeds asked by the trajectory tracker
@@ -66,6 +65,4 @@ class RobotState:
     elapsed_time: float  # s since the previous step
 
 
-RESTING = RobotState(
-    ORIGIN, ORIGIN, ORIGIN, STILL, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-)
+RESTING = RobotState(ORIGIN, ORIGIN, STILL, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)

@@ -100,9 +100,7 @@ class MovementController:
         )
         self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-        location, global_location = self.odometry_localizer.update_location(
-            delta_steps_1, delta_steps_2
-        )
+        location = self.odometry_localizer.update_location(delta_steps_1, delta_steps_2)
 
         reference_location, reference_speed = self.trajectory_planner.get_next_point()
 
@@ -114,7 +112,6 @@ class MovementController:
 
         self.robot_state = RobotState(
             location,
-            global_location,
             reference_location,
             reference_speed,
             u1,
@@ -150,9 +147,7 @@ class MovementController:
         )
         self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-        location, global_location = self.odometry_localizer.update_location(
-            delta_steps_1, delta_steps_2
-        )
+        location = self.odometry_localizer.update_location(delta_steps_1, delta_steps_2)
 
         set_point_1, set_point_2 = self._wheel_speeds(*self._direction_vector())
 
@@ -160,7 +155,6 @@ class MovementController:
 
         self.robot_state = RobotState(
             location,
-            global_location,
             None,
             None,
             None,

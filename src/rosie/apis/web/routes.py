@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import ValidationError
 
 from rosie.apis.web.models import Follow, Goto, Maps, Metadata, Move, Position, PositionUpdate
+from rosie.errors import NoRouteError
 from rosie.motion.models import RobotState
 from rosie.motion.supervisors import MovementSupervisor
 from rosie.robot import PROFILES_DIR, Robot
@@ -74,20 +75,25 @@ async def position(request: Request, robot: RobotDependency) -> Response:
 async def goto(request: Request, robot: RobotDependency) -> Response:
     order = Goto.model_validate_json(await request.body())
     x, y, t = order.target
-    if order.planner:
-        try:
+    try:
+        if order.planner:
             robot.go_to_with_planner(x, y, t)
-        except Exception as ex:
-            return JSONResponse({"error": ex.message}, status_code=409)  # type: ignore[attr-defined]
-    else:
-        robot.go_to(x, y, t)
+        else:
+            robot.go_to(x, y, t)
+    except NoRouteError as error:
+        return JSONResponse({"error": str(error)}, status_code=409)
+    except ValueError as error:
+        return JSONResponse({"detail": str(error)}, status_code=422)
     return Response()
 
 
 @router.post("/follow")
 async def follow(request: Request, robot: RobotDependency) -> Response:
     order = Follow.model_validate_json(await request.body())
-    robot.follow(order.path, order.time)
+    try:
+        robot.follow(order.path, order.time)
+    except ValueError as error:
+        return JSONResponse({"detail": str(error)}, status_code=422)
     return Response()
 
 
@@ -135,7 +141,7 @@ class WebSupervisor(MovementSupervisor):
         pass
 
     def movement_update(self, robot_state: RobotState) -> None:
-        pose = robot_state.global_pose
+        pose = robot_state.pose
         location = (pose.x, pose.y, pose.theta)
         if location == self.last_location:
             return
