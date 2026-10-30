@@ -13,6 +13,7 @@ import asyncio
 import importlib
 import logging
 import signal
+import time
 import traceback
 
 from rosie.config import config
@@ -52,7 +53,7 @@ async def run():
     from rosie import runner
     from rosie.robot import Robot
 
-    robot = Robot()
+    robot = Robot(time.monotonic)
 
     # a flag, so a signal arriving twice (uvicorn re-raises the ones it
     # handles) is harmless

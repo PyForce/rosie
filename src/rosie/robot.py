@@ -27,11 +27,11 @@ LOCALIZERS = {"ODOMETRY_RK2": RungeKutta2Localizer}
 
 
 class Robot:
-    def __init__(self):
+    def __init__(self, clock):
         self.profile_name = global_settings.get("general", "profile")
         self.profile = load_profile(self.profile_name)
         self.parameters = robot_parameters(self.profile)
-        self.motion = movement_controller(self.profile, self.parameters)
+        self.motion = movement_controller(self.profile, self.parameters, clock)
         self.planner = Planner()
         self.planner.use_map("Gustavo's House")
         logging.info("profile: %s", self.profile_name)
@@ -191,7 +191,7 @@ class Robot:
         self.planner.use_map(map_name)
 
 
-def movement_controller(profile, parameters):
+def movement_controller(profile, parameters, clock):
     if profile.KINEMATICS != "DIFFERENTIAL":
         raise ValueError(f"unsupported KINEMATICS: {profile.KINEMATICS}")
     return MovementController(
@@ -199,8 +199,9 @@ def movement_controller(profile, parameters):
         _choose(PLANNERS, "INTERPOLATION", profile.INTERPOLATION)(),
         _choose(LOCALIZERS, "LOCALIZER", profile.LOCALIZER)(parameters),
         IOLinearizationTracker(parameters),
-        _choose(MOTOR_HANDLERS, "FILENAME", profile.FILENAME)(profile, parameters),
+        _choose(MOTOR_HANDLERS, "FILENAME", profile.FILENAME)(profile, parameters, clock),
         parameters,
+        clock,
     )
 
 
@@ -228,15 +229,15 @@ def load_profile(name):
     return importlib.import_module(f"rosie.profiles.{name}.settings")
 
 
-def _virtual_motors(profile, parameters):
+def _virtual_motors(profile, parameters, clock):
     from rosie.motion.drivers.virtual import VirtualMotorDriver
 
     return HardwareSpeedMotorHandler(
-        VirtualMotorDriver(parameters.steps_per_revolution, parameters.max_speed)
+        VirtualMotorDriver(parameters.steps_per_revolution, parameters.max_speed, clock)
     )
 
 
-def _arduino_motors(profile, parameters):
+def _arduino_motors(profile, parameters, _clock):
     from rosie.motion.drivers.arduino import ArduinoMotorDriver
 
     driver = ArduinoMotorDriver(profile.MAX_SPEED)
@@ -244,7 +245,7 @@ def _arduino_motors(profile, parameters):
     return HardwareSpeedMotorHandler(driver)
 
 
-def _md25_motors(profile, parameters):
+def _md25_motors(profile, parameters, _clock):
     from rosie.motion.drivers.md25 import MD25MotorDriver
 
     speed_controller = PIDSpeedController(

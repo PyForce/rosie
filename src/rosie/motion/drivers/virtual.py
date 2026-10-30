@@ -1,5 +1,4 @@
 import math
-import time
 
 from rosie.motion.drivers.base import SpeedMotorDriver
 
@@ -15,21 +14,22 @@ class VirtualMotorDriver(SpeedMotorDriver):
     MOTOR_CURRENT = 0.0
     BATTERY_VOLTAGE = 12.0
 
-    def __init__(self, steps_per_revolution, max_speed):
+    def __init__(self, steps_per_revolution, max_speed, clock):
         self.current_speed_1 = 0.0
         self.current_speed_2 = 0.0
         self.max_speed = max_speed
         self.steps_per_revolution = steps_per_revolution
         self.encoder_1 = 0
         self.encoder_2 = 0
+        self.clock = clock
         self.history = list()
 
     def set_speeds(self, speed_1, speed_2):
         self.current_speed_1, self.current_speed_2 = self.__check_max_speed__(speed_1, speed_2)
-        self.history.append([self.current_speed_1, self.current_speed_2, time.time()])
+        self.history.append([self.current_speed_1, self.current_speed_2, self.clock()])
 
     def read_delta_encoders_count_state(self):
-        self.history.append([self.current_speed_1, self.current_speed_2, time.time()])
+        self.history.append([self.current_speed_1, self.current_speed_2, self.clock()])
         delta_encoder_count_1, delta_encoder_count_2 = self.__update_encoders_status__()
         return (
             delta_encoder_count_1,
@@ -76,4 +76,4 @@ class VirtualMotorDriver(SpeedMotorDriver):
 
     def __reset_history__(self):
         self.history = []
-        self.history.append([self.current_speed_1, self.current_speed_2, time.time()])
+        self.history.append([self.current_speed_1, self.current_speed_2, self.clock()])

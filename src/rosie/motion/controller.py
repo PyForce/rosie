@@ -1,6 +1,5 @@
 import logging
 import math
-import time
 
 from rosie.motion.models import RESTING, RobotState
 
@@ -33,11 +32,13 @@ class MovementController:
         trajectory_tracker,
         motor_handler,
         robot_parameters,
+        clock,
     ):
         self.ordered_stop = True
         self.sample_time = robot_parameters.sample_time
         self.movement_supervisor = movement_supervisor
         self.robot_parameters = robot_parameters
+        self.clock = clock
         self.motor_handler = motor_handler
         self.trajectory_tracker = trajectory_tracker
         self.odometry_localizer = odometry_localizer
@@ -47,7 +48,7 @@ class MovementController:
         # the control step tick() runs while a movement is active
         self.running = False
         self.step = self.closed_loop_movement_control
-        self.prev_time = time.time()
+        self.prev_time = self.clock()
 
         self.dir = [0, 0, 0]
 
@@ -100,7 +101,7 @@ class MovementController:
         @type elapsed_time: float
         @param elapsed_time: elapsed time since last call
         """
-        now = time.time()
+        now = self.clock()
         elapsed_time = max(
             now - self.prev_time, 0.00001
         )  # TODO:Check for very fast processor, never knows :)
@@ -161,7 +162,7 @@ class MovementController:
         @type elapsed_time: float
         @param elapsed_time: elapsed time since last call
         """
-        now = time.time()
+        now = self.clock()
         elapsed_time = now - self.prev_time
         self.prev_time = now
 
@@ -273,7 +274,7 @@ class MovementController:
 
         """
         self.ordered_stop = False
-        self.prev_time = time.time()
+        self.prev_time = self.clock()
         self.running = True
 
     def movement_stop(self):

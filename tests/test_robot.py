@@ -2,6 +2,7 @@
 Tests for the robot
 """
 
+import time
 import unittest
 
 from rosie.robot import Robot
@@ -12,13 +13,13 @@ class RobotTest(unittest.TestCase):
     Tests for the Robot class
     """
 
-    bot = Robot()
+    bot = Robot(time.monotonic)
 
     def test_independent_robots(self):
         """
         Tests that each robot has its own state
         """
-        other_bot = Robot()
+        other_bot = Robot(time.monotonic)
         other_bot.position(1.0, 2.0, 0.5)
         self.assertTupleEqual(self.bot.position(), (0.0, 0.0, 0.0))
 
