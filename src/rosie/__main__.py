@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 r"""
-       ___  ____
-  _ _ / _ \/ ___\ _
- | '_| | | \___ \(_)
- | | | |_| |___) | |
- |_|  \___/\____/|_|
+      ___  ____
+ _ _ / _ \/ ___\ _
+| '_| | | \___ \(_)
+| | | |_| |___) | |
+|_|  \___/\____/|_|
 
 """
 
@@ -18,16 +18,14 @@ import traceback
 from rosie.config import config
 
 # config section -> module with `async def run(robot, settings)`
-PLUGINS = {
-    'web': 'rosie.apis.web.server',
-    'usound': 'rosie.sensors.usound',
-}
+PLUGINS = {"web": "rosie.apis.web.server", "usound": "rosie.sensors.usound"}
 
-FORMAT = '[%(asctime)-15s] %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT,
-                    level=getattr(logging, config.get(
-                        'general', 'loglevel').upper(), None),
-                    filename=config.get('general', 'logfile'))
+FORMAT = "[%(asctime)-15s] %(levelname)s %(message)s"
+logging.basicConfig(
+    format=FORMAT,
+    level=getattr(logging, config.get("general", "loglevel").upper(), None),
+    filename=config.get("general", "logfile"),
+)
 
 
 def test(args):
@@ -35,7 +33,8 @@ def test(args):
     Run rosie tests
     """
     import unittest
-    tests = unittest.TestLoader().discover('tests')
+
+    tests = unittest.TestLoader().discover("tests")
     unittest.TextTestRunner(verbosity=2).run(tests)
 
 
@@ -65,36 +64,33 @@ async def run():
     running = asyncio.create_task(runner.run(robot))
 
     plugins = []
-    for sect in (s for s in config.sections()
-                 if config.getboolean(s, 'active')):
-        logging.info('loading %s...', sect)
+    for sect in (s for s in config.sections() if config.getboolean(s, "active")):
+        logging.info("loading %s...", sect)
         if sect not in PLUGINS:
-            logging.error('unknown section [%s], known: %s', sect,
-                          ', '.join(PLUGINS))
+            logging.error("unknown section [%s], known: %s", sect, ", ".join(PLUGINS))
             continue
         try:
             module = importlib.import_module(PLUGINS[sect])
         except ImportError:
             logging.error(traceback.format_exc())
-            logging.error('module %s not loaded\033[0m', sect)
+            logging.error("module %s not loaded\033[0m", sect)
         # no exception was raised
         else:
-            logging.info('loaded %s', sect)
-            if hasattr(module, 'run'):
-                task = asyncio.create_task(module.run(robot, config[sect]),
-                                           name=sect)
+            logging.info("loaded %s", sect)
+            if hasattr(module, "run"):
+                task = asyncio.create_task(module.run(robot, config[sect]), name=sect)
                 task.add_done_callback(report_plugin_end)
                 plugins.append(task)
 
     await stopping.wait()
-    logging.info('stopping...')
+    logging.info("stopping...")
     running.cancel()
     # the motors first, then the plugins
     robot.stop()
     for task in plugins:
         task.cancel()
     await asyncio.gather(running, *plugins, return_exceptions=True)
-    logging.info('stopped')
+    logging.info("stopped")
 
 
 def report_plugin_end(task):
@@ -102,22 +98,21 @@ def report_plugin_end(task):
     Log a plugin that ended with an error (the robot keeps running)
     """
     if not task.cancelled() and task.exception():
-        logging.error('plugin %s failed', task.get_name(),
-                      exc_info=task.exception())
+        logging.error("plugin %s failed", task.get_name(), exc_info=task.exception())
 
 
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title='subcommands')
+    subparsers = parser.add_subparsers(title="subcommands")
 
-    parser_test = subparsers.add_parser('test', help='run tests')
+    parser_test = subparsers.add_parser("test", help="run tests")
     parser_test.set_defaults(func=test)
-    parser_start = subparsers.add_parser(
-        'start', help='start the rosie application')
+    parser_start = subparsers.add_parser("start", help="start the rosie application")
     parser_start.set_defaults(func=start)
 
     args = parser.parse_args()
     args.func(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

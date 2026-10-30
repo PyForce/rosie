@@ -1,4 +1,5 @@
 import logging
+
 try:
     import smbus
 except:
@@ -15,6 +16,7 @@ class MD25MotorDriver(DualPowerMotorDriver):
     @type i2c_bus_address: int
     @type i2c_bus_number: int
     """
+
     MAX_ENCODER_COUNT_DELTA = 180
     MAX_ENCODER_COUNT = 2000000000
 
@@ -53,7 +55,9 @@ class MD25MotorDriver(DualPowerMotorDriver):
         @rtype : tuple
         @return: encoders count since last read (2 integers), battery voltage (float), motor's current (2 floats)
         """
-        encoder_count_1, encoder_count_2, battery_voltage, current_left, current_right = self.read_state()
+        encoder_count_1, encoder_count_2, battery_voltage, current_left, current_right = (
+            self.read_state()
+        )
 
         delta_encoder_count_1 = encoder_count_1 - self.prev_encoder_count_1
         delta_encoder_count_2 = encoder_count_2 - self.prev_encoder_count_2
@@ -61,8 +65,10 @@ class MD25MotorDriver(DualPowerMotorDriver):
         self.encoder_count_1 = encoder_count_1
         self.encoder_count_2 = encoder_count_2
 
-        if delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA \
-                or delta_encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA:
+        if (
+            delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
+            or delta_encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
+        ):
             temp = delta_encoder_count_1
             delta_encoder_count_1 = self.prev_delta_encoder_count_1
             self.encoder_count_1 = 0
@@ -71,8 +77,10 @@ class MD25MotorDriver(DualPowerMotorDriver):
             logging.info("delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA")
             logging.info(delta_encoder_count_1, temp)
 
-        if delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA \
-                or delta_encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA:
+        if (
+            delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
+            or delta_encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
+        ):
             temp = delta_encoder_count_2
             delta_encoder_count_2 = self.prev_delta_encoder_count_2
             self.encoder_count_1 = 0
@@ -81,10 +89,12 @@ class MD25MotorDriver(DualPowerMotorDriver):
             logging.info("delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA")
             logging.info(delta_encoder_count_2, temp)
 
-        if encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT \
-                or encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT \
-                or encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT \
-                or encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT:
+        if (
+            encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT
+            or encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT
+            or encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT
+            or encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT
+        ):
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
@@ -96,7 +106,13 @@ class MD25MotorDriver(DualPowerMotorDriver):
         self.prev_delta_encoder_count_1 = delta_encoder_count_1
         self.prev_delta_encoder_count_2 = delta_encoder_count_2
 
-        return delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_left, current_right
+        return (
+            delta_encoder_count_1,
+            delta_encoder_count_2,
+            battery_voltage,
+            current_left,
+            current_right,
+        )
 
     def reset(self):
         """
@@ -126,17 +142,15 @@ class MD25MotorDriver(DualPowerMotorDriver):
         @return : both motors' encoders count (2 int), battery's voltage (float), both motors' current (2 float)
         """
         result = self.i2c_bus.read_i2c_block_data(self.i2c_bus_address, 2, 11)
-        max_int_32 = 2 ** 31
+        max_int_32 = 2**31
 
-        encoder1 = (result[0] << 24) + (result[1] << 16) + \
-                   (result[2] << 8) + result[3]
+        encoder1 = (result[0] << 24) + (result[1] << 16) + (result[2] << 8) + result[3]
         if encoder1 > max_int_32:
-            encoder1 = -(2 ** 32 - encoder1)
+            encoder1 = -(2**32 - encoder1)
 
-        encoder2 = (result[4] << 24) + (result[5] << 16) + \
-                   (result[6] << 8) + result[7]
+        encoder2 = (result[4] << 24) + (result[5] << 16) + (result[6] << 8) + result[7]
         if encoder2 > max_int_32:
-            encoder2 = -(2 ** 32 - encoder2)
+            encoder2 = -(2**32 - encoder2)
 
         battery_voltage = result[8] / float(10)
         current_left = result[9] / float(10)

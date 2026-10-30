@@ -1,6 +1,7 @@
 """
 Map tools
 """
+
 from __future__ import print_function
 
 import json
@@ -13,18 +14,18 @@ from shapely.ops import unary_union
 
 
 def _get_all_features(item):
-    item_type = item['type']
-    item_geometry = item['geometry']
-    item_geometry_type = item_geometry['type']
-    item_geometry_coordinates = item_geometry['coordinates']
+    item_type = item["type"]
+    item_geometry = item["geometry"]
+    item_geometry_type = item_geometry["type"]
+    item_geometry_coordinates = item_geometry["coordinates"]
     return item_type, item_geometry, item_geometry_type, item_geometry_coordinates
 
 
-def _get_any(item, item_name, expected='', func=lambda l: sum(l, [])):
+def _get_any(item, item_name, expected="", func=lambda l: sum(l, [])):
     item = item[item_name]
     _, _, geometry_type, coordinates = _get_all_features(item)
     if expected:
-        assert geometry_type == expected, item_name + ' accesor in a not ' + expected + ' Item'
+        assert geometry_type == expected, item_name + " accesor in a not " + expected + " Item"
     return func(coordinates)
 
 
@@ -32,30 +33,32 @@ def _get_borders(item, func=lambda l: sum(l, [])):
     """
     Get the borders coordinates then apply the function `func`
     """
-    return _get_any(item, 'borders', 'Polygon', func)
+    return _get_any(item, "borders", "Polygon", func)
 
 
 def _get_walls(item, func=lambda l: sum(l, [])):
-    return _get_any(item, 'walls', 'MultiLineString', func)
+    return _get_any(item, "walls", "MultiLineString", func)
 
 
 def _get_doors(item, func=lambda l: sum(l, [])):
-    return _get_any(item, 'doors', 'MultiLineString', func)
+    return _get_any(item, "doors", "MultiLineString", func)
 
 
 def _get_all_items(item, func=lambda l: sum(l, [])):
-    return {item_name: _get_any(item_val, item_name, 'Polygon', func)
-            for item_name, item_val in item.items()}
+    return {
+        item_name: _get_any(item_val, item_name, "Polygon", func)
+        for item_name, item_val in item.items()
+    }
 
 
-def list_maps(mapdir='../maps'):
+def list_maps(mapdir="../maps"):
     """
     Lazy return all maps in `mapdir` directory
     """
     mapdir = os.path.join(os.path.dirname(__file__), mapdir)
     for tmap in os.listdir(mapdir):
         map_path = os.path.abspath(os.path.join(mapdir, tmap))
-        with open(map_path, 'r') as map_file:
+        with open(map_path, "r") as map_file:
             yield map_path, json.load(map_file)
 
 
@@ -63,10 +66,11 @@ class Item(object):
     """
     Abstraction structure for Items
     """
-    def __init__(self, item, item_name='', locations=None, parent_item=None):
+
+    def __init__(self, item, item_name="", locations=None, parent_item=None):
         self.__item_name = item_name
         self.__parent_item = parent_item
-        self.__borders = item['geometry']['coordinates']
+        self.__borders = item["geometry"]["coordinates"]
         self.__border_points = self.__generate_border_points()
 
         if locations is not None:
@@ -93,14 +97,14 @@ class Item(object):
 
 
 class Room(object):
-
-    def __init__(self, room, room_name='', locations=None):
+    def __init__(self, room, room_name="", locations=None):
         self._room_name = room_name
-        self._borders = room['borders']['geometry']['coordinates']
-        self._walls = room['walls']['geometry']['coordinates']
-        self._doors = room['doors']['geometry']['coordinates']
-        self._items = [Item(item, item_name, locations)
-                        for item_name, item in room['items'].items()]
+        self._borders = room["borders"]["geometry"]["coordinates"]
+        self._walls = room["walls"]["geometry"]["coordinates"]
+        self._doors = room["doors"]["geometry"]["coordinates"]
+        self._items = [
+            Item(item, item_name, locations) for item_name, item in room["items"].items()
+        ]
         self._borders_points = self._borders_points()
         self.support_points = []
 
@@ -150,9 +154,11 @@ class Map(object):
         with open(jsonfile) as jfile:
             jsonmap = json.load(jfile)
             self.locations = {}
-            self.__name = jsonmap['name']
-            self.__rooms = [Room(room, room_name, self.locations)
-                            for room_name, room in jsonmap['rooms'].items()]
+            self.__name = jsonmap["name"]
+            self.__rooms = [
+                Room(room, room_name, self.locations)
+                for room_name, room in jsonmap["rooms"].items()
+            ]
             self.__borders_points = self.__generate_borders_points()
             self.__items_border_points = self.__generate_items_border_points()
             self.__beveled_points = None
@@ -244,11 +250,9 @@ class Map(object):
 
         is_ccw = LinearRing(self.borders_points).is_ccw
         map_po = LineString(extend_line(self.borders_points)).parallel_offset(
-            H,
-            'left' if is_ccw else 'right',
-            join_style=join_style
+            H, "left" if is_ccw else "right", join_style=join_style
         )
-        if map_po.geom_type == 'MultiLineString':
+        if map_po.geom_type == "MultiLineString":
             geoms = list(map_po.geoms)
             map_po = list(chain(geoms[0].coords, geoms[1].coords))
         else:
@@ -261,11 +265,9 @@ class Map(object):
             if item.size > 0:
                 is_ccw = LinearRing(item).is_ccw
                 item_po = LineString(extend_line(item)).parallel_offset(
-                    H,
-                    'right' if is_ccw else 'left',
-                    join_style=join_style
+                    H, "right" if is_ccw else "left", join_style=join_style
                 )
-                if item_po.geom_type == 'MultiLineString':
+                if item_po.geom_type == "MultiLineString":
                     geoms = list(item_po.geoms)
                     item_po = list(chain(geoms[0].coords, geoms[1].coords))
                 else:
@@ -286,7 +288,6 @@ class Map(object):
 
         for i in range(all_points.shape[0]):
             for j in range(all_points.shape[0]):
-
                 line = np.array((all_points[i], all_points[j]))
                 if self.is_valid(LineString(line), border_p, holes_p):
                     visibility_graph[i, j] = True
@@ -296,6 +297,7 @@ class Map(object):
     @staticmethod
     def plot_adjacency_graph(all_points, visibility_graph):
         import matplotlib.pyplot as plt
+
         for i in range(visibility_graph.shape[0]):
             for j in range(visibility_graph.shape[1]):
                 if visibility_graph[i, j]:
@@ -335,13 +337,14 @@ class Map(object):
 
         return all_points, visibility_graph, tags
 
+
 def main():
     """
     Main function
     """
-    tmap = Map('../maps/map.json')
+    tmap = Map("../maps/map.json")
     print(tmap.visibility_graph)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

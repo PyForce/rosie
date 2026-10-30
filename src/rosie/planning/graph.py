@@ -9,6 +9,7 @@ class AdjacencyMatrixGraph(object):
     """
     Adjacency Matrix Graph
     """
+
     def __init__(self, vertices, matrix, labels=None):
         self.vertices = vertices
         self.labels = labels
@@ -105,20 +106,17 @@ class AdjacencyMatrixGraph(object):
         raise Exception("target vertex '%r' not found" % target)
 
 
-if __name__ == '__main__':
-    vertices = np.array([
-        [0.0, 0.0],
-        [1.1, 0.0],
-        [2.2, 2.0],
-        [2.3, 1.0]
-    ])
+if __name__ == "__main__":
+    vertices = np.array([[0.0, 0.0], [1.1, 0.0], [2.2, 2.0], [2.3, 1.0]])
 
-    matrix = np.array([
-        [True, True, False, False],
-        [False, True, True, False],
-        [True, False, True, True],
-        [False, False, True, True]
-    ])
+    matrix = np.array(
+        [
+            [True, True, False, False],
+            [False, True, True, False],
+            [True, False, True, True],
+            [False, False, True, True],
+        ]
+    )
     graph = AdjacencyMatrixGraph(vertices, matrix)
     print("from %r to %r" % (vertices[0], vertices[3]))
     print(graph.astar_path(vertices[0], vertices[3]))

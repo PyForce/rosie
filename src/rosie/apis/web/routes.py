@@ -1,18 +1,17 @@
 """
 rosie API implementation
 """
+
 import asyncio
 import json
 import logging
 import os
 
-from fastapi import (APIRouter, Depends, HTTPException, Request, WebSocket,
-                     WebSocketDisconnect)
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse, Response
 
 from rosie.robot import PROFILES_DIR, Robot
-from rosie.motion.supervisors \
-    import DifferentialDriveMovementSupervisor
+from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
 
 
 router = APIRouter()
@@ -33,7 +32,7 @@ async def objetify(req):
     return json.loads(await req.body())
 
 
-@router.get('/odometry')
+@router.get("/odometry")
 def odometry(robot: Robot = Depends(get_robot)):
     """
     {
@@ -46,7 +45,7 @@ def odometry(robot: Robot = Depends(get_robot)):
     return {"x": xpos, "y": ypos, "theta": theta}
 
 
-@router.get('/metadata')
+@router.get("/metadata")
 def metadata(request: Request, robot: Robot = Depends(get_robot)):
     """
     {
@@ -60,37 +59,36 @@ def metadata(request: Request, robot: Robot = Depends(get_robot)):
     handler = robot.setting_handler
 
     videouri = False
-    if hasattr(handler.settings, 'VIDEO_URI'):
+    if hasattr(handler.settings, "VIDEO_URI"):
         videouri = handler.settings.VIDEO_URI
 
     return {
         "name": handler.settings.MOBILE_ROBOT,
-        "thumbnail": request.app.url_path_for('thumbnail'),
-        "vector": request.app.url_path_for('vector'),
+        "thumbnail": request.app.url_path_for("thumbnail"),
+        "vector": request.app.url_path_for("vector"),
         "video": videouri,
-        "size": [handler.settings.LARGE, handler.settings.WIDTH,
-                 handler.settings.HEIGHT],
-        "profile": handler.profile
+        "size": [handler.settings.LARGE, handler.settings.WIDTH, handler.settings.HEIGHT],
+        "profile": handler.profile,
     }
 
 
-@router.get('/thumbnail')
+@router.get("/thumbnail")
 def thumbnail(robot: Robot = Depends(get_robot)):
     """
     Detailed image of the robot
     """
     profile = robot.setting_handler.profile
-    filepath = os.path.join(PROFILES_DIR, profile, 'thumbnail.png')
+    filepath = os.path.join(PROFILES_DIR, profile, "thumbnail.png")
     return FileResponse(filepath)
 
 
-@router.get('/vector')
+@router.get("/vector")
 def vector(robot: Robot = Depends(get_robot)):
     """
     Icon of the robot
     """
     profile = robot.setting_handler.profile
-    filepath = os.path.join(PROFILES_DIR, profile, 'vector.svg')
+    filepath = os.path.join(PROFILES_DIR, profile, "vector.svg")
     return FileResponse(filepath)
 
 
@@ -105,7 +103,7 @@ def vector(robot: Robot = Depends(get_robot)):
 #     return json.loads(sensor.__doc__ % name)
 
 
-@router.post('/position')
+@router.post("/position")
 async def position(request: Request, robot: Robot = Depends(get_robot)):
     """
     Teleports the robot
@@ -116,14 +114,14 @@ async def position(request: Request, robot: Robot = Depends(get_robot)):
     }
     """
     data = await objetify(request)
-    xpos = data['x']
-    ypos = data['y']
-    theta = data['theta']
+    xpos = data["x"]
+    ypos = data["y"]
+    theta = data["theta"]
     robot.position(xpos, ypos, theta)
     return Response()
 
 
-@router.post('/goto')
+@router.post("/goto")
 async def goto(request: Request, robot: Robot = Depends(get_robot)):
     """
     {
@@ -132,21 +130,21 @@ async def goto(request: Request, robot: Robot = Depends(get_robot)):
     }
     """
     values = await objetify(request)
-    xpos, ypos, theta = values['target']
-    planner = values.get('planner', False)
+    xpos, ypos, theta = values["target"]
+    planner = values.get("planner", False)
 
     if planner:
         try:
-            robot.go_to_with_planner(*values['target'])
+            robot.go_to_with_planner(*values["target"])
         except Exception as ex:
-            return JSONResponse({'error': ex.message}, status_code=409)  # CONFLICT
+            return JSONResponse({"error": ex.message}, status_code=409)  # CONFLICT
     else:
         robot.go_to(xpos, ypos, theta)
 
     return Response()
 
 
-@router.post('/follow')
+@router.post("/follow")
 async def follow(request: Request, robot: Robot = Depends(get_robot)):
     """
     {
@@ -156,11 +154,11 @@ async def follow(request: Request, robot: Robot = Depends(get_robot)):
     """
     values = await objetify(request)
 
-    robot.follow(values['path'], values['time'])
+    robot.follow(values["path"], values["time"])
     return Response()
 
 
-@router.get('/maps')
+@router.get("/maps")
 def maps(robot: Robot = Depends(get_robot)):
     """
     [
@@ -170,9 +168,9 @@ def maps(robot: Robot = Depends(get_robot)):
     return {"maps": [name for name in robot.maps()]}
 
 
-@router.get('/map')
-@router.get('/map/{name}')
-def getmap(name: str = '', robot: Robot = Depends(get_robot)):
+@router.get("/map")
+@router.get("/map/{name}")
+def getmap(name: str = "", robot: Robot = Depends(get_robot)):
     """
     {
         "map": "map_name"
@@ -210,8 +208,8 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
         try:
             while True:
                 data = json.loads(await websocket.receive_text())
-                if data['type'] == 'move' and self.manual:
-                    self.robot.add_movement(data['data'])
+                if data["type"] == "move" and self.manual:
+                    self.robot.add_movement(data["data"])
         except WebSocketDisconnect:
             pass
         finally:
@@ -224,18 +222,20 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
         pass
 
     def movement_update(self, state):
-        move_x, move_y, move_theta = state.global_location.x_position,\
-            state.global_location.y_position, state.global_location.z_position
+        move_x, move_y, move_theta = (
+            state.global_location.x_position,
+            state.global_location.y_position,
+            state.global_location.z_position,
+        )
 
         prev_x, prev_y, prev_theta = self.last_location
-        if abs(move_x - prev_x) + abs(move_y - prev_y) + abs(move_theta -
-                                                             prev_theta) == 0:
+        if abs(move_x - prev_x) + abs(move_y - prev_y) + abs(move_theta - prev_theta) == 0:
             # don't notify when robot not moved
             return
 
-        message = json.dumps({'type': 'position',
-                              'data': {'x': move_x, 'y': move_y,
-                                       'theta': move_theta}})
+        message = json.dumps(
+            {"type": "position", "data": {"x": move_x, "y": move_y, "theta": move_theta}}
+        )
         for websock in list(self.clients):
             task = asyncio.create_task(websock.send_text(message))
             self.sending.add(task)
@@ -266,4 +266,3 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.manual = False
         self.robot.stop_open_loop_control()
         return Response()
-

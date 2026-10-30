@@ -4,6 +4,7 @@ import logging
 
 from rosie.motion.geometry import DifferentialDriveRobotState
 
+
 class DifferentialDriveMovementController:
     """
     Class to control the movement of a differential drive mobile robot
@@ -24,8 +25,15 @@ class DifferentialDriveMovementController:
     @type odometry_localizer: motion.OdometryLocalizer.DifferentialDriveOdometryLocalizer
     """
 
-    def __init__(self, movement_supervisor, trajectory_planner, odometry_localizer, trajectory_tracker, motor_handler,
-                 robot_parameters):
+    def __init__(
+        self,
+        movement_supervisor,
+        trajectory_planner,
+        odometry_localizer,
+        trajectory_tracker,
+        motor_handler,
+        robot_parameters,
+    ):
         self.ordered_stop = True
         self.sample_time = robot_parameters.sample_time
         self.movement_supervisor = movement_supervisor
@@ -59,7 +67,7 @@ class DifferentialDriveMovementController:
 
         if elapsed_time < 0.0000000001:
             elapsed_time = 0.0000000001
-            logging.warning('almost dividing by zero') # TODO: Check warning
+            logging.warning("almost dividing by zero")  # TODO: Check warning
         steps_per_sec_1 = delta_encoder_count_1 / elapsed_time
         angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
 
@@ -85,7 +93,6 @@ class DifferentialDriveMovementController:
         self.trajectory_tracker.reset()
         # self.odometry_localizer.reset_location()
 
-
     def open_loop_movement_control(self):
         """
         Control the movement
@@ -94,7 +101,9 @@ class DifferentialDriveMovementController:
         @param elapsed_time: elapsed time since last call
         """
         now = time.time()
-        elapsed_time = max(now - self.prev_time, 0.00001) # TODO:Check for very fast processor, never knows :)
+        elapsed_time = max(
+            now - self.prev_time, 0.00001
+        )  # TODO:Check for very fast processor, never knows :)
 
         self.prev_time = now
 
@@ -102,16 +111,20 @@ class DifferentialDriveMovementController:
             self.movement_finish()
             return
 
-
         status = self.motor_handler.read_delta_encoders_count_state()
-        
+
         if status:
-            delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = status
-            angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,elapsed_time)
+            delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = (
+                status
+            )
+            angular_speed_1, angular_speed_2 = self.measure_speeds(
+                delta_encoder_count_1, delta_encoder_count_2, elapsed_time
+            )
             self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-            location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
-                                                                            delta_encoder_count_2)
+            location, global_position = self.odometry_localizer.update_location(
+                delta_encoder_count_1, delta_encoder_count_2
+            )
 
             x, y, z = self.get_movement_direction_vector()
 
@@ -119,9 +132,22 @@ class DifferentialDriveMovementController:
 
             self.motor_handler.set_speeds(set_point_1, set_point_2)
 
-            self.robot_state.update(location, global_position, None, None, None, None, angular_speed_1,
-                                set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
-                                elapsed_time)
+            self.robot_state.update(
+                location,
+                global_position,
+                None,
+                None,
+                None,
+                None,
+                angular_speed_1,
+                set_point_1,
+                current_1,
+                angular_speed_2,
+                set_point_2,
+                current_2,
+                battery_voltage,
+                elapsed_time,
+            )
 
             self.movement_supervisor.movement_update(self.robot_state)
 
@@ -143,24 +169,42 @@ class DifferentialDriveMovementController:
             self.movement_finish()
             return
 
-        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = self.motor_handler. \
-            read_delta_encoders_count_state()
-        angular_speed_1, angular_speed_2 = self.measure_speeds(delta_encoder_count_1, delta_encoder_count_2,
-                                                               elapsed_time)
+        delta_encoder_count_1, delta_encoder_count_2, battery_voltage, current_1, current_2 = (
+            self.motor_handler.read_delta_encoders_count_state()
+        )
+        angular_speed_1, angular_speed_2 = self.measure_speeds(
+            delta_encoder_count_1, delta_encoder_count_2, elapsed_time
+        )
         self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
 
-        location, global_position = self.odometry_localizer.update_location(delta_encoder_count_1,
-                                                                            delta_encoder_count_2)
+        location, global_position = self.odometry_localizer.update_location(
+            delta_encoder_count_1, delta_encoder_count_2
+        )
 
         reference_location, reference_speed = self.trajectory_planner.get_next_point()
 
-        set_point_1, set_point_2, u1, u2 = self.trajectory_tracker.track(reference_location, reference_speed, location)
+        set_point_1, set_point_2, u1, u2 = self.trajectory_tracker.track(
+            reference_location, reference_speed, location
+        )
 
         self.motor_handler.set_speeds(set_point_1, set_point_2)
 
-        self.robot_state.update(location, global_position, reference_location, reference_speed, u1, u2, angular_speed_1,
-                                set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage,
-                                elapsed_time)
+        self.robot_state.update(
+            location,
+            global_position,
+            reference_location,
+            reference_speed,
+            u1,
+            u2,
+            angular_speed_1,
+            set_point_1,
+            current_1,
+            angular_speed_2,
+            set_point_2,
+            current_2,
+            battery_voltage,
+            elapsed_time,
+        )
 
         self.movement_supervisor.movement_update(self.robot_state)
 
@@ -180,9 +224,9 @@ class DifferentialDriveMovementController:
             left = right = y
             ratio = abs(x / self.robot_parameters.max_speed)
             if x < 0:
-                right *= (1 - ratio)
+                right *= 1 - ratio
             elif x > 0:
-                left *= (1 - ratio)
+                left *= 1 - ratio
             return right, left
         elif z:
             return z, -z
@@ -192,7 +236,7 @@ class DifferentialDriveMovementController:
     def get_movement_direction_vector(self):
         x, y, z = 0, 0, 0
         # TODO: change 8 for max speed
-        dx, dy, dz = [i*8 for i in self.dir]
+        dx, dy, dz = [i * 8 for i in self.dir]
         # if 87 in keys:  # W
         #     dy += 8
         # if 65 in keys:  # A

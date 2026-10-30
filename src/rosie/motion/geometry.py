@@ -2,6 +2,7 @@
 Locations, speeds, state and parameters of a differential drive robot
 """
 
+
 class DifferentialDriveRobotLocation:
     """
     Structure containing the cartesian coordinates of a robot
@@ -11,7 +12,7 @@ class DifferentialDriveRobotLocation:
     @param z_position: Position on the Z axis (angle, pose)
     """
 
-    def __init__(self, x_position=0., y_position=0., z_position=0.):
+    def __init__(self, x_position=0.0, y_position=0.0, z_position=0.0):
         self.z_position = z_position
         self.y_position = y_position
         self.x_position = x_position
@@ -21,9 +22,9 @@ class DifferentialDriveRobotLocation:
         Reset the location to the origin
 
         """
-        self.z_position = 0.
-        self.y_position = 0.
-        self.x_position = 0.
+        self.z_position = 0.0
+        self.y_position = 0.0
+        self.x_position = 0.0
 
     def __repr__(self):
         return "(%f,%f,%f)" % (self.x_position, self.y_position, self.z_position)
@@ -60,8 +61,22 @@ class DifferentialDriveRobotParameters:
     @type sample_time: float
     """
 
-    def __init__(self, wheel_radius, wheel_distance, steps_per_revolution, constant_b, constant_k1, constant_k2,
-                 constant_ki, constant_kd, constant_kc, max_value_power, min_value_power, sample_time,max_speed):
+    def __init__(
+        self,
+        wheel_radius,
+        wheel_distance,
+        steps_per_revolution,
+        constant_b,
+        constant_k1,
+        constant_k2,
+        constant_ki,
+        constant_kd,
+        constant_kc,
+        max_value_power,
+        min_value_power,
+        sample_time,
+        max_speed,
+    ):
         self.sample_time = sample_time
         self.max_value_power = max_value_power
         self.min_value_power = min_value_power
@@ -74,7 +89,7 @@ class DifferentialDriveRobotParameters:
         self.steps_per_revolution = steps_per_revolution
         self.wheel_distance = wheel_distance
         self.wheel_radius = wheel_radius
-        self.max_speed=max_speed
+        self.max_speed = max_speed
 
 
 class DifferentialDriveRobotSpeed:
@@ -89,14 +104,13 @@ class DifferentialDriveRobotSpeed:
     @type x_speed: float
     """
 
-    def __init__(self, x_speed=0., y_speed=0., z_speed=0.):
+    def __init__(self, x_speed=0.0, y_speed=0.0, z_speed=0.0):
         self.z_speed = z_speed
         self.y_speed = y_speed
         self.x_speed = x_speed
 
     def __repr__(self):
         return "(%f,%f,%f)" % (self.x_speed, self.y_speed, self.z_speed)
-
 
 
 class DifferentialDriveRobotState:
@@ -134,10 +148,23 @@ class DifferentialDriveRobotState:
     @type reference_location: motion.RobotLocation.DifferentialDriveRobotLocation
     """
 
-    def __init__(self, location=DifferentialDriveRobotLocation(), global_location=DifferentialDriveRobotLocation(),
-                 reference_location=DifferentialDriveRobotLocation(), reference_speed=DifferentialDriveRobotSpeed,
-                 x_speed_ref=0., y_speed_ref=0., angular_speed_1=0., set_point_1=0., current_1=0., angular_speed_2=0.,
-                 set_point_2=0., current_2=0., battery_voltage=0., elapsed_time=0.):
+    def __init__(
+        self,
+        location=DifferentialDriveRobotLocation(),
+        global_location=DifferentialDriveRobotLocation(),
+        reference_location=DifferentialDriveRobotLocation(),
+        reference_speed=DifferentialDriveRobotSpeed,
+        x_speed_ref=0.0,
+        y_speed_ref=0.0,
+        angular_speed_1=0.0,
+        set_point_1=0.0,
+        current_1=0.0,
+        angular_speed_2=0.0,
+        set_point_2=0.0,
+        current_2=0.0,
+        battery_voltage=0.0,
+        elapsed_time=0.0,
+    ):
         self.global_location = global_location
         self.elapsed_time = elapsed_time
         self.battery_voltage = battery_voltage
@@ -153,9 +180,23 @@ class DifferentialDriveRobotState:
         self.reference_location = reference_location
         self.location = location
 
-    def update(self, location, global_location, reference_location, reference_speed, x_speed_ref, y_speed_ref,
-               angular_speed_1,
-               set_point_1, current_1, angular_speed_2, set_point_2, current_2, battery_voltage, elapsed_time):
+    def update(
+        self,
+        location,
+        global_location,
+        reference_location,
+        reference_speed,
+        x_speed_ref,
+        y_speed_ref,
+        angular_speed_1,
+        set_point_1,
+        current_1,
+        angular_speed_2,
+        set_point_2,
+        current_2,
+        battery_voltage,
+        elapsed_time,
+    ):
         """
         Method to update the state of the robot
 

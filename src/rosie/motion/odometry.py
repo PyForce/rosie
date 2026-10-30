@@ -3,7 +3,7 @@ import math
 
 from rosie.motion.geometry import DifferentialDriveRobotLocation
 
-__author__ = 'Silvio'
+__author__ = "Silvio"
 
 
 class DifferentialDriveOdometryLocalizer:
@@ -13,6 +13,7 @@ class DifferentialDriveOdometryLocalizer:
     @param robot_parameters: Parameters of the robot
     @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self, robot_parameters):

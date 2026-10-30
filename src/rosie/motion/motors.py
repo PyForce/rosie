@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABCMeta
 from abc import ABCMeta, abstractmethod
 
-__author__ = 'Silvio'
+__author__ = "Silvio"
 
 
 class DifferentialDriveMotorHandler:
@@ -9,6 +9,7 @@ class DifferentialDriveMotorHandler:
     Abstract class representing a handler to control the motors of a differential drive robot
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -72,6 +73,7 @@ class HardSpeedControlledMH(DifferentialDriveMotorHandler):
     @param speed_motor_driver: Driver to be used to set the speeds of the motors
     @type speed_motor_driver: motion.MotorDriver.DualSpeedMotorDriver
     """
+
     def __init__(self, speed_motor_driver):
         super(HardSpeedControlledMH, self).__init__()
         self.speed_motor_driver = speed_motor_driver
@@ -112,7 +114,7 @@ class HardSpeedControlledMH(DifferentialDriveMotorHandler):
         Stop both motors
 
         """
-        self.set_speeds(0., 0.)
+        self.set_speeds(0.0, 0.0)
 
     def reset(self):
         """
@@ -147,8 +149,9 @@ class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
         @type speed_1: float
         """
         real_speed_1, real_speed_2 = self.power_motor_driver.get_real_speeds()
-        control_action_1, control_action_2 = self.speed_controller.regulate(speed_1, speed_2, real_speed_1,
-                                                                            real_speed_2)
+        control_action_1, control_action_2 = self.speed_controller.regulate(
+            speed_1, speed_2, real_speed_1, real_speed_2
+        )
         self.power_motor_driver.set_powers(control_action_1, control_action_2)
 
     def read_delta_encoders_count_state(self):
@@ -176,7 +179,7 @@ class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
         Stop both motors
 
         """
-        self.power_motor_driver.set_powers(0., 0.)
+        self.power_motor_driver.set_powers(0.0, 0.0)
 
     def reset(self):
         """
@@ -192,6 +195,7 @@ class DualSpeedController:
     Abstract class to make speed control for two motors
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -240,7 +244,9 @@ class PIDSpeedController(DualSpeedController):
     @type constant_kc: float
     """
 
-    def __init__(self, constant_kc, constant_ki, constant_kd, max_control_action, min_control_action):
+    def __init__(
+        self, constant_kc, constant_ki, constant_kd, max_control_action, min_control_action
+    ):
         super(PIDSpeedController, self).__init__()
         self.min_control_action = min_control_action
         self.max_control_action = max_control_action
@@ -248,26 +254,26 @@ class PIDSpeedController(DualSpeedController):
         self.constant_ki = constant_ki
         self.constant_kc = constant_kc
 
-        self.e1k1 = 0.
-        self.e1k2 = 0.
-        self.u1k1 = 0.
+        self.e1k1 = 0.0
+        self.e1k2 = 0.0
+        self.u1k1 = 0.0
 
-        self.e2k1 = 0.
-        self.e2k2 = 0.
-        self.u2k1 = 0.
+        self.e2k1 = 0.0
+        self.e2k2 = 0.0
+        self.u2k1 = 0.0
 
     def reset(self):
         """
         Reset the controller
 
         """
-        self.e1k1 = 0.
-        self.e1k2 = 0.
-        self.u1k1 = 0.
+        self.e1k1 = 0.0
+        self.e1k2 = 0.0
+        self.u1k1 = 0.0
 
-        self.e2k1 = 0.
-        self.e2k2 = 0.
-        self.u2k1 = 0.
+        self.e2k1 = 0.0
+        self.e2k2 = 0.0
+        self.u2k1 = 0.0
 
     def regulate(self, set_point_1, set_point_2, angular_speed_1, angular_speed_2):
         """
@@ -289,11 +295,19 @@ class PIDSpeedController(DualSpeedController):
         if self.constant_ki == 0:
             uuu1 = e1k * self.constant_kc
         else:
-            uuu1 = e1k * self.constant_kc + (self.constant_ki - self.constant_kc) * self.e1k1 + self.u1k1
+            uuu1 = (
+                e1k * self.constant_kc
+                + (self.constant_ki - self.constant_kc) * self.e1k1
+                + self.u1k1
+            )
 
         if self.constant_kd != 0:
-            uuu1 = self.constant_kc * (e1k - self.e1k1) + self.constant_ki * e1k + self.u1k1 + self.constant_kd * (
-                e1k - 2 * self.e1k1 + self.e1k2)
+            uuu1 = (
+                self.constant_kc * (e1k - self.e1k1)
+                + self.constant_ki * e1k
+                + self.u1k1
+                + self.constant_kd * (e1k - 2 * self.e1k1 + self.e1k2)
+            )
 
         if uuu1 > self.max_control_action:
             uuu1 = self.max_control_action
@@ -304,16 +318,24 @@ class PIDSpeedController(DualSpeedController):
         self.e1k2 = self.e1k1
         self.e1k1 = e1k
 
-        e2k = (set_point_2 - angular_speed_2)
+        e2k = set_point_2 - angular_speed_2
 
         if self.constant_ki == 0:
             uuu2 = e2k * self.constant_kc
         else:
-            uuu2 = e2k * self.constant_kc + (self.constant_ki - self.constant_kc) * self.e2k1 + self.u2k1
+            uuu2 = (
+                e2k * self.constant_kc
+                + (self.constant_ki - self.constant_kc) * self.e2k1
+                + self.u2k1
+            )
 
         if self.constant_kd != 0:
-            uuu2 = self.constant_kc * (e2k - self.e2k1) + self.constant_ki * e2k + self.u2k1 + self.constant_kd * (
-                e2k - 2 * self.e2k1 + self.e2k2)
+            uuu2 = (
+                self.constant_kc * (e2k - self.e2k1)
+                + self.constant_ki * e2k
+                + self.u2k1
+                + self.constant_kd * (e2k - 2 * self.e2k1 + self.e2k2)
+            )
 
         if uuu2 > self.max_control_action:
             uuu2 = self.max_control_action

@@ -1,4 +1,5 @@
 import logging
+
 # TODO: more detailed error logs
 try:
     from serial import Serial
@@ -15,11 +16,11 @@ from rosie.motion.drivers.base import DualSpeedMotorDriver
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7
-COMMAND_GETSTATE = b'\xA8'
-COMMAND_GETSTATE_RESPONSE = b'\xA9'
-COMMAND_ENCODER_RESET = b'\xAA'
-COMMAND_START_SAMPLING_SPEEDS = b'\xAB'
-COMMAND_STOP_SAMPLING_SPEEDS = b'\xAC'
+COMMAND_GETSTATE = b"\xa8"
+COMMAND_GETSTATE_RESPONSE = b"\xa9"
+COMMAND_ENCODER_RESET = b"\xaa"
+COMMAND_START_SAMPLING_SPEEDS = b"\xab"
+COMMAND_STOP_SAMPLING_SPEEDS = b"\xac"
 
 
 class Arduino(DualSpeedMotorDriver):
@@ -30,7 +31,7 @@ class Arduino(DualSpeedMotorDriver):
     @param max_speed: Maximum value of the speed of the motor
     """
 
-    def __init__(self, max_speed, port='/dev/ttyACM0', baudrate=9600):
+    def __init__(self, max_speed, port="/dev/ttyACM0", baudrate=9600):
 
         try:
             self.serialPort = Serial(port, baudrate)
@@ -72,15 +73,15 @@ class Arduino(DualSpeedMotorDriver):
                 pulses1 += self.serialPort.read()
                 pulses1 += self.serialPort.read()
                 pulses1 += self.serialPort.read()
-                pulses1, = unpack("i", pulses1)
+                (pulses1,) = unpack("i", pulses1)
 
                 pulses2 = self.serialPort.read()
                 pulses2 += self.serialPort.read()
                 pulses2 += self.serialPort.read()
                 pulses2 += self.serialPort.read()
-                pulses2, = unpack("i", pulses2)
+                (pulses2,) = unpack("i", pulses2)
 
-                batteryCharge, = unpack('B', self.serialPort.read())
+                (batteryCharge,) = unpack("B", self.serialPort.read())
 
                 self.lastPulses1 = self.pulses1
                 self.lastPulses2 = self.pulses2
@@ -92,7 +93,8 @@ class Arduino(DualSpeedMotorDriver):
                 return delta_pulses2, delta_pulses1, self.batteryStatus, 0, 0
         except:
             logging.error("reading encoders")
-            return 0,0,0,0,0
+            return 0, 0, 0, 0, 0
+
     def set_constants(self, kc, ki, kd):
         package = pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)
         try:
@@ -133,7 +135,7 @@ class Arduino(DualSpeedMotorDriver):
                     speed1 += self.serialPort.read()
                     speed1 += self.serialPort.read()
                     speed1 += self.serialPort.read()
-                    speed1, = unpack("f", speed1)
+                    (speed1,) = unpack("f", speed1)
 
                     while self.serialPort.inWaiting() < 4:
                         sleep(sleepLapse)
@@ -141,7 +143,7 @@ class Arduino(DualSpeedMotorDriver):
                     speed2 += self.serialPort.read()
                     speed2 += self.serialPort.read()
                     speed2 += self.serialPort.read()
-                    speed2, = unpack("f", speed2)
+                    (speed2,) = unpack("f", speed2)
 
                     self.speed1.append(speed1)
                     self.speed2.append(speed2)

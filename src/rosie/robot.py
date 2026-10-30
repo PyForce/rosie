@@ -24,47 +24,43 @@ from rosie.planning.planner import Planner
 
 from rosie.planning.maps import list_maps
 
-PROFILES_DIR = os.path.join(os.path.dirname(__file__), 'profiles')
+PROFILES_DIR = os.path.join(os.path.dirname(__file__), "profiles")
 
 
 class SettingHandler:
-
     def __init__(self):
-        self.profile = global_settings.get('general', 'profile')
+        self.profile = global_settings.get("general", "profile")
         if os.path.exists(os.path.join(PROFILES_DIR, self.profile)):
             try:
                 import importlib
-                self.settings = importlib.import_module(
-                    "rosie.profiles.%s.settings" % self.profile)
+
+                self.settings = importlib.import_module("rosie.profiles.%s.settings" % self.profile)
                 self.parameters = self.buildRobotParameters()
-                logging.info('profile: %s', self.profile)
+                logging.info("profile: %s", self.profile)
             except ImportError as ex:
                 self.settings = None
-                logging.error('%s: %s', self.profile, ex.message)
+                logging.error("%s: %s", self.profile, ex.message)
         else:
-            logging.error('directory <%s> does not exists')
+            logging.error("directory <%s> does not exists")
 
     def buildMovementControllers(self):
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+        if self.settings.KINEMATICS == "DIFFERENTIAL":
             supervisor = self.buildMovementSupervisor()
             planner = self.buildTrajectoryPlanner()
             localizer = self.buildLocalizer()
             tracker = self.buildTrajectoryTracker()
             motror_handler = self.buildMotorHandler()
 
-            return DifferentialDriveMovementController(supervisor,
-                                                       planner,
-                                                       localizer,
-                                                       tracker,
-                                                       motror_handler,
-                                                       self.parameters)
+            return DifferentialDriveMovementController(
+                supervisor, planner, localizer, tracker, motror_handler, self.parameters
+            )
         else:
             logging.error("kinematic model not supported")
             return None
 
     def buildLocalizer(self):
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            if self.settings.LOCALIZER == 'ODOMETRY_RK2':
+        if self.settings.KINEMATICS == "DIFFERENTIAL":
+            if self.settings.LOCALIZER == "ODOMETRY_RK2":
                 return RungeKutta2OdometryLocalizer(self.parameters)
             else:
                 logging.error("localizer model not supported")
@@ -74,10 +70,10 @@ class SettingHandler:
             return None
 
     def buildTrajectoryPlanner(self):
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            if self.settings.INTERPOLATION == 'LINEAR':
+        if self.settings.KINEMATICS == "DIFFERENTIAL":
+            if self.settings.INTERPOLATION == "LINEAR":
                 return LinearTrajectoryPlanner()
-            elif self.settings.INTERPOLATION == 'CUBIC':
+            elif self.settings.INTERPOLATION == "CUBIC":
                 return CubicTrajectoryPlanner()
             else:
                 logging.error("trajectory planner not supported")
@@ -91,7 +87,7 @@ class SettingHandler:
         return supervisor
 
     def buildTrajectoryTracker(self):
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
+        if self.settings.KINEMATICS == "DIFFERENTIAL":
             # TODO:Add if for selecting tracker
             if True:
                 return IOLinearizationTrajectoryTracker(self.parameters)
@@ -103,23 +99,34 @@ class SettingHandler:
             return None
 
     def buildMotorHandler(self):
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            if self.settings.FILENAME == 'VirtualMD.py':
+        if self.settings.KINEMATICS == "DIFFERENTIAL":
+            if self.settings.FILENAME == "VirtualMD.py":
                 from rosie.motion.drivers.virtual import VirtualMotorDriver
+
                 speed_motor_driver = VirtualMotorDriver(
-                    self.parameters.steps_per_revolution, self.parameters.max_speed)
+                    self.parameters.steps_per_revolution, self.parameters.max_speed
+                )
                 return HardSpeedControlledMH(speed_motor_driver)
-            if self.settings.FILENAME == 'ArduinoMD.py':
+            if self.settings.FILENAME == "ArduinoMD.py":
                 from rosie.motion.drivers.arduino import Arduino
+
                 speed_motor_driver = Arduino(self.settings.MAX_SPEED)
-                speed_motor_driver.set_constants(self.parameters.constant_kc, self.parameters.constant_ki,
-                                                 self.parameters.constant_kd)
+                speed_motor_driver.set_constants(
+                    self.parameters.constant_kc,
+                    self.parameters.constant_ki,
+                    self.parameters.constant_kd,
+                )
                 return HardSpeedControlledMH(speed_motor_driver)
-            elif self.settings.FILENAME == 'MD25.py':
+            elif self.settings.FILENAME == "MD25.py":
                 from rosie.motion.drivers.md25 import MD25MotorDriver
-                speed_controller = PIDSpeedController(self.parameters.constant_kc, self.parameters.constant_ki,
-                                                      self.parameters.constant_kd, self.parameters.max_value_power,
-                                                      self.parameters.min_value_power)
+
+                speed_controller = PIDSpeedController(
+                    self.parameters.constant_kc,
+                    self.parameters.constant_ki,
+                    self.parameters.constant_kd,
+                    self.parameters.max_value_power,
+                    self.parameters.min_value_power,
+                )
                 power_motor_driver = MD25MotorDriver(1, 0x58)
                 return SoftSpeedControlledMH(speed_controller, power_motor_driver)
             else:
@@ -130,20 +137,22 @@ class SettingHandler:
             return None
 
     def buildRobotParameters(self):
-        if self.settings.KINEMATICS == 'DIFFERENTIAL':
-            return DifferentialDriveRobotParameters(self.settings.RADIUS,
-                                                    self.settings.DISTANCE,
-                                                    self.settings.ENCODER_STEPS,
-                                                    self.settings.CONST_B,
-                                                    self.settings.CONST_K1,
-                                                    self.settings.CONST_K2,
-                                                    self.settings.CONST_KI,
-                                                    self.settings.CONST_KD,
-                                                    self.settings.CONST_KC,
-                                                    self.settings.MAX_POWER_BIN,
-                                                    -self.settings.MAX_POWER_BIN,
-                                                    self.settings.SAMPLE_TIME,
-                                                    self.settings.MAX_SPEED)
+        if self.settings.KINEMATICS == "DIFFERENTIAL":
+            return DifferentialDriveRobotParameters(
+                self.settings.RADIUS,
+                self.settings.DISTANCE,
+                self.settings.ENCODER_STEPS,
+                self.settings.CONST_B,
+                self.settings.CONST_K1,
+                self.settings.CONST_K2,
+                self.settings.CONST_KI,
+                self.settings.CONST_KD,
+                self.settings.CONST_KC,
+                self.settings.MAX_POWER_BIN,
+                -self.settings.MAX_POWER_BIN,
+                self.settings.SAMPLE_TIME,
+                self.settings.MAX_SPEED,
+            )
 
         else:
             logging.error("kinematic model not supported")
@@ -158,17 +167,15 @@ class SettingHandler:
 
 
 class Robot:
-
     def __init__(self):
         self.setting_handler = SettingHandler()
         self.motion = self.setting_handler.buildMovementControllers()
         self.planner = self.setting_handler.buildPlanner()
 
         # [recording] directory = ...: one CSV file per planned movement
-        recordings = global_settings.get('recording', 'directory')
+        recordings = global_settings.get("recording", "directory")
         if recordings:
-            self.supervisor().append(
-                MovementRecorder(self.setting_handler.parameters, recordings))
+            self.supervisor().append(MovementRecorder(self.setting_handler.parameters, recordings))
 
     @property
     def sample_time(self):
@@ -201,9 +208,13 @@ class Robot:
         """
 
         trajectory = DifferentialDriveTrajectoryParameters(
-            (DifferentialDriveRobotLocation(*self.position()),
-             DifferentialDriveRobotLocation(x, y, 0.)),
-            t, self.motion.robot_parameters.sample_time)
+            (
+                DifferentialDriveRobotLocation(*self.position()),
+                DifferentialDriveRobotLocation(x, y, 0.0),
+            ),
+            t,
+            self.motion.robot_parameters.sample_time,
+        )
 
         self.track(trajectory)
 
@@ -240,13 +251,13 @@ class Robot:
         >>> r.follow(trajectory, t)
         """
 
-        locations = [DifferentialDriveRobotLocation(
-            p[0], p[1], 0.) for p in points]
+        locations = [DifferentialDriveRobotLocation(p[0], p[1], 0.0) for p in points]
         pos = self.position()
         locations.insert(0, DifferentialDriveRobotLocation(pos[0], pos[1], 0))
 
-        trajectory = DifferentialDriveTrajectoryParameters(locations,
-                                                           t, self.motion.robot_parameters.sample_time)
+        trajectory = DifferentialDriveTrajectoryParameters(
+            locations, t, self.motion.robot_parameters.sample_time
+        )
 
         self.track(trajectory)
 
@@ -255,7 +266,7 @@ class Robot:
         self.motion.movement_start()
 
     def start_open_loop_control(self):
-        logging.debug('set mode: MANUAL')
+        logging.debug("set mode: MANUAL")
         self.motion.movement_init()
         self.motion.movement_start()
 
@@ -263,7 +274,7 @@ class Robot:
         self.motion.dir = direction
 
     def stop_open_loop_control(self):
-        logging.debug('set mode: AUTO')
+        logging.debug("set mode: AUTO")
         self.motion.movement_finish()
 
     def position(self, x=None, y=None, theta=None):
@@ -284,14 +295,14 @@ class Robot:
         >>> r.position()
         (2, 3, 0.5)
         """
-        #---- get position ----
+        # ---- get position ----
         if x is y is theta is None:
             x = self.motion.odometry_localizer.globalLocation.x_position
             y = self.motion.odometry_localizer.globalLocation.y_position
             z = self.motion.odometry_localizer.globalLocation.z_position
             return x, y, z
 
-        #---- set position ----
+        # ---- set position ----
         self.motion.odometry_localizer.globalLocation.x_position = x
         self.motion.odometry_localizer.globalLocation.y_position = y
         self.motion.odometry_localizer.globalLocation.z_position = theta
@@ -309,7 +320,7 @@ class Robot:
         """
         Get all names for the maps
         """
-        return (tmap['name'] for _, tmap in list_maps())
+        return (tmap["name"] for _, tmap in list_maps())
 
     def get_map(self, map_name):
         return self.planner.get_map(map_name)

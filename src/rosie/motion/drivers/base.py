@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-__author__ = 'Silvio'
+__author__ = "Silvio"
 
 
 class DualMotorDriver:
@@ -8,6 +8,7 @@ class DualMotorDriver:
     Abstract class representing a driver used to control 2 motors
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -29,6 +30,7 @@ class DualSpeedMotorDriver(DualMotorDriver):
     Abstract class representing a driver used to control 2 motors using their speeds
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -52,12 +54,13 @@ class DualPowerMotorDriver(DualMotorDriver):
     Abstract class representing a driver used to control 2 motors using their powers
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
         super(DualPowerMotorDriver, self).__init__()
-        self.real_speed_1 = 0.
-        self.real_speed_2 = 0.
+        self.real_speed_1 = 0.0
+        self.real_speed_2 = 0.0
 
     @abstractmethod
     def set_powers(self, power_1, power_2):

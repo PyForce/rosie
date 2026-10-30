@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import math
 
-__author__ = 'Silvio'
+__author__ = "Silvio"
 
 
 class DifferentialDriveTrajectoryTracker:
@@ -9,6 +9,7 @@ class DifferentialDriveTrajectoryTracker:
     Abstract class to make trajectory tracking of a differential drive mobile robot
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -111,10 +112,24 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
         u1 = y1d_dot + self.constant_k1 * (y1d - y1)
 
         the_v = math.cos(robot_location.z_position) * u1 + u2 * math.sin(robot_location.z_position)
-        the_omega = u1 * (- math.sin(robot_location.z_position) / self.constant_b) + u2 * math.cos(
-            robot_location.z_position) / self.constant_b
+        the_omega = (
+            u1 * (-math.sin(robot_location.z_position) / self.constant_b)
+            + u2 * math.cos(robot_location.z_position) / self.constant_b
+        )
 
-        set_point_2 = the_v / self.robot_parameters.wheel_radius + the_omega * self.robot_parameters.wheel_distance / 2 / self.robot_parameters.wheel_radius
-        set_point_1 = the_v / self.robot_parameters.wheel_radius - the_omega * self.robot_parameters.wheel_distance / 2 / self.robot_parameters.wheel_radius
+        set_point_2 = (
+            the_v / self.robot_parameters.wheel_radius
+            + the_omega
+            * self.robot_parameters.wheel_distance
+            / 2
+            / self.robot_parameters.wheel_radius
+        )
+        set_point_1 = (
+            the_v / self.robot_parameters.wheel_radius
+            - the_omega
+            * self.robot_parameters.wheel_distance
+            / 2
+            / self.robot_parameters.wheel_radius
+        )
 
         return set_point_1, set_point_2, u1, u2

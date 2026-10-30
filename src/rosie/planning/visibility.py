@@ -1,4 +1,4 @@
-__author__ = 'Tony39'
+__author__ = "Tony39"
 """This is the implementation of the final routines destined to finding the graph"""
 
 import numpy as np
@@ -10,7 +10,12 @@ def figure_relevant(l_p1, l_p2, fig_extremes):
     hig_x = max(l_p1[0], l_p2[0])
     hig_y = max(l_p1[1], l_p2[1])
 
-    if (low_x > fig_extremes[2]) or (hig_x < fig_extremes[0]) or (low_y > fig_extremes[3]) or (hig_y < fig_extremes[1]):
+    if (
+        (low_x > fig_extremes[2])
+        or (hig_x < fig_extremes[0])
+        or (low_y > fig_extremes[3])
+        or (hig_y < fig_extremes[1])
+    ):
         return False
     return True
 

@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-__author__ = 'Silvio'
+__author__ = "Silvio"
 
 
 class DifferentialDriveMovementSupervisor:
@@ -8,6 +8,7 @@ class DifferentialDriveMovementSupervisor:
     Abstract class to supervise a differential drive mobile robot in a movement
 
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -44,7 +45,7 @@ class DifferentialDriveMovementSupervisor:
 
 class SupervisorContainer(DifferentialDriveMovementSupervisor, list):
     """
-        Class that groups multiple supervisors
+    Class that groups multiple supervisors
     """
 
     def __init__(self, *supervisors):

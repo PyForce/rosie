@@ -7,6 +7,7 @@ The robot's parameters come first, as `# name = value` comment lines
 (pandas: `read_csv(path, comment='#')`; MATLAB: `readtable(path,
 'CommentStyle', '#')`).
 """
+
 import csv
 import logging
 import os
@@ -14,20 +15,40 @@ import time
 
 from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
 
-__author__ = 'Silvio'
+__author__ = "Silvio"
 
 COLUMNS = (
-    'time', 'elapsed',                        # s since the start, s since the previous step
-    'x', 'y', 'theta',                        # location (m, m, rad)
-    'ref_x', 'ref_y', 'ref_theta',            # reference location
-    'ref_speed_x', 'ref_speed_y', 'ref_speed_theta',  # reference speed
-    'tracker_x', 'tracker_y',                 # speeds asked by the trajectory tracker
-    'wheel_1_speed', 'wheel_1_setpoint', 'wheel_1_current',  # rad/s, rad/s, A
-    'wheel_2_speed', 'wheel_2_setpoint', 'wheel_2_current',
+    "time",
+    "elapsed",  # s since the start, s since the previous step
+    "x",
+    "y",
+    "theta",  # location (m, m, rad)
+    "ref_x",
+    "ref_y",
+    "ref_theta",  # reference location
+    "ref_speed_x",
+    "ref_speed_y",
+    "ref_speed_theta",  # reference speed
+    "tracker_x",
+    "tracker_y",  # speeds asked by the trajectory tracker
+    "wheel_1_speed",
+    "wheel_1_setpoint",
+    "wheel_1_current",  # rad/s, rad/s, A
+    "wheel_2_speed",
+    "wheel_2_setpoint",
+    "wheel_2_current",
 )
 
-PARAMETERS = ('wheel_radius', 'wheel_distance', 'constant_b', 'constant_k1',
-              'constant_k2', 'constant_kc', 'constant_ki', 'constant_kd')
+PARAMETERS = (
+    "wheel_radius",
+    "wheel_distance",
+    "constant_b",
+    "constant_k1",
+    "constant_k2",
+    "constant_kc",
+    "constant_ki",
+    "constant_kd",
+)
 
 
 class MovementRecorder(DifferentialDriveMovementSupervisor):
@@ -42,7 +63,7 @@ class MovementRecorder(DifferentialDriveMovementSupervisor):
         os.makedirs(directory, exist_ok=True)
         self.rows = None  # None: not recording (manual control)
         self.expected_updates = None
-        self.time = 0.
+        self.time = 0.0
 
     def movement_begin(self, expected_updates):
         """
@@ -51,7 +72,7 @@ class MovementRecorder(DifferentialDriveMovementSupervisor):
         """
         self.expected_updates = expected_updates
         self.rows = None if expected_updates is None else []
-        self.time = 0.
+        self.time = 0.0
 
     def movement_update(self, robot_state):
         if self.rows is None or len(self.rows) >= self.expected_updates:
@@ -60,25 +81,39 @@ class MovementRecorder(DifferentialDriveMovementSupervisor):
         location = robot_state.location
         reference = robot_state.reference_location
         speed = robot_state.reference_speed
-        self.rows.append((
-            self.time, robot_state.elapsed_time,
-            location.x_position, location.y_position, location.z_position,
-            reference.x_position, reference.y_position, reference.z_position,
-            speed.x_speed, speed.y_speed, speed.z_speed,
-            robot_state.x_speed_ref, robot_state.y_speed_ref,
-            robot_state.angular_speed_1, robot_state.set_point_1, robot_state.current_1,
-            robot_state.angular_speed_2, robot_state.set_point_2, robot_state.current_2,
-        ))
+        self.rows.append(
+            (
+                self.time,
+                robot_state.elapsed_time,
+                location.x_position,
+                location.y_position,
+                location.z_position,
+                reference.x_position,
+                reference.y_position,
+                reference.z_position,
+                speed.x_speed,
+                speed.y_speed,
+                speed.z_speed,
+                robot_state.x_speed_ref,
+                robot_state.y_speed_ref,
+                robot_state.angular_speed_1,
+                robot_state.set_point_1,
+                robot_state.current_1,
+                robot_state.angular_speed_2,
+                robot_state.set_point_2,
+                robot_state.current_2,
+            )
+        )
 
     def movement_end(self):
         if not self.rows:
             return
-        path = os.path.join(self.directory, time.strftime('E%Y%m%d%H%M%S') + '.csv')
-        with open(path, 'w', newline='') as csv_file:
+        path = os.path.join(self.directory, time.strftime("E%Y%m%d%H%M%S") + ".csv")
+        with open(path, "w", newline="") as csv_file:
             for name in PARAMETERS:
-                csv_file.write('# %s = %r\n' % (name, getattr(self.robot_parameters, name)))
-            writer = csv.writer(csv_file, lineterminator='\n')
+                csv_file.write("# %s = %r\n" % (name, getattr(self.robot_parameters, name)))
+            writer = csv.writer(csv_file, lineterminator="\n")
             writer.writerow(COLUMNS)
             writer.writerows(self.rows)
-        logging.info('movement recorded in %s (%d steps)', path, len(self.rows))
+        logging.info("movement recorded in %s (%d steps)", path, len(self.rows))
         self.rows = None

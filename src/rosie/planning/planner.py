@@ -5,14 +5,13 @@ from rosie.planning.maps import Map, list_maps
 
 
 class Planner(object):
-
     def __init__(self):
         self.__map = None
         self.__graph = None
 
         self.__map_mapping = {}
         for map_path, tmap in list_maps():
-            self.__map_mapping[tmap['name']] = map_path
+            self.__map_mapping[tmap["name"]] = map_path
 
     def get_points(self, start, end, robot):
         """
@@ -45,7 +44,7 @@ class Planner(object):
         """
         map_path = self.__map_mapping.get(map_name)
         if not map_path:
-            raise Warning('Unknown map name %s' % map_name)
+            raise Warning("Unknown map name %s" % map_name)
         self.__map = Map(map_path)
         vertices = self.map.beveled_points
         adjacent_matrix = self.map.visibility_graph

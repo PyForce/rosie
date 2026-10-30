@@ -8,10 +8,10 @@ Appearance
 """
 
 # Name of the mobile robotOLD
-MOBILE_ROBOT = 'Bluebot'
+MOBILE_ROBOT = "Bluebot"
 
 # Kinematic Model of the Robot
-KINEMATICS = 'DIFFERENTIAL'
+KINEMATICS = "DIFFERENTIAL"
 
 # Distance between the wheels (in meters)
 DISTANCE = 0.30
@@ -33,7 +33,7 @@ Motor Controller
 """
 
 # Filename of the controller board (this file is located in the folder: robotOLD/board)
-FILENAME = 'MD25.py'
+FILENAME = "MD25.py"
 
 # PID settings (Set it True if your hardware support speed control)
 PID = False
@@ -48,13 +48,13 @@ Movement Controller
 """
 
 # Trajectory planner interpolation method
-INTERPOLATION = 'LINEAR'  # it can be LINEAR or CUBIC (so far)
+INTERPOLATION = "LINEAR"  # it can be LINEAR or CUBIC (so far)
 
 # Localization method
-LOCALIZER = 'ODOMETRY_RK2'
+LOCALIZER = "ODOMETRY_RK2"
 
 # Movement Supervisor Behavior
-SUPERVISOR = 'FILE_LOGGER'
+SUPERVISOR = "FILE_LOGGER"
 
 # Sample period
 SAMPLE_TIME = 0.05
