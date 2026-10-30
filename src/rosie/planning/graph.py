@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-
-from heapq import heappush, heappop
+from heapq import heappop, heappush
 from itertools import count
+
 import numpy as np
 
 
-class AdjacencyMatrixGraph(object):
+class AdjacencyMatrixGraph:
     """
     Adjacency Matrix Graph
     """

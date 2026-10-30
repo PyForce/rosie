@@ -2,8 +2,6 @@
 Map tools
 """
 
-from __future__ import print_function
-
 import json
 import os
 from itertools import chain
@@ -58,11 +56,11 @@ def list_maps(mapdir="../maps"):
     mapdir = os.path.join(os.path.dirname(__file__), mapdir)
     for tmap in os.listdir(mapdir):
         map_path = os.path.abspath(os.path.join(mapdir, tmap))
-        with open(map_path, "r") as map_file:
+        with open(map_path) as map_file:
             yield map_path, json.load(map_file)
 
 
-class Item(object):
+class Item:
     """
     Abstraction structure for Items
     """
@@ -96,7 +94,7 @@ class Item(object):
         return self.__item_name
 
 
-class Room(object):
+class Room:
     def __init__(self, room, room_name="", locations=None):
         self._room_name = room_name
         self._borders = room["borders"]["geometry"]["coordinates"]
@@ -145,7 +143,7 @@ class Room(object):
         return self._room_name
 
 
-class Map(object):
+class Map:
     """
     Abstract structure for maps
     """

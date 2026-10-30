@@ -49,8 +49,8 @@ async def run():
     """
     Run the robot, and every active plugin next to it, until a signal
     """
-    from rosie.robot import Robot
     from rosie import runner
+    from rosie.robot import Robot
 
     robot = Robot()
 

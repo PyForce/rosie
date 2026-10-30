@@ -3,6 +3,7 @@ Tests for the robot
 """
 
 import unittest
+
 from rosie.robot import Robot
 
 

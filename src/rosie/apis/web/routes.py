@@ -10,9 +10,8 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse, Response
 
-from rosie.robot import PROFILES_DIR, Robot
 from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
-
+from rosie.robot import PROFILES_DIR, Robot
 
 router = APIRouter()
 
@@ -188,7 +187,7 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
     """
 
     def __init__(self, robot):
-        super(RestAPIMovementSupervisor, self).__init__()
+        super().__init__()
         self.robot = robot
         self.manual = False
 

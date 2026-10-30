@@ -1,16 +1,12 @@
-from abc import ABCMeta, abstractmethod
 import math
+from abc import ABC, abstractmethod
 
-__author__ = "Silvio"
 
-
-class DifferentialDriveTrajectoryTracker:
+class DifferentialDriveTrajectoryTracker(ABC):
     """
     Abstract class to make trajectory tracking of a differential drive mobile robot
 
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         pass
@@ -57,7 +53,7 @@ class IOLinearizationTrajectoryTracker(DifferentialDriveTrajectoryTracker):
     """
 
     def __init__(self, robot_parameters, smooth_flag=False):
-        super(IOLinearizationTrajectoryTracker, self).__init__()
+        super().__init__()
         self.robot_parameters = robot_parameters
         self.constant_k2 = robot_parameters.constant_k2
         self.constant_k1 = robot_parameters.constant_k1

@@ -4,7 +4,7 @@ from rosie.planning.graph import AdjacencyMatrixGraph as Graph
 from rosie.planning.maps import Map, list_maps
 
 
-class Planner(object):
+class Planner:
     def __init__(self):
         self.__map = None
         self.__graph = None

@@ -1,28 +1,23 @@
-from __future__ import division
-
-import os
 import logging
+import os
+
 import numpy as np
 
 from rosie.config import config as global_settings
-
-from rosie.motion.odometry import RungeKutta2OdometryLocalizer
-from rosie.motion.motors import HardSpeedControlledMH
-from rosie.motion.motors import SoftSpeedControlledMH
 from rosie.motion.controller import DifferentialDriveMovementController
-from rosie.motion.recording import MovementRecorder
 from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
-from rosie.motion.motors import PIDSpeedController
-from rosie.motion.trajectories import DifferentialDriveTrajectoryParameters
-from rosie.motion.trajectories import CubicTrajectoryPlanner
-from rosie.motion.trajectories import LinearTrajectoryPlanner
-from rosie.motion.tracking import IOLinearizationTrajectoryTracker
+from rosie.motion.motors import HardSpeedControlledMH, PIDSpeedController, SoftSpeedControlledMH
+from rosie.motion.odometry import RungeKutta2OdometryLocalizer
+from rosie.motion.recording import MovementRecorder
 from rosie.motion.supervisors import SupervisorContainer
-
-
-from rosie.planning.planner import Planner
-
+from rosie.motion.tracking import IOLinearizationTrajectoryTracker
+from rosie.motion.trajectories import (
+    CubicTrajectoryPlanner,
+    DifferentialDriveTrajectoryParameters,
+    LinearTrajectoryPlanner,
+)
 from rosie.planning.maps import list_maps
+from rosie.planning.planner import Planner
 
 PROFILES_DIR = os.path.join(os.path.dirname(__file__), "profiles")
 

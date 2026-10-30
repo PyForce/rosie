@@ -1,5 +1,5 @@
-import time
 import math
+import time
 
 from rosie.motion.drivers.base import DualSpeedMotorDriver
 

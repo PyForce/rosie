@@ -21,7 +21,7 @@ class MD25MotorDriver(DualPowerMotorDriver):
     MAX_ENCODER_COUNT = 2000000000
 
     def __init__(self, i2c_bus_number, i2c_bus_address):
-        super(MD25MotorDriver, self).__init__()
+        super().__init__()
         self.prev_encoder_count_1 = 0
         self.prev_encoder_count_2 = 0
         self.encoder_count_1 = 0

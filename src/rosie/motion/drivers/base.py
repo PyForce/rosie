@@ -1,15 +1,11 @@
-from abc import ABCMeta, abstractmethod
-
-__author__ = "Silvio"
+from abc import ABC, abstractmethod
 
 
-class DualMotorDriver:
+class DualMotorDriver(ABC):
     """
     Abstract class representing a driver used to control 2 motors
 
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         pass
@@ -31,10 +27,8 @@ class DualSpeedMotorDriver(DualMotorDriver):
 
     """
 
-    __metaclass__ = ABCMeta
-
     def __init__(self):
-        super(DualSpeedMotorDriver, self).__init__()
+        super().__init__()
 
     @abstractmethod
     def set_speeds(self, speed_1, speed_2):
@@ -55,10 +49,8 @@ class DualPowerMotorDriver(DualMotorDriver):
 
     """
 
-    __metaclass__ = ABCMeta
-
     def __init__(self):
-        super(DualPowerMotorDriver, self).__init__()
+        super().__init__()
         self.real_speed_1 = 0.0
         self.real_speed_2 = 0.0
 

@@ -1,4 +1,3 @@
-__author__ = "Tony39"
 """This is the implementation of the final routines destined to finding the graph"""
 
 import numpy as np

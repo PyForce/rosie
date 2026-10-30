@@ -1,33 +1,28 @@
-import sys
-
-if sys.version_info.major == 3:
-    import configparser
-else:
-    import ConfigParser as configparser
+import configparser
 
 
-class FallbackConfigParser(configparser.RawConfigParser, object):
+class FallbackConfigParser(configparser.RawConfigParser):
     def get(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).get(section, option)
+            return super().get(section, option)
         else:
             return kwargs.get("fallback", None)
 
     def getint(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).getint(section, option)
+            return super().getint(section, option)
         else:
             return kwargs.get("fallback", None)
 
     def getfloat(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).getfloat(section, option)
+            return super().getfloat(section, option)
         else:
             return kwargs.get("fallback", None)
 
     def getboolean(self, section, option, **kwargs):
         if self.has_section(section) and self.has_option(section, option):
-            return super(FallbackConfigParser, self).getboolean(section, option, **kwargs)
+            return super().getboolean(section, option, **kwargs)
         else:
             return kwargs.get("fallback", None)
 

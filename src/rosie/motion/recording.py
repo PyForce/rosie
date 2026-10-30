@@ -15,8 +15,6 @@ import time
 
 from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
 
-__author__ = "Silvio"
-
 COLUMNS = (
     "time",
     "elapsed",  # s since the start, s since the previous step
@@ -57,7 +55,7 @@ class MovementRecorder(DifferentialDriveMovementSupervisor):
     """
 
     def __init__(self, robot_parameters, directory):
-        super(MovementRecorder, self).__init__()
+        super().__init__()
         self.robot_parameters = robot_parameters
         self.directory = directory
         os.makedirs(directory, exist_ok=True)

@@ -1,15 +1,11 @@
-from abc import ABCMeta, abstractmethod
-
-__author__ = "Silvio"
+from abc import ABC, abstractmethod
 
 
-class DifferentialDriveMovementSupervisor:
+class DifferentialDriveMovementSupervisor(ABC):
     """
     Abstract class to supervise a differential drive mobile robot in a movement
 
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         pass

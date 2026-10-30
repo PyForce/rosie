@@ -1,16 +1,11 @@
-from abc import abstractmethod, ABCMeta
-from abc import ABCMeta, abstractmethod
-
-__author__ = "Silvio"
+from abc import ABC, abstractmethod
 
 
-class DifferentialDriveMotorHandler:
+class DifferentialDriveMotorHandler(ABC):
     """
     Abstract class representing a handler to control the motors of a differential drive robot
 
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         pass
@@ -75,7 +70,7 @@ class HardSpeedControlledMH(DifferentialDriveMotorHandler):
     """
 
     def __init__(self, speed_motor_driver):
-        super(HardSpeedControlledMH, self).__init__()
+        super().__init__()
         self.speed_motor_driver = speed_motor_driver
 
     def set_speeds(self, speed_1, speed_2):
@@ -135,7 +130,7 @@ class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
     """
 
     def __init__(self, speed_controller, power_motor_driver):
-        super(SoftSpeedControlledMH, self).__init__()
+        super().__init__()
         self.power_motor_driver = power_motor_driver
         self.speed_controller = speed_controller
 
@@ -190,13 +185,11 @@ class SoftSpeedControlledMH(DifferentialDriveMotorHandler):
         self.power_motor_driver.reset()
 
 
-class DualSpeedController:
+class DualSpeedController(ABC):
     """
     Abstract class to make speed control for two motors
 
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         pass
@@ -247,7 +240,7 @@ class PIDSpeedController(DualSpeedController):
     def __init__(
         self, constant_kc, constant_ki, constant_kd, max_control_action, min_control_action
     ):
-        super(PIDSpeedController, self).__init__()
+        super().__init__()
         self.min_control_action = min_control_action
         self.max_control_action = max_control_action
         self.constant_kd = constant_kd

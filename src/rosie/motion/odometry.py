@@ -1,20 +1,16 @@
-from abc import ABCMeta, abstractmethod
 import math
+from abc import ABC, abstractmethod
 
 from rosie.motion.geometry import DifferentialDriveRobotLocation
 
-__author__ = "Silvio"
 
-
-class DifferentialDriveOdometryLocalizer:
+class DifferentialDriveOdometryLocalizer(ABC):
     """
     Abstract class to localize a differential drive mobile robot using odometry
 
     @param robot_parameters: Parameters of the robot
     @type robot_parameters: motion.RobotParameters.DifferentialDriveRobotParameters
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, robot_parameters):
         self.robot_parameters = robot_parameters
@@ -59,7 +55,7 @@ class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
     """
 
     def __init__(self, robot_parameters):
-        super(RungeKutta2OdometryLocalizer, self).__init__(robot_parameters)
+        super().__init__(robot_parameters)
         self.prev_encoder_count_1 = 0
         self.prev_encoder_count_2 = 0
         self.prev_delta_encoder_1 = 0

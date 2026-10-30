@@ -1,6 +1,6 @@
+import logging
 import math
 import time
-import logging
 
 from rosie.motion.geometry import DifferentialDriveRobotState
 

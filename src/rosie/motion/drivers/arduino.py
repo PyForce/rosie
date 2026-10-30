@@ -7,11 +7,8 @@ except:
     logging.error("couldn't import serial")
 
 from struct import *
-from math import pi
-from threading import Thread
 from time import sleep
 
-import os
 from rosie.motion.drivers.base import DualSpeedMotorDriver
 
 COMMAND_SETPIDPARAM = 0xA6

@@ -1,9 +1,7 @@
-from abc import ABCMeta, abstractmethod
 import math
+from abc import ABC, abstractmethod
 
 from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotSpeed
-
-__author__ = "Silvio"
 
 
 class DifferentialDriveTrajectoryParameters:
@@ -27,13 +25,11 @@ class DifferentialDriveTrajectoryParameters:
         self.key_locations = key_locations
 
 
-class DifferentialDriveTrajectoryPlanner:
+class DifferentialDriveTrajectoryPlanner(ABC):
     """
     Abstract class to plan trajectories for a differential drive mobile robot
 
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         pass
@@ -87,7 +83,7 @@ class LinearTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
     """
 
     def __init__(self):
-        super(LinearTrajectoryPlanner, self).__init__()
+        super().__init__()
         self.reference_locations = list()
         self.reference_speeds = list()
         self.points_count = 0
@@ -222,7 +218,7 @@ class CubicTrajectoryPlanner(DifferentialDriveTrajectoryPlanner):
     """
 
     def __init__(self):
-        super(CubicTrajectoryPlanner, self).__init__()
+        super().__init__()
         self.reference_locations = list()
         self.reference_speeds = list()
         self.points_count = 0
