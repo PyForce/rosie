@@ -5,7 +5,7 @@ import numpy as np
 
 from rosie.errors import NoRouteError
 from rosie.planning.graph import astar_path
-from rosie.planning.maps import Map, Points, load_map, read_map
+from rosie.planning.maps import Map, load_map, read_map
 from rosie.planning.visibility import VisibilityGraph, visibility_graph, with_endpoints
 
 
@@ -29,7 +29,7 @@ class Planner:
 
     def route(
         self, start: tuple[float, float], end: tuple[float, float], clearance: float
-    ) -> list[Points]:
+    ) -> list[tuple[float, float]]:
         """Corners to drive through from `start` to `end`, both included."""
         if self.world is None:
             raise NoRouteError("no map in use")
@@ -37,4 +37,5 @@ class Planner:
             self._graph = visibility_graph(self.world, clearance)
             self._clearance = clearance
         graph = with_endpoints(self._graph, np.array(start), np.array(end))
-        return astar_path(graph.vertices, graph.adjacency, np.array(start), np.array(end))
+        path = astar_path(graph.vertices, graph.adjacency, np.array(start), np.array(end))
+        return [(float(x), float(y)) for x, y in path]

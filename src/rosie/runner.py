@@ -1,14 +1,16 @@
-"""
-Runs the robot: one control step every sample time
-"""
-
 import asyncio
+from typing import Protocol
 
 
-async def run(robot):
-    """
-    Call `robot.tick()` every `robot.sample_time` seconds, until cancelled
-    """
+class Tickable(Protocol):
+    @property
+    def sample_time(self) -> float: ...
+
+    def tick(self) -> None: ...
+
+
+async def run(robot: Tickable) -> None:
+    """Call `robot.tick()` every `robot.sample_time` seconds, until cancelled."""
     loop = asyncio.get_running_loop()
     deadline = loop.time()
     while True:

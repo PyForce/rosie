@@ -111,7 +111,7 @@ async def position(request: Request, robot: Robot = Depends(get_robot)):
     xpos = data["x"]
     ypos = data["y"]
     theta = data["theta"]
-    robot.position(xpos, ypos, theta)
+    robot.teleport(xpos, ypos, theta)
     return Response()
 
 

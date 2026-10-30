@@ -84,14 +84,3 @@ Streaming
 
 # uri of the video stream (start with ':' for same host and specify the port)
 VIDEO_URI = ":8080/stream/video.mjpeg"
-
-"""
-Future
-"""
-
-#
-#        "processor" : "RaspberryPi",
-#        "motor_controller" : "Arduino Uno",
-#        "size" : [0.3, 0.5, 0.34],
-#        "photo": "http://photo_url",
-#        "sensors": ["seensor1", "sensor2"]

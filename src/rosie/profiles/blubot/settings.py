@@ -76,14 +76,3 @@ MAX_SPEED = 10.0
 
 # Binary for controlling the fraction of power from the supply
 MAX_POWER_BIN = 127.0
-
-"""
-Future
-"""
-
-#
-#        "processor" : "RaspberryPi",
-#        "motor_controller" : "Arduino Uno",
-#        "size" : [0.3, 0.5, 0.34],
-#        "photo": "http://photo_url",
-#        "sensors": ["seensor1", "sensor2"]

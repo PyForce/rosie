@@ -1,44 +1,25 @@
+"""
+rosie's configuration: an INI file with a [general] section and one section
+per plugin to run (`active = True`).
+"""
+
 import configparser
+from pathlib import Path
+
+# written on the first start, when there is no configuration yet
+DEFAULT_CONFIG = """\
+[general]
+loglevel = INFO
+profile = simubot
+
+[web]
+active = True
+"""
 
 
-class FallbackConfigParser(configparser.RawConfigParser):
-    def get(self, section, option, **kwargs):
-        if self.has_section(section) and self.has_option(section, option):
-            return super().get(section, option)
-        else:
-            return kwargs.get("fallback", None)
-
-    def getint(self, section, option, **kwargs):
-        if self.has_section(section) and self.has_option(section, option):
-            return super().getint(section, option)
-        else:
-            return kwargs.get("fallback", None)
-
-    def getfloat(self, section, option, **kwargs):
-        if self.has_section(section) and self.has_option(section, option):
-            return super().getfloat(section, option)
-        else:
-            return kwargs.get("fallback", None)
-
-    def getboolean(self, section, option, **kwargs):
-        if self.has_section(section) and self.has_option(section, option):
-            return super().getboolean(section, option, **kwargs)
-        else:
-            return kwargs.get("fallback", None)
-
-
-config = FallbackConfigParser(
-    defaults={"active": "False", "loglevel": "INFO", "profile": "simubot"}
-)
-read = config.read("config.ini")
-if "config.ini" not in read:
-    with open("config.ini", "w+") as fp:
-        del config.defaults()["active"]
-        _, configparser.DEFAULTSECT = configparser.DEFAULTSECT, "general"
-        config.add_section("web")
-        config.set("web", "active", True)
-        config.write(fp)
-        configparser.DEFAULTSECT = _
-        config.defaults()["active"] = "False"
-        fp.seek(0)
-        config.read_file(fp)
+def load_config(path: Path) -> configparser.ConfigParser:
+    if not path.exists():
+        path.write_text(DEFAULT_CONFIG)
+    config = configparser.ConfigParser(interpolation=None)
+    config.read_string(path.read_text(), source=str(path))
+    return config

@@ -13,14 +13,14 @@ class RobotTest(unittest.TestCase):
     Tests for the Robot class
     """
 
-    bot = Robot(time.monotonic)
+    bot = Robot("simubot", None, time.monotonic)
 
     def test_independent_robots(self):
         """
         Tests that each robot has its own state
         """
-        other_bot = Robot(time.monotonic)
-        other_bot.position(1.0, 2.0, 0.5)
+        other_bot = Robot("simubot", None, time.monotonic)
+        other_bot.teleport(1.0, 2.0, 0.5)
         self.assertTupleEqual(self.bot.position(), (0.0, 0.0, 0.0))
 
     def test_initial_position(self):
