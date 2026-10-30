@@ -154,6 +154,8 @@ def robot_parameters(profile: Profile) -> RobotParameters:
         -profile.speed.max_power,
         profile.sample_time,
         profile.wheels.max_speed,
+        profile.arrival_tolerance,
+        profile.arrival_timeout,
     )
 
 

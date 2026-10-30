@@ -52,6 +52,8 @@ class Profile:
     body: Body
     wheels: Wheels
     sample_time: float  # s between control steps
+    arrival_tolerance: float  # m: a planned movement ends this close to its last point
+    arrival_timeout: float  # s it may take, after the planned time, to get that close
     tracking: Tracking
     speed: SpeedControl
 
@@ -87,6 +89,8 @@ def _parse(profile_id: str, path: Path) -> Profile:
             body=Body(**data["body"]),
             wheels=Wheels(**data["wheels"]),
             sample_time=control["sample_time"],
+            arrival_tolerance=control["arrival_tolerance"],
+            arrival_timeout=control["arrival_timeout"],
             tracking=Tracking(**control["tracking"]),
             speed=SpeedControl(**control["speed"]),
         )

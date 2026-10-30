@@ -47,16 +47,14 @@ class MovementRecorder(MovementSupervisor):
         self.directory = directory
         directory.mkdir(parents=True, exist_ok=True)
         self.rows: list[Row] | None = None  # None: not recording (manual control)
-        self.expected_updates = 0
         self.time = 0.0
 
     def movement_begin(self, expected_updates: int | None) -> None:
         self.rows = None if expected_updates is None else []
-        self.expected_updates = expected_updates or 0
         self.time = 0.0
 
     def movement_update(self, robot_state: RobotState) -> None:
-        if self.rows is None or len(self.rows) >= self.expected_updates:
+        if self.rows is None:
             return
         self.time += robot_state.elapsed_time
         reference = robot_state.reference_pose or robot_state.pose

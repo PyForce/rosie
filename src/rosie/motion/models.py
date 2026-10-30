@@ -45,6 +45,8 @@ class RobotParameters:
     min_value_power: float
     sample_time: float  # s between control steps
     max_speed: float  # rad/s of a wheel
+    arrival_tolerance: float  # m: a planned movement ends this close to its last point
+    arrival_timeout: float  # s it may take, after the planned time, to get that close
 
 
 @dataclass(frozen=True, slots=True)

@@ -17,7 +17,12 @@ class TrajectoryPlanner(ABC):
     def initialize_track(self, params: TrajectoryParameters) -> None:
         self.current_point_index = 0
         self.finished = False
-        self.reference_locations, self.reference_speeds = self._plan(params)
+        poses, velocities = self._plan(params)
+        # the plans stop one step before the last key pose: end on it, standing
+        target = params.key_poses[-1]
+        heading = poses[-1].theta if poses else target.theta
+        self.reference_locations = [*poses, Pose(target.x, target.y, heading)]
+        self.reference_speeds = [*velocities, STILL]
 
     def get_length(self) -> int:
         return len(self.reference_locations)
@@ -40,6 +45,9 @@ class TrajectoryPlanner(ABC):
 
     def has_finished(self) -> bool:
         return self.finished
+
+    def final_pose(self) -> Pose:
+        return self.reference_locations[-1]
 
     @abstractmethod
     def _plan(self, params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]: ...

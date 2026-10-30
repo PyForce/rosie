@@ -2,7 +2,14 @@ import logging
 import math
 from collections.abc import Callable
 
-from rosie.motion.models import RESTING, RobotParameters, RobotState, TrajectoryParameters
+from rosie.motion.models import (
+    RESTING,
+    STILL,
+    Pose,
+    RobotParameters,
+    RobotState,
+    TrajectoryParameters,
+)
 from rosie.motion.motors import MotorHandler
 from rosie.motion.odometry import OdometryLocalizer
 from rosie.motion.supervisors import MovementSupervisor
@@ -13,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 # wheel speed (rad/s) for a fully pressed key under manual control
 MANUAL_SPEED = 8
+# polar go-to-point controller for the end of a planned movement (1/s)
+APPROACH_GAIN_DISTANCE = 1.0
+APPROACH_GAIN_ANGLE = 3.0
 # s: shorter steps would divide the encoder steps by (almost) zero
 MIN_ELAPSED_TIME = 0.0000000001
 
@@ -47,6 +57,7 @@ class MovementController:
         self.running = False
         self.step = self.closed_loop_movement_control
         self.prev_time = self.clock()
+        self.finished_planning_at = self.prev_time
 
         # pressed keys under manual control: x (steer), y (throttle), rotation, each in [-1, 1]
         self.direction = [0.0, 0.0, 0.0]
@@ -86,23 +97,46 @@ class MovementController:
         elapsed_time = now - self.prev_time
         self.prev_time = now
 
-        if self.trajectory_planner.has_finished() or self.ordered_stop:
+        if self.ordered_stop:
             self.movement_finish()
             return
 
-        reading = self.motor_handler.read_delta_encoders_count_state()
-        if reading is None:
-            logger.error("no reading from the motor driver")
-            return
-        delta_steps_1, delta_steps_2, battery_voltage, current_1, current_2 = reading
-        angular_speed_1, angular_speed_2 = self.measure_speeds(
-            delta_steps_1, delta_steps_2, elapsed_time
-        )
-        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
+        if self.trajectory_planner.has_finished():
+            target = self.trajectory_planner.final_pose()
+            if self._arrived(target) or self._overtime(now):
+                self.movement_finish()
+                return
 
-        location = self.odometry_localizer.update_location(delta_steps_1, delta_steps_2)
+        measured = self._measure(elapsed_time)
+        if measured is None:
+            return
+        location, angular_speed_1, angular_speed_2, battery_voltage, current_1, current_2 = measured
+
+        if self.trajectory_planner.has_finished():
+            target = self.trajectory_planner.final_pose()
+            set_point_1, set_point_2 = self._approach_speeds(location, target)
+            self.motor_handler.set_speeds(set_point_1, set_point_2)
+            self.robot_state = RobotState(
+                location,
+                target,
+                STILL,
+                None,
+                None,
+                angular_speed_1,
+                set_point_1,
+                current_1,
+                angular_speed_2,
+                set_point_2,
+                current_2,
+                battery_voltage,
+                elapsed_time,
+            )
+            self.movement_supervisor.movement_update(self.robot_state)
+            return
 
         reference_location, reference_speed = self.trajectory_planner.get_next_point()
+        if self.trajectory_planner.has_finished():
+            self.finished_planning_at = now
 
         set_point_1, set_point_2, u1, u2 = self.trajectory_tracker.track(
             reference_location, reference_speed, location
@@ -137,17 +171,10 @@ class MovementController:
             self.movement_finish()
             return
 
-        reading = self.motor_handler.read_delta_encoders_count_state()
-        if not reading:
-            logger.error("no reading from the motor driver")
+        measured = self._measure(elapsed_time)
+        if measured is None:
             return
-        delta_steps_1, delta_steps_2, battery_voltage, current_1, current_2 = reading
-        angular_speed_1, angular_speed_2 = self.measure_speeds(
-            delta_steps_1, delta_steps_2, elapsed_time
-        )
-        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
-
-        location = self.odometry_localizer.update_location(delta_steps_1, delta_steps_2)
+        location, angular_speed_1, angular_speed_2, battery_voltage, current_1, current_2 = measured
 
         set_point_1, set_point_2 = self._wheel_speeds(*self._direction_vector())
 
@@ -185,6 +212,65 @@ class MovementController:
 
         return angular_speed_1, angular_speed_2
 
+    def _measure(
+        self, elapsed_time: float
+    ) -> tuple[Pose, float, float, float, float, float] | None:
+        """Read the encoders: (pose, wheel speeds, battery voltage, motor currents)."""
+        reading = self.motor_handler.read_delta_encoders_count_state()
+        if not reading:
+            logger.error("no reading from the motor driver")
+            return None
+        delta_steps_1, delta_steps_2, battery_voltage, current_1, current_2 = reading
+        angular_speed_1, angular_speed_2 = self.measure_speeds(
+            delta_steps_1, delta_steps_2, elapsed_time
+        )
+        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
+        location = self.odometry_localizer.update_location(delta_steps_1, delta_steps_2)
+        return location, angular_speed_1, angular_speed_2, battery_voltage, current_1, current_2
+
+    def _approach_speeds(self, pose: Pose, target: Pose) -> tuple[float, float]:
+        """
+        Wheel speeds towards `target` once the planned trajectory is over: a polar
+        go-to-point controller, which brings the wheel axis onto the point (a
+        trajectory tracker can't hold a two-wheeled robot on a point).
+        """
+        distance = math.hypot(target.x - pose.x, target.y - pose.y)
+        angle = _wrap(math.atan2(target.y - pose.y, target.x - pose.x) - pose.theta)
+        direction = 1.0
+        if abs(angle) > math.pi / 2:
+            # the target is behind: back up instead of turning around
+            angle = _wrap(angle + math.pi)
+            direction = -1.0
+        v = direction * APPROACH_GAIN_DISTANCE * distance * math.cos(angle)
+        omega = APPROACH_GAIN_ANGLE * angle
+        radius = self.robot_parameters.wheel_radius
+        half_axis = self.robot_parameters.wheel_distance / 2
+        limit = self.robot_parameters.max_speed
+        return (
+            _clamp((v - omega * half_axis) / radius, limit),
+            _clamp((v + omega * half_axis) / radius, limit),
+        )
+
+    def _arrived(self, target: Pose) -> bool:
+        pose = self.odometry_localizer.pose
+        return (
+            math.hypot(pose.x - target.x, pose.y - target.y)
+            <= self.robot_parameters.arrival_tolerance
+        )
+
+    def _overtime(self, now: float) -> bool:
+        if now - self.finished_planning_at <= self.robot_parameters.arrival_timeout:
+            return False
+        pose, target = self.odometry_localizer.pose, self.trajectory_planner.final_pose()
+        logger.warning(
+            "stopping %.3f m short of (%.2f, %.2f): not there %.1f s after the planned time",
+            math.hypot(pose.x - target.x, pose.y - target.y),
+            target.x,
+            target.y,
+            self.robot_parameters.arrival_timeout,
+        )
+        return True
+
     def _direction_vector(self) -> tuple[float, float, float]:
         dx, dy, dz = (key * MANUAL_SPEED for key in self.direction)
         return dx, dy, dz
@@ -202,3 +288,11 @@ class MovementController:
         if z:
             return z, -z
         return 0, 0
+
+
+def _wrap(angle: float) -> float:
+    return math.atan2(math.sin(angle), math.cos(angle))
+
+
+def _clamp(speed: float, limit: float) -> float:
+    return max(-limit, min(limit, speed))
