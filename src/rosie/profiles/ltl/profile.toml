@@ -1,0 +1,29 @@
+name = "LTL3.0"
+board = "arduino"  # virtual (simulated), arduino or md25
+interpolation = "linear"  # linear or cubic
+video = ":8080/stream/video.mjpeg"  # stream served by another program, ":port/path" on this host
+
+[body]  # m
+length = 0.277  # front to back
+width = 0.3
+height = 0.24
+
+[wheels]
+radius = 0.04911  # m
+distance = 0.249  # m between the wheels
+encoder_steps = 270.9  # per wheel turn
+max_speed = 8.0  # rad/s
+
+[control]
+sample_time = 0.05  # s between control steps
+
+[control.tracking]  # input-output linearization
+b = 0.1  # m, the tracked point ahead of the wheel axis
+k1 = 1.0
+k2 = 1.0
+
+[control.speed]  # wheel speed PID: on the board (arduino) or in rosie (md25)
+kc = 3.75
+ki = 1.25
+kd = 1.25
+max_power = 0.0  # md25: powers go from -max_power to max_power

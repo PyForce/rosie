@@ -24,8 +24,12 @@ class Map:
     obstacles: list[Points]  # outline of every item
 
 
-def list_maps() -> dict[str, Path]:
-    return {read_map(path)["name"]: path for path in sorted(MAPS_DIR.iterdir())}
+def list_maps(search: list[Path]) -> dict[str, Path]:
+    """Map name -> file, from every folder of `search` (the first one wins a name)."""
+    maps: dict[str, Path] = {}
+    for folder in reversed(search):
+        maps |= {read_map(path)["name"]: path for path in sorted(folder.glob("*.json"))}
+    return maps
 
 
 def read_map(path: Path) -> dict[str, Any]:

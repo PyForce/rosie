@@ -11,7 +11,7 @@ from rosie.apis.web.models import Follow, Goto, Maps, Metadata, Move, Position, 
 from rosie.errors import NoRouteError
 from rosie.motion.models import RobotState
 from rosie.motion.supervisors import MovementSupervisor
-from rosie.robot import PROFILES_DIR, Robot
+from rosie.robot import Robot
 
 logger = logging.getLogger(__name__)
 
@@ -35,25 +35,24 @@ def odometry(robot: RobotDependency) -> Position:
 @router.get("/metadata")
 def metadata(request: Request, robot: RobotDependency) -> Metadata:
     profile = robot.profile
-    video_uri: str | None = getattr(profile, "VIDEO_URI", None)
     return Metadata(
-        name=profile.MOBILE_ROBOT,
+        name=profile.name,
         thumbnail=request.app.url_path_for("thumbnail"),
         vector=request.app.url_path_for("vector"),
-        video=video_uri or False,
-        size=(profile.LARGE, profile.WIDTH, profile.HEIGHT),
-        profile=robot.profile_name,
+        video=profile.video or False,
+        size=(profile.body.length, profile.body.width, profile.body.height),
+        profile=profile.id,
     )
 
 
 @router.get("/thumbnail")
 def thumbnail(robot: RobotDependency) -> FileResponse:
-    return FileResponse(PROFILES_DIR / robot.profile_name / "thumbnail.png")
+    return FileResponse(robot.profile.thumbnail)
 
 
 @router.get("/vector")
 def vector(robot: RobotDependency) -> FileResponse:
-    return FileResponse(PROFILES_DIR / robot.profile_name / "vector.svg")
+    return FileResponse(robot.profile.vector)
 
 
 @router.get("/sensor/{name}")

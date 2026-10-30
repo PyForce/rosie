@@ -11,6 +11,9 @@ DEFAULT_CONFIG = """\
 [general]
 loglevel = INFO
 profile = simubot
+# folders with your own robot profiles and maps, looked at before rosie's own
+# profiles = ~/rosie/profiles
+# maps = ~/rosie/maps
 
 [web]
 active = True

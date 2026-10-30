@@ -18,6 +18,8 @@ from pathlib import Path
 
 from rosie import runner
 from rosie.config import load_config
+from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.profile import PROFILES_DIR, load_profile
 from rosie.robot import Robot
 
 logger = logging.getLogger(__name__)
@@ -46,10 +48,13 @@ def main() -> None:
 
 async def run(config: configparser.ConfigParser) -> None:
     """Run the robot, and every active plugin next to it, until a signal."""
-    recordings = config.get("recording", "directory", fallback=None)
     robot = Robot(
-        config.get("general", "profile", fallback="simubot"),
-        Path(recordings) if recordings else None,
+        load_profile(
+            config.get("general", "profile", fallback="simubot"),
+            _search(config, "profiles", PROFILES_DIR),
+        ),
+        list_maps(_search(config, "maps", MAPS_DIR)),
+        _optional_path(config.get("recording", "directory", fallback=None)),
         time.monotonic,
     )
 
@@ -73,6 +78,16 @@ async def run(config: configparser.ConfigParser) -> None:
         task.cancel()
     await asyncio.gather(running, *plugins, return_exceptions=True)
     logger.info("stopped")
+
+
+def _search(config: configparser.ConfigParser, option: str, builtin: Path) -> list[Path]:
+    """The user's folder for `option` (from [general]), if any, then rosie's own."""
+    user = _optional_path(config.get("general", option, fallback=None))
+    return [user, builtin] if user else [builtin]
+
+
+def _optional_path(value: str | None) -> Path | None:
+    return Path(value).expanduser() if value else None
 
 
 def _start_plugin(
