@@ -21,7 +21,6 @@ from rosie.config import config
 PLUGINS = {
     'web': 'rosie.apis.web.server',
     'usound': 'rosie.sensors.usound',
-    'file_logger': 'rosie.motion.recording',
 }
 
 FORMAT = '[%(asctime)-15s] %(levelname)s %(message)s'

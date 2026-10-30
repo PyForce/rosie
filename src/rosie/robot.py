@@ -10,6 +10,7 @@ from rosie.motion.odometry import RungeKutta2OdometryLocalizer
 from rosie.motion.motors import HardSpeedControlledMH
 from rosie.motion.motors import SoftSpeedControlledMH
 from rosie.motion.controller import DifferentialDriveMovementController
+from rosie.motion.recording import MovementRecorder
 from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
 from rosie.motion.motors import PIDSpeedController
 from rosie.motion.trajectories import DifferentialDriveTrajectoryParameters
@@ -162,6 +163,12 @@ class Robot:
         self.setting_handler = SettingHandler()
         self.motion = self.setting_handler.buildMovementControllers()
         self.planner = self.setting_handler.buildPlanner()
+
+        # [recording] directory = ...: one CSV file per planned movement
+        recordings = global_settings.get('recording', 'directory')
+        if recordings:
+            self.supervisor().append(
+                MovementRecorder(self.setting_handler.parameters, recordings))
 
     @property
     def sample_time(self):
