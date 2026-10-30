@@ -5,6 +5,7 @@ from typing import Any
 
 from rosie.motion.controller import MovementController
 from rosie.motion.drivers.arduino import ArduinoMotorDriver
+from rosie.motion.drivers.buses import open_i2c, open_serial
 from rosie.motion.drivers.md25 import MD25MotorDriver
 from rosie.motion.drivers.virtual import VirtualMotorDriver
 from rosie.motion.models import Pose, RobotParameters, TrajectoryParameters
@@ -31,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 ARDUINO_PORT = "/dev/ttyACM0"
 ARDUINO_BAUDRATE = 9600
+MD25_BUS = 1
+MD25_ADDRESS = 0x58
 
 type Clock = Callable[[], float]
 type MotorHandlerFactory = Callable[[Profile, RobotParameters, Clock], MotorHandler]
@@ -178,7 +181,9 @@ def _virtual_motors(_profile: Profile, parameters: RobotParameters, clock: Clock
 
 
 def _arduino_motors(profile: Profile, parameters: RobotParameters, _clock: Clock) -> MotorHandler:
-    driver = ArduinoMotorDriver(profile.wheels.max_speed, ARDUINO_PORT, ARDUINO_BAUDRATE)
+    driver = ArduinoMotorDriver(
+        open_serial(ARDUINO_PORT, ARDUINO_BAUDRATE), profile.wheels.max_speed
+    )
     driver.set_constants(parameters.constant_kc, parameters.constant_ki, parameters.constant_kd)
     return HardwareSpeedMotorHandler(driver)
 
@@ -191,7 +196,9 @@ def _md25_motors(_profile: Profile, parameters: RobotParameters, _clock: Clock) 
         parameters.max_value_power,
         parameters.min_value_power,
     )
-    return SoftwareSpeedMotorHandler(speed_controller, MD25MotorDriver(1, 0x58))
+    return SoftwareSpeedMotorHandler(
+        speed_controller, MD25MotorDriver(open_i2c(MD25_BUS), MD25_ADDRESS)
+    )
 
 
 def _choose[T](options: dict[str, T], setting: str, value: str) -> T:

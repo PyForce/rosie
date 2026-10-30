@@ -3,12 +3,11 @@ The rosie motor driver shield on an Arduino, over a serial port
 (firmware: github.com/PyForce/rosie-motordriver).
 """
 
-import importlib
 import logging
 import struct
 
-from rosie.errors import HardwareUnavailableError
 from rosie.motion.drivers.base import SpeedMotorDriver
+from rosie.motion.drivers.buses import SerialPort
 from rosie.motion.models import EncoderReading
 
 logger = logging.getLogger(__name__)
@@ -21,16 +20,8 @@ COMMAND_ENCODER_RESET = b"\xaa"
 
 
 class ArduinoMotorDriver(SpeedMotorDriver):
-    def __init__(self, max_speed: float, port: str, baudrate: int) -> None:
-        try:
-            # only robots with this board need pyserial
-            serial = importlib.import_module("serial")
-        except ModuleNotFoundError as error:
-            raise HardwareUnavailableError("the Arduino motor driver needs pyserial") from error
-        try:
-            self.serial_port = serial.Serial(port, baudrate)
-        except OSError as error:
-            raise HardwareUnavailableError(f"no Arduino motor driver on {port}") from error
+    def __init__(self, serial_port: SerialPort, max_speed: float) -> None:
+        self.serial_port = serial_port
         self.battery_status = 100
         self.pulses_1 = 0
         self.pulses_2 = 0

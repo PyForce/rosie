@@ -8,13 +8,11 @@ status register 2 is marked by bit 7 and holds sensors 6 to 12 (bits 0 to 6).
 """
 
 import configparser
-import importlib
 import logging
 import time
 from collections.abc import Callable
-from typing import Protocol
 
-from rosie.errors import HardwareUnavailableError
+from rosie.motion.drivers.buses import I2CBus, open_i2c
 from rosie.robot import Robot
 
 logger = logging.getLogger(__name__)
@@ -46,31 +44,12 @@ SECOND_REGISTER = 0x80
 CORRECTIONS = ((10, 0.1), (20, 0.06), (30, 0.03), (40, 0.04), (float("inf"), 0.02))
 
 
-class I2CBus(Protocol):
-    def write_byte(self, address: int, value: int) -> None: ...
-
-    def read_byte(self, address: int) -> int: ...
-
-
 async def run(robot: Robot, settings: configparser.SectionProxy) -> None:
     board = UltrasoundBoard(
-        open_bus(settings.getint("bus", fallback=1)),
+        open_i2c(settings.getint("bus", fallback=1)),
         int(settings.get("address", fallback=str(DEFAULT_ADDRESS)), 0),
     )
     robot.sensors["usound"] = board.read_all
-
-
-def open_bus(number: int) -> I2CBus:
-    try:
-        # only robots with this board need smbus
-        smbus = importlib.import_module("smbus")
-    except ModuleNotFoundError as error:
-        raise HardwareUnavailableError("the ultrasound board needs smbus") from error
-    try:
-        bus: I2CBus = smbus.SMBus(number)
-    except OSError as error:
-        raise HardwareUnavailableError(f"no I2C bus {number}") from error
-    return bus
 
 
 class UltrasoundBoard:

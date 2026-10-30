@@ -1,10 +1,9 @@
 """The MD25 motor controller board, over the I2C bus."""
 
-import importlib
 import logging
 
-from rosie.errors import HardwareUnavailableError
 from rosie.motion.drivers.base import PowerMotorDriver
+from rosie.motion.drivers.buses import I2CBus
 from rosie.motion.models import EncoderReading
 
 logger = logging.getLogger(__name__)
@@ -17,17 +16,9 @@ MAX_INT_32 = 2**31
 
 
 class MD25MotorDriver(PowerMotorDriver):
-    def __init__(self, i2c_bus_number: int, i2c_bus_address: int) -> None:
+    def __init__(self, i2c_bus: I2CBus, i2c_bus_address: int) -> None:
         super().__init__()
-        try:
-            # only robots with this board need smbus
-            smbus = importlib.import_module("smbus")
-        except ModuleNotFoundError as error:
-            raise HardwareUnavailableError("the MD25 motor driver needs smbus") from error
-        try:
-            self.i2c_bus = smbus.SMBus(i2c_bus_number)
-        except OSError as error:
-            raise HardwareUnavailableError(f"no I2C bus {i2c_bus_number}") from error
+        self.i2c_bus = i2c_bus
         self.i2c_bus_address = i2c_bus_address
         self.prev_encoder_count_1 = 0
         self.prev_encoder_count_2 = 0
