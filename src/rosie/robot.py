@@ -17,11 +17,9 @@ from rosie.motion.trajectory import DifferentialDriveTrajectoryParameters
 from rosie.motion.cubic_planner import CubicTrajectoryPlanner
 from rosie.motion.linear_planner import LinearTrajectoryPlanner
 from rosie.motion.io_linearization import IOLinearizationTrajectoryTracker
-from rosie.motion.timers import DefaultTimer
 from rosie.motion.supervisor import SupervisorContainer
 
 
-from rosie.singleton import Singleton
 from rosie.planning.planner import Planner
 
 from rosie.planning.maps import list_maps
@@ -53,14 +51,12 @@ class SettingHandler:
             localizer = self.buildLocalizer()
             tracker = self.buildTrajectoryTracker()
             motror_handler = self.buildMotorHandler()
-            timer = self.buildTimer()
 
             return DifferentialDriveMovementController(supervisor,
                                                        planner,
                                                        localizer,
                                                        tracker,
                                                        motror_handler,
-                                                       timer,
                                                        self.parameters)
         else:
             logging.error("kinematic model not supported")
@@ -133,10 +129,6 @@ class SettingHandler:
             logging.error("kinematic model not supported")
             return None
 
-    def buildTimer(self):
-        # load platform specific timer
-        return DefaultTimer(self.settings.SAMPLE_TIME)
-
     def buildRobotParameters(self):
         if self.settings.KINEMATICS == 'DIFFERENTIAL':
             return DifferentialDriveRobotParameters(self.settings.RADIUS,
@@ -165,12 +157,31 @@ class SettingHandler:
         return planner
 
 
-class Robot(Singleton):
+class Robot:
 
     def __init__(self):
         self.setting_handler = SettingHandler()
         self.motion = self.setting_handler.buildMovementControllers()
         self.planner = self.setting_handler.buildPlanner()
+
+    @property
+    def sample_time(self):
+        """
+        Seconds between two control steps
+        """
+        return self.motion.sample_time
+
+    def tick(self):
+        """
+        Run one control step (called every `sample_time` seconds)
+        """
+        self.motion.tick()
+
+    def stop(self):
+        """
+        Stop any movement and the motors
+        """
+        self.motion.movement_finish()
 
     def go_to(self, x, y, t):
         """

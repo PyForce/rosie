@@ -1,32 +1,48 @@
+import asyncio
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
-
-# allow CORS on all requests
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'],
-                   allow_headers=['*'])
-
-server = None
-
 from . import routes
 
-if __name__ == '__main__':
-    raise Exception('do not launch directly!')
+
+def create_app(robot):
+    """
+    REST + WebSocket interface to `robot`
+    """
+    app = FastAPI()
+
+    # allow CORS on all requests
+    app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'],
+                       allow_headers=['*'])
+
+    app.state.robot = robot
+    app.include_router(routes.router)
+
+    supervisor = routes.RestAPIMovementSupervisor(robot)
+    robot.supervisor().append(supervisor)
+    # bound methods can't use the decorators
+    app.add_api_websocket_route('/websocket', supervisor.websocket)
+    app.add_api_route('/auto_mode', supervisor.auto_mode, methods=['PUT', 'POST'])
+    app.add_api_route('/manual_mode', supervisor.manual_mode,
+                      methods=['PUT', 'POST'])
+    return app
 
 
-def init():
-    from rosie.config import config
-    host = config.get('rest_api', 'host', fallback='0.0.0.0')
-    port = config.getint('rest_api', 'port', fallback=5000)
-    debug = config.getboolean('rest_api', 'debug', fallback=False)
+async def run(robot, settings):
+    host = settings.get('host', fallback='0.0.0.0')
+    port = settings.getint('port', fallback=5000)
+    debug = settings.getboolean('debug', fallback=False)
 
-    global server
     server = uvicorn.Server(uvicorn.Config(
-        app, host=host, port=port, log_level='debug' if debug else 'warning'))
-    server.run()
-
-
-def end():
-    server.should_exit = True
+        create_app(robot), host=host, port=port,
+        log_level='debug' if debug else 'warning'))
+    serving = asyncio.ensure_future(server.serve())
+    try:
+        await asyncio.shield(serving)
+    except asyncio.CancelledError:
+        # rosie is stopping: let uvicorn close the connections first
+        server.should_exit = True
+        await serving
+        raise

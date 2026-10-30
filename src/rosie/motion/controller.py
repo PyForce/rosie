@@ -226,7 +226,7 @@ class DifferentialDriveMovementController:
     """
 
     def __init__(self, movement_supervisor, trajectory_planner, odometry_localizer, trajectory_tracker, motor_handler,
-                 timer, robot_parameters):
+                 robot_parameters):
         self.ordered_stop = True
         self.sample_time = robot_parameters.sample_time
         self.movement_supervisor = movement_supervisor
@@ -236,10 +236,10 @@ class DifferentialDriveMovementController:
         self.odometry_localizer = odometry_localizer
         self.trajectory_planner = trajectory_planner
         self.robot_state = DifferentialDriveRobotState()
-        self.timer = timer
 
-
-        self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
+        # the control step tick() runs while a movement is active
+        self.running = False
+        self.step = self.closed_loop_movement_control
         self.prev_time = time.time()
 
         self.dir = [0, 0, 0]
@@ -280,7 +280,7 @@ class DifferentialDriveMovementController:
             self.trajectory_planner.initialize_track(trajectory_parameters)
             self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
         else:
-            self.timer.set_timer_overflow_function(self.open_loop_movement_control)
+            self.step = self.open_loop_movement_control
             self.movement_supervisor.movement_begin(None)
         self.motor_handler.reset()
         self.trajectory_tracker.reset()
@@ -418,8 +418,8 @@ class DifferentialDriveMovementController:
         Finish the movement
 
         """
-        self.timer.timer_stop()
-        self.timer.set_timer_overflow_function(self.closed_loop_movement_control)
+        self.running = False
+        self.step = self.closed_loop_movement_control
         self.movement_stop()
         self.motor_handler.stop_motors()
         self.movement_supervisor.movement_end()
@@ -431,7 +431,7 @@ class DifferentialDriveMovementController:
         """
         self.ordered_stop = False
         self.prev_time = time.time()
-        self.timer.timer_init()
+        self.running = True
 
     def movement_stop(self):
         """
@@ -440,4 +440,10 @@ class DifferentialDriveMovementController:
         """
         self.ordered_stop = True
 
+    def tick(self):
+        """
+        Run one control step, if a movement is active
 
+        """
+        if self.running:
+            self.step()

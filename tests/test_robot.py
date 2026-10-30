@@ -12,12 +12,13 @@ class RobotTest(unittest.TestCase):
 
     bot = Robot()
 
-    def test_singleton(self):
+    def test_independent_robots(self):
         """
-        Tests that the robot class is a singleton
+        Tests that each robot has its own state
         """
-        new_bot = Robot()
-        self.assertIs(self.bot, new_bot)
+        other_bot = Robot()
+        other_bot.position(1.0, 2.0, 0.5)
+        self.assertTupleEqual(self.bot.position(), (0.0, 0.0, 0.0))
 
     def test_initial_position(self):
         """

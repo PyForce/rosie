@@ -9,12 +9,10 @@ r"""
 """
 
 import argparse
+import asyncio
 import importlib
 import logging
-import os
 import signal
-import sys
-import threading
 import traceback
 
 from rosie.config import config
@@ -39,32 +37,28 @@ def start(args):
     """
     Handles the start of the rosie application
     """
-    import time
+    asyncio.run(run())
+
+
+async def run():
+    """
+    Run the robot, and every active extension next to it, until a signal
+    """
     from rosie.robot import Robot
-    # create the robot
-    Robot()
-    modules = []
+    from rosie import runner
 
-    def close_modules(signum, frame):
-        """
-        Close running modules upon Crtl-c
-        """
-        for module, thr in modules:
-            logging.info('closing %s...', module.__name__)
-            if hasattr(module, 'end'):
-                module.end()
-            if thr:
-                thr.join(3)
-                if thr.is_alive():
-                    # daemon thread: it ends with the process
-                    logging.warning('join timed out, leaving %s behind',
-                                    module.__name__)
-            logging.info('closed %s...', module.__name__)
-        event.clear()
+    robot = Robot()
 
-    signal.signal(signal.SIGTERM, close_modules)
-    signal.signal(signal.SIGINT, close_modules)
+    # a flag, so a signal arriving twice (uvicorn re-raises the ones it
+    # handles) is harmless
+    stopping = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(signum, stopping.set)
 
+    running = asyncio.create_task(runner.run(robot))
+
+    extensions = []
     for sect in (s for s in config.sections()
                  if config.getboolean(s, 'active')):
         logging.info('loading %s...', sect)
@@ -76,17 +70,30 @@ def start(args):
         # no exception was raised
         else:
             logging.info('loaded %s', sect)
-            thr = None
-            if hasattr(module, 'init'):
-                thr = threading.Thread(target=module.init, daemon=True)
-                thr.start()
-            modules.append((module, thr))
+            if hasattr(module, 'run'):
+                task = asyncio.create_task(module.run(robot, config[sect]),
+                                           name=sect)
+                task.add_done_callback(report_extension_end)
+                extensions.append(task)
 
-    event = threading.Event()
-    event.set()
-    # main thread
-    while event.is_set():
-        time.sleep(2)
+    await stopping.wait()
+    logging.info('stopping...')
+    running.cancel()
+    # the motors first, then the extensions
+    robot.stop()
+    for task in extensions:
+        task.cancel()
+    await asyncio.gather(running, *extensions, return_exceptions=True)
+    logging.info('stopped')
+
+
+def report_extension_end(task):
+    """
+    Log an extension that ended with an error (the robot keeps running)
+    """
+    if not task.cancelled() and task.exception():
+        logging.error('extension %s failed', task.get_name(),
+                      exc_info=task.exception())
 
 
 def main():

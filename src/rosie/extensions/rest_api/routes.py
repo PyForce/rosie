@@ -6,13 +6,23 @@ import json
 import logging
 import os
 
-from fastapi import HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import (APIRouter, Depends, HTTPException, Request, WebSocket,
+                     WebSocketDisconnect)
 from fastapi.responses import FileResponse, JSONResponse, Response
 
-from . import app
 from rosie.robot import PROFILES_DIR, Robot
 from rosie.motion.supervisor \
     import DifferentialDriveMovementSupervisor
+
+
+router = APIRouter()
+
+
+def get_robot(request: Request) -> Robot:
+    """
+    The robot this API serves
+    """
+    return request.app.state.robot
 
 
 async def objetify(req):
@@ -23,8 +33,8 @@ async def objetify(req):
     return json.loads(await req.body())
 
 
-@app.get('/odometry')
-def odometry():
+@router.get('/odometry')
+def odometry(robot: Robot = Depends(get_robot)):
     """
     {
         "x": 2.1,
@@ -32,12 +42,12 @@ def odometry():
         "theta": 3.21
     }
     """
-    xpos, ypos, theta = Robot().position()
+    xpos, ypos, theta = robot.position()
     return {"x": xpos, "y": ypos, "theta": theta}
 
 
-@app.get('/metadata')
-def metadata():
+@router.get('/metadata')
+def metadata(request: Request, robot: Robot = Depends(get_robot)):
     """
     {
         "name": 'SIMUBOT',
@@ -47,7 +57,7 @@ def metadata():
         "size": [0.4, 0.2, 0.2]
     }
     """
-    handler = Robot().setting_handler
+    handler = robot.setting_handler
 
     videouri = False
     if hasattr(handler.settings, 'VIDEO_URI'):
@@ -55,8 +65,8 @@ def metadata():
 
     return {
         "name": handler.settings.MOBILE_ROBOT,
-        "thumbnail": app.url_path_for('thumbnail'),
-        "vector": app.url_path_for('vector'),
+        "thumbnail": request.app.url_path_for('thumbnail'),
+        "vector": request.app.url_path_for('vector'),
         "video": videouri,
         "size": [handler.settings.LARGE, handler.settings.WIDTH,
                  handler.settings.HEIGHT],
@@ -64,28 +74,28 @@ def metadata():
     }
 
 
-@app.get('/thumbnail')
-def thumbnail():
+@router.get('/thumbnail')
+def thumbnail(robot: Robot = Depends(get_robot)):
     """
     Detailed image of the robot
     """
-    profile = Robot().setting_handler.profile
+    profile = robot.setting_handler.profile
     filepath = os.path.join(PROFILES_DIR, profile, 'thumbnail.png')
     return FileResponse(filepath)
 
 
-@app.get('/vector')
-def vector():
+@router.get('/vector')
+def vector(robot: Robot = Depends(get_robot)):
     """
     Icon of the robot
     """
-    profile = Robot().setting_handler.profile
+    profile = robot.setting_handler.profile
     filepath = os.path.join(PROFILES_DIR, profile, 'vector.svg')
     return FileResponse(filepath)
 
 
 # TODO: read a the sensors
-# @app.get('/sensor/{name}')
+# @router.get('/sensor/{name}')
 # def sensor(name):
 #     """
 #     {
@@ -95,8 +105,8 @@ def vector():
 #     return json.loads(sensor.__doc__ % name)
 
 
-@app.post('/position')
-async def position(request: Request):
+@router.post('/position')
+async def position(request: Request, robot: Robot = Depends(get_robot)):
     """
     Teleports the robot
     {
@@ -109,12 +119,12 @@ async def position(request: Request):
     xpos = data['x']
     ypos = data['y']
     theta = data['theta']
-    Robot().position(xpos, ypos, theta)
+    robot.position(xpos, ypos, theta)
     return Response()
 
 
-@app.post('/goto')
-async def goto(request: Request):
+@router.post('/goto')
+async def goto(request: Request, robot: Robot = Depends(get_robot)):
     """
     {
         "target": [x, y, t],
@@ -125,7 +135,6 @@ async def goto(request: Request):
     xpos, ypos, theta = values['target']
     planner = values.get('planner', False)
 
-    robot = Robot()
     if planner:
         try:
             robot.go_to_with_planner(*values['target'])
@@ -137,8 +146,8 @@ async def goto(request: Request):
     return Response()
 
 
-@app.post('/follow')
-async def follow(request: Request):
+@router.post('/follow')
+async def follow(request: Request, robot: Robot = Depends(get_robot)):
     """
     {
         "path": [[x, y], [x, y], ... ],
@@ -147,30 +156,28 @@ async def follow(request: Request):
     """
     values = await objetify(request)
 
-    robot = Robot()
     robot.follow(values['path'], values['time'])
     return Response()
 
 
-@app.get('/maps')
-def maps():
+@router.get('/maps')
+def maps(robot: Robot = Depends(get_robot)):
     """
     [
         "map_name", ...
     ]
     """
-    return {"maps": [name for name in Robot().maps()]}
+    return {"maps": [name for name in robot.maps()]}
 
 
-@app.get('/map')
-@app.get('/map/{name}')
-def getmap(name: str = ''):
+@router.get('/map')
+@router.get('/map/{name}')
+def getmap(name: str = '', robot: Robot = Depends(get_robot)):
     """
     {
         "map": "map_name"
     }
     """
-    robot = Robot()
     worldmap = robot.get_map(name)
     if not worldmap:
         raise HTTPException(status_code=404)
@@ -182,23 +189,14 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
     Supervisor to send movement updates to rosie web clients
     """
 
-    def __init__(self):
+    def __init__(self, robot):
         super(RestAPIMovementSupervisor, self).__init__()
-        self.robot = Robot()
+        self.robot = robot
         self.manual = False
 
         self.clients = []
-        # the server's event loop, known once a client connects; movement
-        # updates come from the motion timer, outside of it
-        self.loop = None
-
-        # register websockets under '/websocket'
-        app.add_api_websocket_route('/websocket', self.websocket)
-
-        # bound methods can't use the decorators
-        app.add_api_route('/auto_mode', self.auto_mode, methods=['PUT', 'POST'])
-        app.add_api_route('/manual_mode', self.manual_mode,
-                          methods=['PUT', 'POST'])
+        # pending sends, kept until done (the event loop only keeps weak ones)
+        self.sending = set()
 
         self.last_location = 0, 0, 0
 
@@ -207,7 +205,6 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
         Web client communication API
         """
         await websocket.accept()
-        self.loop = asyncio.get_running_loop()
         logging.debug("connected websocket client: %s", websocket.client)
         self.clients.append(websocket)
         try:
@@ -240,10 +237,19 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
                               'data': {'x': move_x, 'y': move_y,
                                        'theta': move_theta}})
         for websock in list(self.clients):
-            asyncio.run_coroutine_threadsafe(websock.send_text(message),
-                                             self.loop)
+            task = asyncio.create_task(websock.send_text(message))
+            self.sending.add(task)
+            task.add_done_callback(self.sent)
         # update last location
         self.last_location = move_x, move_y, move_theta
+
+    def sent(self, task):
+        """
+        Forget a finished send; a client gone meanwhile is not an error
+        """
+        self.sending.discard(task)
+        if not task.cancelled():
+            task.exception()
 
     def manual_mode(self):
         """
@@ -261,6 +267,3 @@ class RestAPIMovementSupervisor(DifferentialDriveMovementSupervisor):
         self.robot.stop_open_loop_control()
         return Response()
 
-
-# add RestAPIMovementSupervisor to working supervisors
-Robot().supervisor().append(RestAPIMovementSupervisor())
