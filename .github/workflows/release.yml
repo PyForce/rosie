@@ -13,15 +13,33 @@ concurrency:
 jobs:
   release:
     if: github.event.workflow_run.conclusion == 'success'
-    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-release.yml@v1.0.3
+    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-release.yml@v1.1.0
     permissions:
       contents: write
+      packages: write
     with:
-      cookie-pyrate-ref: v1.0.3
+      cookie-pyrate-ref: v1.1.0
       create-github-release: true
       attach-distribution: false
-      publish-docker-image: false # if set to true, needs extra config — see DEVELOPMENT.md
+      # ghcr.io/pyforce/rosie, with WebRosie (the release in the Dockerfile's WEBROSIE_VERSION)
+      publish-docker-image: true
+      # PCs and Raspberry Pi robots
+      docker-platforms: linux/amd64,linux/arm64
       prepare-next-version: true
     secrets:
       # Created by `make repo`; lets the version bumps land on a protected main.
       RELEASE_SSH_KEY: ${{ secrets.RELEASE_SSH_KEY }}
+
+  pypi:
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pyforce-rosie/
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.1.0
+        with:
+          sha: ${{ needs.release.outputs.sha }}

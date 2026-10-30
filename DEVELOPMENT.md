@@ -196,12 +196,12 @@ Then add a `pypi` job to `.github/workflows/release.yml`, next to the `release` 
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/rosie/
+      url: https://pypi.org/project/pyforce-rosie/
     permissions:
       contents: read
       id-token: write
     steps:
-      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.0.3
+      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.1.0
         with:
           sha: ${{ needs.release.outputs.sha }}
 ```
@@ -290,9 +290,9 @@ In an organization, set it once as an organization secret for both Actions and D
 ```yaml
 jobs:
   qa:
-    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-qa.yml@v1.0.3
+    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-qa.yml@v1.1.0
     with:
-      cookie-pyrate-ref: v1.0.3
+      cookie-pyrate-ref: v1.1.0
       python-version: "3.15"
       setup-command: uv run --no-project --with requests scripts/download_wheels.py
       extra-checks: |
@@ -321,7 +321,21 @@ Removes build artifacts, caches, and temporary files.
 make dockerimage
 ```
 
-Generates a Docker image with the package pre-installed and ready to use. The Dockerfile uses
+Generates `rosie:latest`: rosie, WebRosie and nginx in front of both, on port 8080
+(`make dockerrun`, then open <http://localhost:8080>). WebRosie comes from a local build,
+`../WebRosie/dist` by default (`make dockerimage WEBROSIE=/path/to/WebRosie/dist`); the image the
+release publishes downloads the WebRosie release named by `WEBROSIE_VERSION` and
+`WEBROSIE_SHA256` in the Dockerfile instead.
+
+For a real robot, give the container the board and a folder with your `config.ini` (and
+`profiles/`, `maps/` if you have your own):
+
+```bash
+docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-rosie:/config ghcr.io/pyforce/rosie
+# I2C boards (MD25, ultrasound): --device /dev/i2c-1 --group-add $(getent group i2c | cut -d: -f3)
+```
+
+The Dockerfile uses
 BuildKit features, so Docker needs the buildx plugin; without it the build stops with
 "the --mount option requires BuildKit".
 
