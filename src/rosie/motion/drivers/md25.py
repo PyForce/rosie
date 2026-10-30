@@ -3,7 +3,7 @@ try:
     import smbus
 except:
     logging.error("smbus unavailable")
-from rosie.motion.drivers.dual import DualPowerMotorDriver
+from rosie.motion.drivers.base import DualPowerMotorDriver
 
 
 class MD25MotorDriver(DualPowerMotorDriver):

@@ -7,16 +7,16 @@ import numpy as np
 from rosie.config import config as global_settings
 
 from rosie.motion.runge_kutta import RungeKutta2OdometryLocalizer
-from rosie.motion.motor_handler import HardSpeedControlledMH
-from rosie.motion.motor_handler import SoftSpeedControlledMH
+from rosie.motion.motors import HardSpeedControlledMH
+from rosie.motion.motors import SoftSpeedControlledMH
 from rosie.motion.controller import DifferentialDriveMovementController
 from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
 from rosie.motion.pid import PIDSpeedController
-from rosie.motion.trajectory import DifferentialDriveTrajectoryParameters
+from rosie.motion.trajectories import DifferentialDriveTrajectoryParameters
 from rosie.motion.cubic_planner import CubicTrajectoryPlanner
 from rosie.motion.linear_planner import LinearTrajectoryPlanner
 from rosie.motion.io_linearization import IOLinearizationTrajectoryTracker
-from rosie.motion.supervisor import SupervisorContainer
+from rosie.motion.supervisors import SupervisorContainer
 
 
 from rosie.planning.planner import Planner

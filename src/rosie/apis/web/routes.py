@@ -11,7 +11,7 @@ from fastapi import (APIRouter, Depends, HTTPException, Request, WebSocket,
 from fastapi.responses import FileResponse, JSONResponse, Response
 
 from rosie.robot import PROFILES_DIR, Robot
-from rosie.motion.supervisor \
+from rosie.motion.supervisors \
     import DifferentialDriveMovementSupervisor
 
 

@@ -11,7 +11,7 @@ from threading import Thread
 from time import sleep
 
 import os
-from rosie.motion.drivers.dual import DualSpeedMotorDriver
+from rosie.motion.drivers.base import DualSpeedMotorDriver
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7

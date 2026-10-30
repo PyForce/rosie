@@ -3,7 +3,7 @@ from string import Template
 import os
 
 from rosie.file_names import FileNameProviderByTime
-from rosie.motion.supervisor import DifferentialDriveMovementSupervisor
+from rosie.motion.supervisors import DifferentialDriveMovementSupervisor
 
 
 class FileLoggerMovementSupervisor(DifferentialDriveMovementSupervisor):

@@ -1,7 +1,7 @@
 import time
 import math
 
-from rosie.motion.drivers.dual import DualSpeedMotorDriver
+from rosie.motion.drivers.base import DualSpeedMotorDriver
 
 class VirtualMotorDriver(DualSpeedMotorDriver):
     """

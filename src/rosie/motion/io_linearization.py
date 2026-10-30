@@ -1,6 +1,6 @@
 import math
 
-from rosie.motion.tracker import DifferentialDriveTrajectoryTracker
+from rosie.motion.tracking import DifferentialDriveTrajectoryTracker
 
 __author__ = 'Silvio'
 

@@ -1,6 +1,6 @@
 import math
 
-from rosie.motion.localizer import DifferentialDriveOdometryLocalizer
+from rosie.motion.odometry import DifferentialDriveOdometryLocalizer
 
 
 class RungeKutta2OdometryLocalizer(DifferentialDriveOdometryLocalizer):
