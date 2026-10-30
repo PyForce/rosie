@@ -42,6 +42,15 @@ MD25 motor board. Its web API is what [WebRosie](https://github.com/PyForce/WebR
 ## Quick start
 
 ```bash
+docker run -p 8080:8080 ghcr.io/pyforce/rosie
+```
+
+Then open <http://localhost:8080>: WebRosie, with a simulated robot to drive. For a real robot, see
+[DEVELOPMENT.md](DEVELOPMENT.md#building-a-docker-image).
+
+From the source:
+
+```bash
 uv sync
 uv run rosie start
 ```

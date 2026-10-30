@@ -1,6 +1,6 @@
 # Makefile for QA checks (lint, format, type-check, tests) and tasks (build, clean, run)
 
-.PHONY: qa lint format typecheck test clean run build repo worktree docs dockerimage
+.PHONY: qa lint format typecheck test clean run build repo worktree docs dockerimage dockerrun
 
 # Default target
 qa: lint format typecheck test
@@ -44,9 +44,16 @@ build: clean docs
 	uv build
 
 
-dockerimage: build
+# WebRosie from a local build (npm run build in a WebRosie clone); without it the image
+# downloads the WebRosie release named in the Dockerfile
+WEBROSIE ?= ../WebRosie/dist
+
+dockerimage:
 	@printf "\n\033[1;34mBuilding the docker image\033[0m\n"
-	docker build -f Dockerfile -t rosie:latest . --platform="linux/amd64"
+	docker build -f Dockerfile -t rosie:latest . --platform="linux/amd64" --build-context webrosie=$(WEBROSIE)
+
+dockerrun:
+	docker run --rm -it -p 8080:8080 rosie:latest
 
 
 clean:

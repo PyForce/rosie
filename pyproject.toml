@@ -28,6 +28,10 @@ dependencies = [
     "uvicorn[standard]>=0.54",
 ]
 
+[project.optional-dependencies]
+# the boards of real robots: Arduino (serial) and MD25 or the ultrasound board (I2C)
+hardware = ["pyserial>=3.5", "smbus2>=0.6"]
+
 [project.urls]
 Repository = "https://github.com/PyForce/rosie"
 Issues = "https://github.com/PyForce/rosie/issues"
