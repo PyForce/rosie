@@ -13,8 +13,8 @@ from rosie.motion.controller import DifferentialDriveMovementController
 from rosie.motion.geometry import DifferentialDriveRobotLocation, DifferentialDriveRobotParameters
 from rosie.motion.pid import PIDSpeedController
 from rosie.motion.trajectories import DifferentialDriveTrajectoryParameters
-from rosie.motion.cubic_planner import CubicTrajectoryPlanner
-from rosie.motion.linear_planner import LinearTrajectoryPlanner
+from rosie.motion.trajectories import CubicTrajectoryPlanner
+from rosie.motion.trajectories import LinearTrajectoryPlanner
 from rosie.motion.io_linearization import IOLinearizationTrajectoryTracker
 from rosie.motion.supervisors import SupervisorContainer
 
