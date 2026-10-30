@@ -8,7 +8,7 @@ width = 0.18
 height = 0.23
 
 [wheels]
-radius = 0.325  # m
+radius = 0.0325  # m
 distance = 0.154  # m between the wheels
 encoder_steps = 40.0  # per wheel turn
 max_speed = 8.0  # rad/s
