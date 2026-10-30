@@ -1,3 +1,4 @@
+import itertools
 import math
 from abc import ABC, abstractmethod
 
@@ -104,18 +105,21 @@ class CubicTrajectoryPlanner(TrajectoryPlanner):
         poses = [ORIGIN] * points_count
         velocities = [STILL] * points_count
 
+        headings = _headings(params.key_poses)
         for j in range(segments):
             x_i = params.key_poses[j].x
             y_i = params.key_poses[j].y
-            theta_i = params.key_poses[j].theta
+            theta_i = headings[j]
             x_f = params.key_poses[j + 1].x
             y_f = params.key_poses[j + 1].y
-            theta_f = params.key_poses[j + 1].theta
+            theta_f = headings[j + 1]
+            # tangent gain: the segment's length, so the curve leaves and arrives at its pace
+            k = math.hypot(x_f - x_i, y_f - y_i)
 
-            alpha_x = params.constant_k * math.cos(theta_f) - 3 * x_f
-            alpha_y = params.constant_k * math.sin(theta_f) - 3 * y_f
-            beta_x = params.constant_k * math.cos(theta_i) + 3 * x_i
-            beta_y = params.constant_k * math.sin(theta_i) + 3 * y_i
+            alpha_x = k * math.cos(theta_f) - 3 * x_f
+            alpha_y = k * math.sin(theta_f) - 3 * y_f
+            beta_x = k * math.cos(theta_i) + 3 * x_i
+            beta_y = k * math.sin(theta_i) + 3 * y_i
 
             positions = []
             for i in range(points_per_segment):
@@ -150,7 +154,11 @@ class CubicTrajectoryPlanner(TrajectoryPlanner):
                 yd_dot_dot = (
                     -6 * (s - 1) * y_i + 6 * s * y_f + alpha_y * (6 * s - 2) + beta_y * (6 * s - 4)
                 )
-                dtheta = (yd_dot_dot * dx - xd_dot_dot * dy) / (dx * dx + dy * dy)
+                speed_squared = dx * dx + dy * dy
+                # standing still (a zero-length segment): no turning either
+                dtheta = (
+                    (yd_dot_dot * dx - xd_dot_dot * dy) / speed_squared if speed_squared else 0.0
+                )
                 positions.append((x, y))
                 velocities[points_per_segment * j + i] = Velocity(
                     dx / params.segment_time, dy / params.segment_time, dtheta / params.segment_time
@@ -163,3 +171,24 @@ class CubicTrajectoryPlanner(TrajectoryPlanner):
                 poses[points_per_segment * j + i] = Pose(x, y, theta)
 
         return poses, velocities
+
+
+def _headings(key_poses: list[Pose]) -> list[float]:
+    """
+    The heading at each key pose for the cubic curve: the first keeps its own
+    (the robot's), the last points along the last segment, the others along
+    the sum of their incoming and outgoing directions.
+    """
+    points = [(pose.x, pose.y) for pose in key_poses]
+    directions = [_unit(b[0] - a[0], b[1] - a[1]) for a, b in itertools.pairwise(points)]
+    middle = [
+        math.atan2(incoming[1] + outgoing[1], incoming[0] + outgoing[0])
+        for incoming, outgoing in itertools.pairwise(directions)
+    ]
+    last = math.atan2(directions[-1][1], directions[-1][0]) if directions else key_poses[0].theta
+    return [key_poses[0].theta, *middle, last][: len(key_poses)]
+
+
+def _unit(dx: float, dy: float) -> tuple[float, float]:
+    length = math.hypot(dx, dy)
+    return (dx / length, dy / length) if length else (0.0, 0.0)

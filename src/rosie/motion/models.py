@@ -28,7 +28,6 @@ class TrajectoryParameters:
     key_poses: list[Pose]  # the path goes through them, in order
     segment_time: float  # s from one key pose to the next
     sample_time: float  # s between control steps
-    constant_k: float  # cubic planner: weight of the key poses' headings
 
 
 @dataclass(frozen=True, slots=True)

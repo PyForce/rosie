@@ -73,12 +73,11 @@ class Robot:
         self.motion.odometry_localizer.pose = Pose(x, y, theta)
 
     def go_to(self, x: float, y: float, t: float) -> None:
-        """Drive straight to (x, y) in t seconds."""
+        """Drive to (x, y) in t seconds."""
         self._check_duration(t)
-        trajectory = TrajectoryParameters(
-            [Pose(*self.position()), Pose(x, y, 0.0)], t, self.sample_time, 0.0
+        self._track(
+            TrajectoryParameters([Pose(*self.position()), Pose(x, y, 0.0)], t, self.sample_time)
         )
-        self._track(trajectory)
 
     def go_to_with_planner(self, x: float, y: float, t: float) -> None:
         """Drive to (x, y) around walls and furniture, t seconds per straight stretch."""
@@ -91,9 +90,8 @@ class Robot:
     def follow(self, points: Sequence[Sequence[float]], t: float) -> None:
         """Drive through the points in order, t seconds from one to the next."""
         self._check_duration(t)
-        x0, y0, _ = self.position()
-        poses = [Pose(x0, y0, 0), *(Pose(p[0], p[1], 0.0) for p in points)]
-        self._track(TrajectoryParameters(poses, t, self.sample_time, 0.0))
+        poses = [Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)]
+        self._track(TrajectoryParameters(poses, t, self.sample_time))
 
     def start_open_loop_control(self) -> None:
         logger.debug("set mode: MANUAL")
