@@ -14,6 +14,9 @@ profile = simubot
 
 [web]
 active = True
+# reachable from other machines on the robot's network (127.0.0.1: this machine only)
+host = 0.0.0.0
+port = 5000
 """
 
 

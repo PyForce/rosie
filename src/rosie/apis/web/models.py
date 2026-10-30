@@ -1,0 +1,50 @@
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict
+
+
+class _Frozen(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+
+class Position(_Frozen):
+    x: float  # m
+    y: float  # m
+    theta: float  # rad
+
+
+class Goto(_Frozen):
+    target: tuple[float, float, float]  # x (m), y (m), time to get there (s)
+    planner: bool = False  # go around walls and furniture
+
+
+class Follow(_Frozen):
+    path: list[tuple[float, float]]  # points to drive through (m)
+    time: float  # s from one point to the next
+
+
+class Metadata(_Frozen):
+    name: str
+    thumbnail: str  # path of the robot's picture
+    vector: str  # path of the robot's icon
+    video: str | Literal[False]  # video stream (":port/path" on the robot's host), if any
+    size: tuple[float, float, float]  # length, width, height (m)
+    profile: str
+
+
+class Maps(_Frozen):
+    maps: list[str]
+
+
+class Move(_Frozen):
+    """WebSocket, client to rosie: the pressed keys under manual control."""
+
+    type: Literal["move"]
+    data: tuple[float, float, float]  # steer, throttle, rotation, each in [-1, 1]
+
+
+class PositionUpdate(_Frozen):
+    """WebSocket, rosie to clients: where the robot is now."""
+
+    type: Literal["position"]
+    data: Position

@@ -1,37 +1,18 @@
 import asyncio
+import configparser
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from pydantic import ValidationError
 
-from . import routes
-
-
-def create_app(robot):
-    """
-    REST + WebSocket interface to `robot`
-    """
-    app = FastAPI()
-
-    # allow CORS on all requests
-    app.add_middleware(
-        CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
-    )
-
-    app.state.robot = robot
-    app.include_router(routes.router)
-
-    supervisor = routes.WebSupervisor(robot)
-    robot.supervisor().append(supervisor)
-    # bound methods can't use the decorators
-    app.add_api_websocket_route("/websocket", supervisor.websocket)
-    app.add_api_route("/auto_mode", supervisor.auto_mode, methods=["PUT", "POST"])
-    app.add_api_route("/manual_mode", supervisor.manual_mode, methods=["PUT", "POST"])
-    return app
+from rosie.apis.web import routes
+from rosie.robot import Robot
 
 
-async def run(robot, settings):
-    host = settings.get("host", fallback="0.0.0.0")
+async def run(robot: Robot, settings: configparser.SectionProxy) -> None:
+    host = settings.get("host", fallback="127.0.0.1")
     port = settings.getint("port", fallback=5000)
     debug = settings.getboolean("debug", fallback=False)
 
@@ -48,3 +29,29 @@ async def run(robot, settings):
         server.should_exit = True
         await serving
         raise
+
+
+def create_app(robot: Robot) -> FastAPI:
+    """REST + WebSocket interface to `robot`."""
+    app = FastAPI(title="rosie")
+    # WebRosie is served from another origin than the robot
+    app.add_middleware(
+        CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+    )
+
+    @app.exception_handler(ValidationError)
+    async def invalid_request(_request: Request, error: ValidationError) -> Response:
+        # error.json() also serialises raw input that isn't valid JSON (bytes)
+        detail = error.json(include_url=False)
+        return Response(f'{{"detail":{detail}}}', status_code=422, media_type="application/json")
+
+    app.state.robot = robot
+    app.include_router(routes.router)
+
+    supervisor = routes.WebSupervisor(robot)
+    robot.supervisor().append(supervisor)
+    # bound methods can't use the decorators
+    app.add_api_websocket_route("/websocket", supervisor.websocket)
+    app.add_api_route("/auto_mode", supervisor.auto_mode, methods=["PUT", "POST"])
+    app.add_api_route("/manual_mode", supervisor.manual_mode, methods=["PUT", "POST"])
+    return app

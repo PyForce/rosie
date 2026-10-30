@@ -1,175 +1,97 @@
-"""
-rosie API implementation
-"""
-
 import asyncio
 import json
 import logging
-import os
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse, Response
+from pydantic import ValidationError
 
+from rosie.apis.web.models import Follow, Goto, Maps, Metadata, Move, Position, PositionUpdate
+from rosie.motion.models import RobotState
 from rosie.motion.supervisors import MovementSupervisor
 from rosie.robot import PROFILES_DIR, Robot
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
 def get_robot(request: Request) -> Robot:
-    """
-    The robot this API serves
-    """
-    return request.app.state.robot
+    robot: Robot = request.app.state.robot
+    return robot
 
 
-async def objetify(req):
-    """
-    Get the json from a request in a unified manner
-    """
-    # parsed whatever the content type, as clients don't always set it
-    return json.loads(await req.body())
+RobotDependency = Annotated[Robot, Depends(get_robot)]
 
 
 @router.get("/odometry")
-def odometry(robot: Robot = Depends(get_robot)):
-    """
-    {
-        "x": 2.1,
-        "y": 1.3,
-        "theta": 3.21
-    }
-    """
-    xpos, ypos, theta = robot.position()
-    return {"x": xpos, "y": ypos, "theta": theta}
+def odometry(robot: RobotDependency) -> Position:
+    x, y, theta = robot.position()
+    return Position(x=x, y=y, theta=theta)
 
 
 @router.get("/metadata")
-def metadata(request: Request, robot: Robot = Depends(get_robot)):
-    """
-    {
-        "name": 'SIMUBOT',
-        "thumbnail": '/thumbnail',
-        "vector": '/vector',
-        "video": ':8000/video'
-        "size": [0.4, 0.2, 0.2]
-    }
-    """
+def metadata(request: Request, robot: RobotDependency) -> Metadata:
     profile = robot.profile
-    return {
-        "name": profile.MOBILE_ROBOT,
-        "thumbnail": request.app.url_path_for("thumbnail"),
-        "vector": request.app.url_path_for("vector"),
-        "video": getattr(profile, "VIDEO_URI", False),
-        "size": [profile.LARGE, profile.WIDTH, profile.HEIGHT],
-        "profile": robot.profile_name,
-    }
+    video_uri: str | None = getattr(profile, "VIDEO_URI", None)
+    return Metadata(
+        name=profile.MOBILE_ROBOT,
+        thumbnail=request.app.url_path_for("thumbnail"),
+        vector=request.app.url_path_for("vector"),
+        video=video_uri or False,
+        size=(profile.LARGE, profile.WIDTH, profile.HEIGHT),
+        profile=robot.profile_name,
+    )
 
 
 @router.get("/thumbnail")
-def thumbnail(robot: Robot = Depends(get_robot)):
-    """
-    Detailed image of the robot
-    """
-    profile = robot.profile_name
-    filepath = os.path.join(PROFILES_DIR, profile, "thumbnail.png")
-    return FileResponse(filepath)
+def thumbnail(robot: RobotDependency) -> FileResponse:
+    return FileResponse(PROFILES_DIR / robot.profile_name / "thumbnail.png")
 
 
 @router.get("/vector")
-def vector(robot: Robot = Depends(get_robot)):
-    """
-    Icon of the robot
-    """
-    profile = robot.profile_name
-    filepath = os.path.join(PROFILES_DIR, profile, "vector.svg")
-    return FileResponse(filepath)
-
-
-# TODO: read a the sensors
-# @router.get('/sensor/{name}')
-# def sensor(name):
-#     """
-#     {
-#         "sensor_name": sensor_reading
-#     }
-#     """
-#     return json.loads(sensor.__doc__ % name)
+def vector(robot: RobotDependency) -> FileResponse:
+    return FileResponse(PROFILES_DIR / robot.profile_name / "vector.svg")
 
 
 @router.post("/position")
-async def position(request: Request, robot: Robot = Depends(get_robot)):
-    """
-    Teleports the robot
-    {
-        "x": x,
-        "y": y,
-        "theta": theta
-    }
-    """
-    data = await objetify(request)
-    xpos = data["x"]
-    ypos = data["y"]
-    theta = data["theta"]
-    robot.teleport(xpos, ypos, theta)
+async def position(request: Request, robot: RobotDependency) -> Response:
+    """Teleport the robot."""
+    target = Position.model_validate_json(await request.body())
+    robot.teleport(target.x, target.y, target.theta)
     return Response()
 
 
 @router.post("/goto")
-async def goto(request: Request, robot: Robot = Depends(get_robot)):
-    """
-    {
-        "target": [x, y, t],
-        "planner": false
-    }
-    """
-    values = await objetify(request)
-    xpos, ypos, theta = values["target"]
-    planner = values.get("planner", False)
-
-    if planner:
+async def goto(request: Request, robot: RobotDependency) -> Response:
+    order = Goto.model_validate_json(await request.body())
+    x, y, t = order.target
+    if order.planner:
         try:
-            robot.go_to_with_planner(*values["target"])
+            robot.go_to_with_planner(x, y, t)
         except Exception as ex:
-            return JSONResponse({"error": ex.message}, status_code=409)  # CONFLICT
+            return JSONResponse({"error": ex.message}, status_code=409)  # type: ignore[attr-defined]
     else:
-        robot.go_to(xpos, ypos, theta)
-
+        robot.go_to(x, y, t)
     return Response()
 
 
 @router.post("/follow")
-async def follow(request: Request, robot: Robot = Depends(get_robot)):
-    """
-    {
-        "path": [[x, y], [x, y], ... ],
-        "time": t
-    }
-    """
-    values = await objetify(request)
-
-    robot.follow(values["path"], values["time"])
+async def follow(request: Request, robot: RobotDependency) -> Response:
+    order = Follow.model_validate_json(await request.body())
+    robot.follow(order.path, order.time)
     return Response()
 
 
 @router.get("/maps")
-def maps(robot: Robot = Depends(get_robot)):
-    """
-    [
-        "map_name", ...
-    ]
-    """
-    return {"maps": [name for name in robot.maps()]}
+def maps(robot: RobotDependency) -> Maps:
+    return Maps(maps=list(robot.maps()))
 
 
 @router.get("/map")
 @router.get("/map/{name}")
-def getmap(name: str = "", robot: Robot = Depends(get_robot)):
-    """
-    {
-        "map": "map_name"
-    }
-    """
+def getmap(robot: RobotDependency, name: str = "") -> dict[str, Any]:
     worldmap = robot.get_map(name)
     if not worldmap:
         raise HTTPException(status_code=404)
@@ -177,86 +99,72 @@ def getmap(name: str = "", robot: Robot = Depends(get_robot)):
 
 
 class WebSupervisor(MovementSupervisor):
-    """
-    Supervisor to send movement updates to rosie web clients
-    """
+    """Streams the robot's position to WebSocket clients and takes their keys in manual mode."""
 
-    def __init__(self, robot):
-        super().__init__()
+    def __init__(self, robot: Robot) -> None:
         self.robot = robot
         self.manual = False
+        self.clients: list[WebSocket] = []
+        # pending sends, kept until done (the event loop only keeps weak references)
+        self.sending: set[asyncio.Task[None]] = set()
+        self.last_location = (0.0, 0.0, 0.0)
 
-        self.clients = []
-        # pending sends, kept until done (the event loop only keeps weak ones)
-        self.sending = set()
-
-        self.last_location = 0, 0, 0
-
-    async def websocket(self, websocket: WebSocket):
-        """
-        Web client communication API
-        """
+    async def websocket(self, websocket: WebSocket) -> None:
         await websocket.accept()
-        logging.debug("connected websocket client: %s", websocket.client)
+        logger.debug("connected websocket client: %s", websocket.client)
         self.clients.append(websocket)
         try:
             while True:
-                data = json.loads(await websocket.receive_text())
-                if data["type"] == "move" and self.manual:
-                    self.robot.add_movement(data["data"])
+                self._receive(await websocket.receive_text())
         except WebSocketDisconnect:
             pass
         finally:
             self.clients.remove(websocket)
 
-    def movement_begin(self, *args, **kwargs):
+    def movement_begin(self, expected_updates: int | None) -> None:
         pass
 
-    def movement_end(self, *args, **kwargs):
+    def movement_end(self) -> None:
         pass
 
-    def movement_update(self, state):
-        move_x, move_y, move_theta = (
-            state.global_pose.x,
-            state.global_pose.y,
-            state.global_pose.theta,
-        )
-
-        prev_x, prev_y, prev_theta = self.last_location
-        if abs(move_x - prev_x) + abs(move_y - prev_y) + abs(move_theta - prev_theta) == 0:
-            # don't notify when robot not moved
+    def movement_update(self, robot_state: RobotState) -> None:
+        pose = robot_state.global_pose
+        location = (pose.x, pose.y, pose.theta)
+        if location == self.last_location:
             return
+        self.last_location = location
 
-        message = json.dumps(
-            {"type": "position", "data": {"x": move_x, "y": move_y, "theta": move_theta}}
-        )
-        for websock in list(self.clients):
-            task = asyncio.create_task(websock.send_text(message))
+        message = PositionUpdate(
+            type="position", data=Position(x=pose.x, y=pose.y, theta=pose.theta)
+        ).model_dump_json()
+        for client in list(self.clients):
+            task = asyncio.create_task(client.send_text(message))
             self.sending.add(task)
-            task.add_done_callback(self.sent)
-        # update last location
-        self.last_location = move_x, move_y, move_theta
+            task.add_done_callback(self._sent)
 
-    def sent(self, task):
-        """
-        Forget a finished send; a client gone meanwhile is not an error
-        """
-        self.sending.discard(task)
-        if not task.cancelled():
-            task.exception()
-
-    def manual_mode(self):
-        """
-        {}
-        """
+    def manual_mode(self) -> Response:
         self.manual = True
         self.robot.start_open_loop_control()
         return Response()
 
-    def auto_mode(self):
-        """
-        {}
-        """
+    def auto_mode(self) -> Response:
         self.manual = False
         self.robot.stop_open_loop_control()
         return Response()
+
+    def _receive(self, text: str) -> None:
+        message = json.loads(text)
+        if not isinstance(message, dict) or message.get("type") != "move" or not self.manual:
+            return
+        try:
+            move = Move.model_validate(message)
+        except ValidationError:
+            logger.warning("ignoring malformed move: %s", text)
+            return
+        self.robot.add_movement(list(move.data))
+
+    def _sent(self, task: asyncio.Task[None]) -> None:
+        """Forget a finished send; a client gone meanwhile is not an error."""
+        self.sending.discard(task)
+        if not task.cancelled():
+            task.exception()
