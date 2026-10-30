@@ -13,6 +13,7 @@ authors = [
     { name = "Alex Coto" },
     { name = "Silvio Delgado" },
     { name = "Jesús Garnica" },
+    { name = "Sergio Frayle Pérez" },
 ]
 maintainers = [
     { name = "Gustavo Viera-López", email = "gvieralopez@gmail.com" },

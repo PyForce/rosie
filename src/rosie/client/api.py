@@ -1,240 +1,167 @@
-"""
-rosie client API implementation
-"""
-import time
 import json
-import websocket
-from threading import Thread
-import sys
-if sys.version_info[0] == 2:
-    import httplib as http_client
-else:
-    import http.client as http_client
+import logging
+import urllib.error
+import urllib.parse
+import urllib.request
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
+from http import HTTPStatus
+from typing import Any
+
+from websockets.sync.client import ClientConnection, connect
+
+from rosie.client.models import Metadata, Position
+from rosie.errors import NoRouteError, RequestError
+
+logger = logging.getLogger(__name__)
+
+TIMEOUT = 10.0  # s for a request to be answered
+
+# steer (+1 right), throttle (+1 forward), rotation (+1 clockwise, like E), each in [-1, 1]
+type Direction = tuple[float, float, float]
 
 
-class ClientRobotApi(object):
-    """Client http api for rosi."""
+class Driver:
+    """Manual control, inside RosieClient.drive()."""
 
-    def __init__(self, ip_address='10.0.0.1', port=5000):
-        self.ip_address = ip_address
-        self.port = port
-        self.manual = False
-        self.thread_ready = True
-        # self.velocity_counter = 0
-        self.connection = http_client.HTTPConnection(
-            self.ip_address, self.port)
-        self.start_ws()
-        # self.odometry()
-        self.web_xpos, self.web_ypos, self.web_theta = self.odometry()
+    def __init__(self, websocket: ClientConnection) -> None:
+        self.websocket = websocket
 
-    def my_http_request(self, method, route, to_send=None, headers={'Content-type': 'application/json'}):
-        self.connection.request(method, route, to_send, headers)
-        response = self.connection.getresponse()
-        return response.read().decode()
+    def move(self, direction: Direction) -> None:
+        """Keep moving this way until the next move: steer, throttle, rotation in [-1, 1]."""
+        self.websocket.send(json.dumps({"type": "move", "data": list(direction)}))
 
-    def objetify(self, req):
+    def stop(self) -> None:
+        self.move((0.0, 0.0, 0.0))
+
+
+class RosieClient:
+    """
+    A robot running rosie with its web API. Orders raise what the robot
+    itself would: NoRouteError when the planner can't get there,
+    ValueError for impossible orders, RequestError for anything else.
+    """
+
+    def __init__(self, url: str) -> None:
+        self.url = url.rstrip("/")
+
+    def odometry(self) -> Position:
+        data = self._request("GET", "/odometry", None)
+        return Position(data["x"], data["y"], data["theta"])
+
+    def metadata(self) -> Metadata:
+        data = self._request("GET", "/metadata", None)
+        return Metadata(
+            data["name"],
+            data["profile"],
+            data["thumbnail"],
+            data["vector"],
+            data["video"] or None,
+            tuple(data["size"]),
+        )
+
+    def sensor(self, name: str) -> object:
+        return self._request("GET", f"/sensor/{_quote(name)}", None)[name]
+
+    def teleport(self, x: float, y: float, theta: float) -> None:
+        """Tell the robot it is somewhere else, without moving it."""
+        self._request("POST", "/position", {"x": x, "y": y, "theta": theta})
+
+    def goto(self, x: float, y: float, t: float) -> None:
+        """Drive straight to (x, y) in t seconds."""
+        self._request("POST", "/goto", {"target": [x, y, t]})
+
+    def goto_with_planner(self, x: float, y: float, t: float) -> None:
+        """Drive to (x, y) around the walls and furniture of the map, t seconds per stretch."""
+        self._request("POST", "/goto", {"target": [x, y, t], "planner": True})
+
+    def follow(self, points: Sequence[tuple[float, float]], t: float) -> None:
+        """Drive through the points in order, t seconds from one to the next."""
+        self._request("POST", "/follow", {"path": [list(point) for point in points], "time": t})
+
+    def maps(self) -> list[str]:
+        maps: list[str] = self._request("GET", "/maps", None)["maps"]
+        return maps
+
+    def map(self, name: str) -> dict[str, Any]:
+        worldmap: dict[str, Any] = self._request("GET", f"/map/{_quote(name)}", None)
+        return worldmap
+
+    def current_map(self) -> dict[str, Any]:
+        """The map the planner uses."""
+        worldmap: dict[str, Any] = self._request("GET", "/map", None)
+        return worldmap
+
+    def use_map(self, name: str) -> None:
+        """Plan routes on this map from now on."""
+        self._request("POST", f"/map/{_quote(name)}", None)
+
+    def positions(self) -> Iterator[Position]:
+        """Where the robot is, every time it moves (until you stop iterating)."""
+        with self._websocket() as websocket:
+            for text in websocket:
+                message = json.loads(text)
+                if message.get("type") == "position":
+                    data = message["data"]
+                    yield Position(data["x"], data["y"], data["theta"])
+
+    @contextmanager
+    def drive(self) -> Iterator[Driver]:
         """
-        Get the json from a request in a unified manner
+        Drive by hand, as with WebRosie's keys:
+
+            with robot.drive() as wheel:
+                wheel.move((0, 1, 0))  # forward
+                time.sleep(1)
+
+        The robot stops, and planned movements are accepted again, when the block ends.
         """
-        # TODO: review why force is required
-        return req.get_json(force=True)
+        self._request("POST", "/manual_mode", None)
+        try:
+            with self._websocket() as websocket:
+                driver = Driver(websocket)
+                try:
+                    yield driver
+                finally:
+                    driver.stop()
+        finally:
+            self._request("POST", "/auto_mode", None)
 
-    def odometry(self):
-        """
-        >>> odometry()
-        (x,y,theta)
-        """
-        json_response = self.my_http_request('GET', '/odometry')
-        diction = json.loads(json_response)
-        self.xpos = diction["x"]
-        self.ypos = diction["y"]
-        self.theta = diction["theta"]
-        return diction["x"], diction["y"], diction["theta"]
+    def _websocket(self) -> ClientConnection:
+        address = urllib.parse.urlsplit(self.url)
+        scheme = "wss" if address.scheme == "https" else "ws"
+        return connect(
+            address._replace(scheme=scheme).geturl() + "/websocket", open_timeout=TIMEOUT
+        )
 
-    def ultrasonic_measurements(self):
-        json_response = self.my_http_request('GET', '/usound')
-        diction = json.loads(json_response)
-        return diction
+    def _request(self, method: str, path: str, body: dict[str, Any] | None) -> Any:
+        request = urllib.request.Request(  # noqa: S310 (the URL is the robot's, given by the user)
+            self.url + path,
+            data=None if body is None else json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"},
+            method=method,
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310
+                text = response.read().decode()
+        except urllib.error.HTTPError as error:
+            raise _refusal(error) from error
+        return json.loads(text) if text else None
 
-    def metadata(self):
-        """
-        >>>metadata()
-        ('SIMUBOT', '/thumbnail', '/vector', False, [0.2, 0.42, 0])
-        """
 
-        json_response = self.my_http_request('GET', '/metadata')
-        diction = json.loads(json_response)
-        return diction["name"], diction["thumbnail"], diction["vector"], diction["video"], diction["size"]
+def _refusal(error: urllib.error.HTTPError) -> Exception:
+    text = error.read().decode()
+    try:
+        data = json.loads(text)
+    except ValueError:
+        data = {}
+    detail = str(data.get("error") or data.get("detail") or text or error.reason)
+    if error.code == HTTPStatus.CONFLICT:
+        return NoRouteError(detail)
+    if error.code == HTTPStatus.UNPROCESSABLE_ENTITY:
+        return ValueError(detail)
+    return RequestError(error.code, detail)
 
-    # def thumbnail(self):
-    #     """
-    #     ESTA DEVUELVE UNA IMAGEN NO EL FILEPATH DE LA IMAGENDetailed image of the robot
-    #     """
 
-    #     json_response = self.my_http_request('GET', '/thumbnail')
-    #     diction = json.loads(json_response)
-    #     return diction
-
-    # # @app.route('/vector', methods=['GET'])
-    # def vector(self):
-    #     """
-    #     Icon of the robot
-    #     """
-    #     profile = Robot().setting_handler.profile
-    #     filepath = os.path.join(os.getcwd(), 'profiles', profile, 'vector.svg')
-    #     return send_file(filepath)
-
-    # # TODO: read a the sensors
-    def sensor(self, name):
-        """
-        >>>sensor(name)
-        (13.456738)
-        """
-
-        json_response = self.my_http_request('GET', '/sensor/' + name)
-        return json_response
-
-    def position(self, x, y, theta):
-        """
-        Teleports the robot
-        >>>position(x,y,theta)
-        True
-        """
-
-        diction = dict(x=x, y=y, theta=theta)
-        json_param = json.dumps(diction)
-        self.my_http_request('POST', '/position', json_param)
-
-    def goto(self, x, y, t, planner=False):
-        """
-        >>>goto(x, y, t, planner=True)
-        """
-        self.auto_mode()
-        diction = dict(target=[x, y, t], planner=planner)
-        json_param = json.dumps(diction)
-        self.my_http_request('POST', '/goto', json_param)
-
-    def follow(self, path, time):
-        """
-        >>>follow([[x, y], [x, y], ... ],time)
-        True
-        """
-        self.auto_mode()
-        diction = dict(path=path, time=time)
-        json_param = json.dumps(diction)
-        self.my_http_request('POST', '/follow', json_param)
-
-    def maps(self):
-        """
-        >>>maps()
-        ["Gustavo's House"]
-        """
-        json_response = self.my_http_request('GET', '/maps')
-        map_list = json.loads(json_response)
-        return [name for name in map_list]
-
-    # TODO
-    def getmap(self, name):
-        """
-        {
-                "map": "map_name"
-        }
-        """
-        json_response = self.my_http_request('GET', '/map/' + name)
-        # diction = json.loads(json_response)
-        return json_response
-
-    # WEBSOCKETS
-    def start_ws(self):
-        # print(url_rule)
-        a_thread = Thread(target=self.ws_receive)
-        a_thread.start()
-
-    def ws_receive(self):
-        websocket.enableTrace(True)
-        self.ws = websocket.WebSocketApp("ws://%s:%s/%s" % (self.ip_address, self.port, "websocket"), on_open=None,
-                                         on_message=self.ws_message,
-                                         on_error=self.ws_error,
-                                         on_close=self.close_ws)
-        self.ws.run_forever()
-
-    def ws_message(self, ws, message):
-        message = json.loads(message)
-        if message["type"] == "position":
-            self.web_xpos = (message["data"]["x"])
-            # print (self.web_xpos)
-            self.web_ypos = (message["data"]["y"])
-            self.web_theta = (message["data"]["theta"])
-
-    def ws_error(self, ws, error):
-        # print (error)
-        pass
-
-    def close_ws(self, ws):
-        print ("### closed ###")
-
-    # auto_mode and manual_mode are not putting OPTIONS on the server, unlike
-    # the web app clicking way
-    def auto_mode(self):
-        self.manual = False
-        self.my_http_request('POST', '/auto_mode')
-
-    def manual_mode(self):
-        self.manual = True
-        self.my_http_request('POST', '/manual_mode')
-
-    def velocity_vector(self, vector):
-        diction = dict(data=vector, type="move")
-        json_param = json.dumps(diction)
-        self.ws.send(json_param)
-
-    def direction(self, vector, moving_time=5):
-        self.thread_ready = False
-        self.manual_mode()
-        # print '\n\nTHIS IS COUNTER: ', self.velocity_counter, '\n\n'
-        # self.velocity_counter += 1
-        self.velocity_vector(vector)
-        time.sleep(moving_time)
-        self.velocity_vector([0, 0, 0])
-        self.thread_ready = True
-        # print self.odometry()
-
-    def start_direction(self, vector, moving_time=1):
-        if self.thread_ready:
-            direction_thread = Thread(
-                target=self.direction, args=(vector, moving_time))
-            direction_thread.start()
-        else:
-            pass
-
-if __name__ == '__main__':
-    # a_robot = ClientRobotApi('127.0.0.1', 5000)
-    # a_robot = ClientRobotApi('192.168.1.146', 5000)
-    a_robot = ClientRobotApi('10.42.0.216', 5000)
-    a_robot.velocity_vector([0, 0, 0])
-    # a_robot.start_direction([0, 0, .4], 1)
-    # print (a_robot.odometry())
-    # a_robot.position(0, 0, 0)
-    # a_robot.start_direction([0, 0, 0.2], 1.2)
-    # a_robot.start_direction([0, -0.2, 0], 0.2)
-    # odometry = a_robot.odometry()
-    # print odometry
-    # print '\n\nThis is odometry magnitude', (odometry[0]**2 + odometry[1]**2)**0.5
-    # a_robot.start_direction(
-    #     [0.3, 0.3, 0], 20)
-
-    # print "\n\n#################### Switching to auto_mode.
-    # ####################\n\n"
-    # a_robot.goto(0, 0.1, 5, planner=False)
-    # a_robot.follow([[1, 1], [1.2, 1.4],[1.4, 1.6],[1.6, 1.8],[1.8, 2.0],[2.0, 2.2] ],5)
-
-    # print (a_robot.xpos)
-    # time.sleep(2)
-    # print (a_robot.xpos)
-    # time.sleep(2)
-    # print (a_robot.xpos)
-
-    # a_robot.goto(10, 10, 20, planner=False)
-    # (a_robot.position(0, 2, 6))
-    # print (a_robot.maps())
-    # print (a_robot.getmap("Gustavo's House"))
+def _quote(name: str) -> str:
+    return urllib.parse.quote(name, safe="")
