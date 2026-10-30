@@ -2,7 +2,7 @@
 Tests for the robot
 """
 import unittest
-from robot import Robot
+from rosie.robot import Robot
 
 
 class RobotTest(unittest.TestCase):

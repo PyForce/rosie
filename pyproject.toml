@@ -9,3 +9,10 @@ dependencies = [
     "shapely",
     "uvicorn[standard]",
 ]
+
+[project.scripts]
+rosie = "rosie.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
