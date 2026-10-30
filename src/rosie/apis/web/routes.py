@@ -55,19 +55,14 @@ def metadata(request: Request, robot: Robot = Depends(get_robot)):
         "size": [0.4, 0.2, 0.2]
     }
     """
-    handler = robot.setting_handler
-
-    videouri = False
-    if hasattr(handler.settings, "VIDEO_URI"):
-        videouri = handler.settings.VIDEO_URI
-
+    profile = robot.profile
     return {
-        "name": handler.settings.MOBILE_ROBOT,
+        "name": profile.MOBILE_ROBOT,
         "thumbnail": request.app.url_path_for("thumbnail"),
         "vector": request.app.url_path_for("vector"),
-        "video": videouri,
-        "size": [handler.settings.LARGE, handler.settings.WIDTH, handler.settings.HEIGHT],
-        "profile": handler.profile,
+        "video": getattr(profile, "VIDEO_URI", False),
+        "size": [profile.LARGE, profile.WIDTH, profile.HEIGHT],
+        "profile": robot.profile_name,
     }
 
 
@@ -76,7 +71,7 @@ def thumbnail(robot: Robot = Depends(get_robot)):
     """
     Detailed image of the robot
     """
-    profile = robot.setting_handler.profile
+    profile = robot.profile_name
     filepath = os.path.join(PROFILES_DIR, profile, "thumbnail.png")
     return FileResponse(filepath)
 
@@ -86,7 +81,7 @@ def vector(robot: Robot = Depends(get_robot)):
     """
     Icon of the robot
     """
-    profile = robot.setting_handler.profile
+    profile = robot.profile_name
     filepath = os.path.join(PROFILES_DIR, profile, "vector.svg")
     return FileResponse(filepath)
 

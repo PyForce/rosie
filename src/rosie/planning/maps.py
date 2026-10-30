@@ -230,8 +230,8 @@ class Map:
         return border.contains(line) and not intersects
 
     def generate_visivility_graph(self, robot):
-        width = robot.setting_handler.settings.WIDTH
-        large = robot.setting_handler.settings.LARGE
+        width = robot.profile.WIDTH
+        large = robot.profile.LARGE
         h = max(width, large)
         h = 0.2 * h
 

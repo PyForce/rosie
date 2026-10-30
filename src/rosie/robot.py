@@ -1,3 +1,4 @@
+import importlib
 import logging
 import os
 
@@ -21,156 +22,24 @@ from rosie.planning.planner import Planner
 
 PROFILES_DIR = os.path.join(os.path.dirname(__file__), "profiles")
 
-
-class SettingHandler:
-    def __init__(self):
-        self.profile = global_settings.get("general", "profile")
-        if os.path.exists(os.path.join(PROFILES_DIR, self.profile)):
-            try:
-                import importlib
-
-                self.settings = importlib.import_module("rosie.profiles.%s.settings" % self.profile)
-                self.parameters = self.buildRobotParameters()
-                logging.info("profile: %s", self.profile)
-            except ImportError as ex:
-                self.settings = None
-                logging.error("%s: %s", self.profile, ex.message)
-        else:
-            logging.error("directory <%s> does not exists")
-
-    def buildMovementControllers(self):
-        if self.settings.KINEMATICS == "DIFFERENTIAL":
-            supervisor = self.buildMovementSupervisor()
-            planner = self.buildTrajectoryPlanner()
-            localizer = self.buildLocalizer()
-            tracker = self.buildTrajectoryTracker()
-            motror_handler = self.buildMotorHandler()
-
-            return MovementController(
-                supervisor, planner, localizer, tracker, motror_handler, self.parameters
-            )
-        else:
-            logging.error("kinematic model not supported")
-            return None
-
-    def buildLocalizer(self):
-        if self.settings.KINEMATICS == "DIFFERENTIAL":
-            if self.settings.LOCALIZER == "ODOMETRY_RK2":
-                return RungeKutta2Localizer(self.parameters)
-            else:
-                logging.error("localizer model not supported")
-                return None
-        else:
-            logging.error("kinematic model not supported")
-            return None
-
-    def buildTrajectoryPlanner(self):
-        if self.settings.KINEMATICS == "DIFFERENTIAL":
-            if self.settings.INTERPOLATION == "LINEAR":
-                return LinearTrajectoryPlanner()
-            elif self.settings.INTERPOLATION == "CUBIC":
-                return CubicTrajectoryPlanner()
-            else:
-                logging.error("trajectory planner not supported")
-                return None
-        else:
-            logging.error("kinematic model not supported")
-            return None
-
-    def buildMovementSupervisor(self):
-        supervisor = SupervisorContainer()
-        return supervisor
-
-    def buildTrajectoryTracker(self):
-        if self.settings.KINEMATICS == "DIFFERENTIAL":
-            # TODO:Add if for selecting tracker
-            if True:
-                return IOLinearizationTracker(self.parameters)
-            else:
-                logging.error("trajectory tracker not supported")
-                return None
-        else:
-            logging.error("kinematic model not supported")
-            return None
-
-    def buildMotorHandler(self):
-        if self.settings.KINEMATICS == "DIFFERENTIAL":
-            if self.settings.FILENAME == "VirtualMD.py":
-                from rosie.motion.drivers.virtual import VirtualMotorDriver
-
-                speed_motor_driver = VirtualMotorDriver(
-                    self.parameters.steps_per_revolution, self.parameters.max_speed
-                )
-                return HardwareSpeedMotorHandler(speed_motor_driver)
-            if self.settings.FILENAME == "ArduinoMD.py":
-                from rosie.motion.drivers.arduino import ArduinoMotorDriver
-
-                speed_motor_driver = ArduinoMotorDriver(self.settings.MAX_SPEED)
-                speed_motor_driver.set_constants(
-                    self.parameters.constant_kc,
-                    self.parameters.constant_ki,
-                    self.parameters.constant_kd,
-                )
-                return HardwareSpeedMotorHandler(speed_motor_driver)
-            elif self.settings.FILENAME == "MD25.py":
-                from rosie.motion.drivers.md25 import MD25MotorDriver
-
-                speed_controller = PIDSpeedController(
-                    self.parameters.constant_kc,
-                    self.parameters.constant_ki,
-                    self.parameters.constant_kd,
-                    self.parameters.max_value_power,
-                    self.parameters.min_value_power,
-                )
-                power_motor_driver = MD25MotorDriver(1, 0x58)
-                return SoftwareSpeedMotorHandler(speed_controller, power_motor_driver)
-            else:
-                logging.error("motor driver not supported")
-                return None
-        else:
-            logging.error("kinematic model not supported")
-            return None
-
-    def buildRobotParameters(self):
-        if self.settings.KINEMATICS == "DIFFERENTIAL":
-            return RobotParameters(
-                self.settings.RADIUS,
-                self.settings.DISTANCE,
-                self.settings.ENCODER_STEPS,
-                self.settings.CONST_B,
-                self.settings.CONST_K1,
-                self.settings.CONST_K2,
-                self.settings.CONST_KI,
-                self.settings.CONST_KD,
-                self.settings.CONST_KC,
-                self.settings.MAX_POWER_BIN,
-                -self.settings.MAX_POWER_BIN,
-                self.settings.SAMPLE_TIME,
-                self.settings.MAX_SPEED,
-            )
-
-        else:
-            logging.error("kinematic model not supported")
-            return None
-
-    def buildPlanner(self):
-        planner = Planner()
-        # TODO: Move this to the Web
-        # Use by default
-        planner.use_map("Gustavo's House")
-        return planner
+PLANNERS = {"LINEAR": LinearTrajectoryPlanner, "CUBIC": CubicTrajectoryPlanner}
+LOCALIZERS = {"ODOMETRY_RK2": RungeKutta2Localizer}
 
 
 class Robot:
     def __init__(self):
-        self.setting_handler = SettingHandler()
-        self.motion = self.setting_handler.buildMovementControllers()
-        self.planner = self.setting_handler.buildPlanner()
+        self.profile_name = global_settings.get("general", "profile")
+        self.profile = load_profile(self.profile_name)
+        self.parameters = robot_parameters(self.profile)
+        self.motion = movement_controller(self.profile, self.parameters)
+        self.planner = Planner()
+        self.planner.use_map("Gustavo's House")
+        logging.info("profile: %s", self.profile_name)
 
         # [recording] directory = ...: one CSV file per planned movement
         recordings = global_settings.get("recording", "directory")
         if recordings:
-            self.supervisor().append(MovementRecorder(self.setting_handler.parameters, recordings))
+            self.supervisor().append(MovementRecorder(self.parameters, recordings))
 
     @property
     def sample_time(self):
@@ -320,3 +189,79 @@ class Robot:
 
     def use_map(self, map_name):
         self.planner.use_map(map_name)
+
+
+def movement_controller(profile, parameters):
+    if profile.KINEMATICS != "DIFFERENTIAL":
+        raise ValueError(f"unsupported KINEMATICS: {profile.KINEMATICS}")
+    return MovementController(
+        SupervisorContainer(),
+        _choose(PLANNERS, "INTERPOLATION", profile.INTERPOLATION)(),
+        _choose(LOCALIZERS, "LOCALIZER", profile.LOCALIZER)(parameters),
+        IOLinearizationTracker(parameters),
+        _choose(MOTOR_HANDLERS, "FILENAME", profile.FILENAME)(profile, parameters),
+        parameters,
+    )
+
+
+def robot_parameters(profile):
+    return RobotParameters(
+        profile.RADIUS,
+        profile.DISTANCE,
+        profile.ENCODER_STEPS,
+        profile.CONST_B,
+        profile.CONST_K1,
+        profile.CONST_K2,
+        profile.CONST_KI,
+        profile.CONST_KD,
+        profile.CONST_KC,
+        profile.MAX_POWER_BIN,
+        -profile.MAX_POWER_BIN,
+        profile.SAMPLE_TIME,
+        profile.MAX_SPEED,
+    )
+
+
+def load_profile(name):
+    if not os.path.isdir(os.path.join(PROFILES_DIR, name)):
+        raise ValueError(f"unknown profile: {name}")
+    return importlib.import_module(f"rosie.profiles.{name}.settings")
+
+
+def _virtual_motors(profile, parameters):
+    from rosie.motion.drivers.virtual import VirtualMotorDriver
+
+    return HardwareSpeedMotorHandler(
+        VirtualMotorDriver(parameters.steps_per_revolution, parameters.max_speed)
+    )
+
+
+def _arduino_motors(profile, parameters):
+    from rosie.motion.drivers.arduino import ArduinoMotorDriver
+
+    driver = ArduinoMotorDriver(profile.MAX_SPEED)
+    driver.set_constants(parameters.constant_kc, parameters.constant_ki, parameters.constant_kd)
+    return HardwareSpeedMotorHandler(driver)
+
+
+def _md25_motors(profile, parameters):
+    from rosie.motion.drivers.md25 import MD25MotorDriver
+
+    speed_controller = PIDSpeedController(
+        parameters.constant_kc,
+        parameters.constant_ki,
+        parameters.constant_kd,
+        parameters.max_value_power,
+        parameters.min_value_power,
+    )
+    return SoftwareSpeedMotorHandler(speed_controller, MD25MotorDriver(1, 0x58))
+
+
+# the boards' driver files used to be chosen by name, profiles still say so
+MOTOR_HANDLERS = {"VirtualMD.py": _virtual_motors, "ArduinoMD.py": _arduino_motors, "MD25.py": _md25_motors}
+
+
+def _choose(options, setting, value):
+    if value not in options:
+        raise ValueError(f"unsupported {setting}: {value} (known: {', '.join(options)})")
+    return options[value]
