@@ -1,51 +1,40 @@
-import json
+from pathlib import Path
+from typing import Any
 
-from rosie.planning.graph import AdjacencyMatrixGraph as Graph
-from rosie.planning.maps import Map, list_maps
+import numpy as np
+
+from rosie.errors import NoRouteError
+from rosie.planning.graph import astar_path
+from rosie.planning.maps import Map, Points, load_map, read_map
+from rosie.planning.visibility import VisibilityGraph, visibility_graph, with_endpoints
 
 
 class Planner:
-    def __init__(self):
-        self.__map = None
-        self.__graph = None
+    """Routes around the walls and furniture of the map in use."""
 
-        self.__map_mapping = {}
-        for map_path, tmap in list_maps():
-            self.__map_mapping[tmap["name"]] = map_path
+    def __init__(self, maps: dict[str, Path]) -> None:
+        self.maps = maps
+        self.world: Map | None = None
+        self._graph: VisibilityGraph | None = None
+        self._clearance = 0.0
 
-    def get_points(self, start, end, robot):
-        """
-        Get points for the trajectory
-        """
-        assert self.__map and self.__graph
-        self.__map.generate_visivility_graph(robot)
-        vertices, adjacency_matrix, tags = self.map.add_points(start, end)
-        graph = Graph(vertices, adjacency_matrix, tags)
-        return graph.astar_path(start, end)
+    def use_map(self, name: str) -> None:
+        if name not in self.maps:
+            raise ValueError(f"unknown map: {name}")
+        self.world = load_map(self.maps[name])
+        self._graph = None
 
-    @property
-    def map(self):
-        return self.__map
+    def get_map(self, name: str) -> dict[str, Any] | None:
+        return read_map(self.maps[name]) if name in self.maps else None
 
-    @property
-    def graph(self):
-        return self.__graph
-
-    def get_map(self, map_name):
-        map_path = self.__map_mapping.get(map_name)
-        if not map_path:
-            return None
-        with open(map_path) as fmap:
-            return json.load(fmap)
-
-    def use_map(self, map_name):
-        """
-        Use the located in map_name
-        """
-        map_path = self.__map_mapping.get(map_name)
-        if not map_path:
-            raise Warning("Unknown map name %s" % map_name)
-        self.__map = Map(map_path)
-        vertices = self.map.beveled_points
-        adjacent_matrix = self.map.visibility_graph
-        self.__graph = Graph(vertices, adjacent_matrix)
+    def route(
+        self, start: tuple[float, float], end: tuple[float, float], clearance: float
+    ) -> list[Points]:
+        """Corners to drive through from `start` to `end`, both included."""
+        if self.world is None:
+            raise NoRouteError("no map in use")
+        if self._graph is None or self._clearance != clearance:
+            self._graph = visibility_graph(self.world, clearance)
+            self._clearance = clearance
+        graph = with_endpoints(self._graph, np.array(start), np.array(end))
+        return astar_path(graph.vertices, graph.adjacency, np.array(start), np.array(end))

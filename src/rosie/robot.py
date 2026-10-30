@@ -3,8 +3,6 @@ import logging
 import os
 from pathlib import Path
 
-import numpy as np
-
 from rosie.config import config as global_settings
 from rosie.motion.controller import MovementController
 from rosie.motion.models import Pose, RobotParameters, TrajectoryParameters
@@ -36,7 +34,7 @@ class Robot:
         self.profile = load_profile(self.profile_name)
         self.parameters = robot_parameters(self.profile)
         self.motion = movement_controller(self.profile, self.parameters, clock)
-        self.planner = Planner()
+        self.planner = Planner(list_maps())
         self.planner.use_map("Gustavo's House")
         logging.info("profile: %s", self.profile_name)
 
@@ -85,25 +83,9 @@ class Robot:
         self.track(trajectory)
 
     def go_to_with_planner(self, x, y, t):
-        start = self.position()[:-1]
-        end = np.array([x, y])
-        points = self.planner.get_points(start=start, end=end, robot=self)
-
-        def add_t(points, t):
-            points = np.array(points)
-            lens = np.hypot(points[:, 0], points[:, 1])
-            tpm = t / np.add.reduce(lens)
-            npoints = np.zeros(shape=(points.shape[0], 3))
-            npoints[:, :-1] = points
-            npoints[:, -1] = tpm * lens
-            return npoints
-
-        npoints = add_t(points, t)
-
-        if not points:
-            logging.warning("no available path. start=%r, end=%r", start, end)
-        else:
-            self.follow(points, t)
+        x0, y0, _ = self.position()
+        clearance = 0.2 * max(self.profile.WIDTH, self.profile.LARGE)
+        self.follow(self.planner.route((x0, y0), (x, y), clearance), t)
 
     def follow(self, points, t):
         """
@@ -184,7 +166,7 @@ class Robot:
         """
         Get all names for the maps
         """
-        return (tmap["name"] for _, tmap in list_maps())
+        return iter(self.planner.maps)
 
     def get_map(self, map_name):
         return self.planner.get_map(map_name)

@@ -1,83 +1,78 @@
-"""This is the implementation of the final routines destined to finding the graph"""
+"""
+Visibility graph: the corners of the free space (the map shrunk by the robot's
+clearance, its obstacles grown by it), linked when the robot can drive
+straight from one to the other.
+"""
+
+from dataclasses import dataclass
+from itertools import chain
 
 import numpy as np
+from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
+
+from rosie.planning.maps import Map, Points
 
 
-def figure_relevant(l_p1, l_p2, fig_extremes):
-    low_x = min(l_p1[0], l_p2[0])
-    low_y = min(l_p1[1], l_p2[1])
-    hig_x = max(l_p1[0], l_p2[0])
-    hig_y = max(l_p1[1], l_p2[1])
-
-    if (
-        (low_x > fig_extremes[2])
-        or (hig_x < fig_extremes[0])
-        or (low_y > fig_extremes[3])
-        or (hig_y < fig_extremes[1])
-    ):
-        return False
-    return True
+@dataclass(frozen=True, slots=True)
+class VisibilityGraph:
+    vertices: Points
+    adjacency: np.ndarray  # n x n, non-zero where two vertices see each other
+    free_space: Polygon
+    obstacles: list[Polygon]
 
 
-def intersect(l1, l2, points):
-    """Returns true if line L1 and L2 intersect
-    :rtype : bool
-    """
-    a1 = points[l1[0]]
-    b1 = points[l1[1]]
-    a2 = points[l2[0]]
-    b2 = points[l2[1]]
-    if (a1 == a2) or (a1 == b2) or (b1 == a2) or (b1 == b2):
-        return False
-    return ccw(a1, b1, a2) != ccw(a1, b1, b2) and ccw(a2, b2, a1) != ccw(a2, b2, b1)
+def visibility_graph(world: Map, clearance: float) -> VisibilityGraph:
+    border = _offset(world.border, clearance, "left", "right")
+    holes = [
+        _offset(obstacle, clearance, "right", "left")
+        for obstacle in world.obstacles
+        if obstacle.size > 0
+    ]
+
+    vertices = border
+    for hole in holes:
+        vertices = np.append(vertices, hole, axis=0)
+
+    free_space = Polygon(border)
+    obstacles = [Polygon(hole) for hole in holes]
+
+    adjacency = np.zeros(shape=(len(vertices), len(vertices)))
+    for i in range(vertices.shape[0]):
+        for j in range(vertices.shape[0]):
+            line = LineString(np.array((vertices[i], vertices[j])))
+            if _is_free(line, free_space, obstacles):
+                adjacency[i, j] = True
+    return VisibilityGraph(vertices, adjacency, free_space, obstacles)
 
 
-def ccw(a, b, c):
-    """Test whether the turn formed by a,b,c is ccw"""
-    return (b[0] - a[0]) * (c[1] - a[1]) > (b[1] - a[1]) * (c[0] - a[0])
+def with_endpoints(graph: VisibilityGraph, start: Points, end: Points) -> VisibilityGraph:
+    """The graph plus `start` and `end` as its last two vertices."""
+    vertices = np.append(graph.vertices, [start, end], axis=0)
+    count = len(vertices) - 2
+    adjacency = np.zeros(shape=(count + 2, count + 2))
+    adjacency[:-2, :-2] = graph.adjacency
+    for i in range(count):
+        for j in range(count, count + 2):
+            line = LineString(np.array((vertices[i], vertices[j])))
+            if _is_free(line, graph.free_space, graph.obstacles):
+                adjacency[i, j] = adjacency[j, i] = True
+    return VisibilityGraph(vertices, adjacency, graph.free_space, graph.obstacles)
 
 
-def intersect_fig(lo, points, lines, fig_idx, start_extremes):
-    """Test whether the line lo intersects figure fig_idx"""
-    if not (figure_relevant(points[lo[0]], points[lo[1]], start_extremes[fig_idx][2])):
-        return False
-    ini = start_extremes[fig_idx][0]
-    if fig_idx != len(start_extremes) - 1:
-        fin = start_extremes[fig_idx + 1][0]
-    else:
-        fin = len(lines)
-    for i in range(ini, fin):
-        if intersect(lo, lines[i], points):
-            return True
-    return False
+def _offset(outline: Points, clearance: float, side_if_ccw: str, side_if_cw: str) -> Points:
+    closed = np.append(outline, [outline[0], outline[1]], axis=0)
+    side = side_if_ccw if LinearRing(outline).is_ccw else side_if_cw
+    offset = LineString(closed).parallel_offset(clearance, side, join_style=JOIN_STYLE.mitre)
+    if offset.geom_type == "MultiLineString":
+        first, second, *_ = offset.geoms
+        return np.array(list(chain(first.coords, second.coords)))
+    return np.array(list(offset.coords))
 
 
-def find_graph(points, lines, start_extremes):
-    n_points = len(points)
-    vis_graph = np.array(range(n_points * n_points), bool).reshape((n_points, n_points))
-    vis_graph.fill(True)
-    cur_fig = 0
-    if len(start_extremes) > 1:
-        up_bound = start_extremes[1][1]
-    else:
-        up_bound = len(points)
-    for a in range(0, n_points):
-        if a >= up_bound:
-            cur_fig += 1
-            if cur_fig >= len(start_extremes) - 1:
-                up_bound = len(points)
-            else:
-                up_bound = start_extremes[cur_fig][1]
-
-        for b in range(a + 1, n_points):
-            lo = [a, b]
-            if b > a + 1 and b < up_bound:
-                vis_graph[a, b] = False
-                vis_graph[b, a] = False
-                continue
-            for f in range(len(start_extremes)):
-                if intersect_fig(lo, points, lines, f, start_extremes):
-                    vis_graph[a, b] = False
-                    vis_graph[b, a] = False
-                    break
-    return vis_graph
+def _is_free(line: LineString, free_space: Polygon, obstacles: list[Polygon]) -> bool:
+    for obstacle in obstacles:
+        if obstacle.touches(line):
+            continue
+        if obstacle.intersects(line):
+            return False
+    return bool(free_space.contains(line))
