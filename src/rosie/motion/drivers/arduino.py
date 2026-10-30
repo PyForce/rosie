@@ -1,149 +1,80 @@
+"""
+The rosie motor driver shield on an Arduino, over a serial port
+(firmware: github.com/PyForce/rosie-motordriver).
+"""
+
+import importlib
 import logging
+import struct
 
-# TODO: more detailed error logs
-try:
-    from serial import Serial
-except:
-    logging.error("couldn't import serial")
-
-from struct import *
-from time import sleep
-
+from rosie.errors import HardwareUnavailableError
 from rosie.motion.drivers.base import SpeedMotorDriver
+from rosie.motion.models import EncoderReading
+
+logger = logging.getLogger(__name__)
 
 COMMAND_SETPIDPARAM = 0xA6
 COMMAND_SETPOINT = 0xA7
 COMMAND_GETSTATE = b"\xa8"
 COMMAND_GETSTATE_RESPONSE = b"\xa9"
 COMMAND_ENCODER_RESET = b"\xaa"
-COMMAND_START_SAMPLING_SPEEDS = b"\xab"
-COMMAND_STOP_SAMPLING_SPEEDS = b"\xac"
 
 
 class ArduinoMotorDriver(SpeedMotorDriver):
-    """
-    A class to represent an Arduino Motor Driver
-
-    @param steps_per_revolution: Encoders count in one wheel revolution
-    @param max_speed: Maximum value of the speed of the motor
-    """
-
-    def __init__(self, max_speed, port="/dev/ttyACM0", baudrate=9600):
-
+    def __init__(self, max_speed: float, port: str, baudrate: int) -> None:
         try:
-            self.serialPort = Serial(port, baudrate)
-        except:
-            logging.error("serial port not found")
-        self.batteryStatus = 100
-        self.sampling = False
-        self.speed1 = []
-        self.speed2 = []
-        self.pulses1 = 0
-        self.pulses2 = 0
-        self.lastPulses1 = 0
-        self.lastPulses2 = 0
-        self.setpoint1 = 0.0
-        self.setpoint2 = 0.0
+            # only robots with this board need pyserial
+            serial = importlib.import_module("serial")
+        except ModuleNotFoundError as error:
+            raise HardwareUnavailableError("the Arduino motor driver needs pyserial") from error
+        try:
+            self.serial_port = serial.Serial(port, baudrate)
+        except OSError as error:
+            raise HardwareUnavailableError(f"no Arduino motor driver on {port}") from error
+        self.battery_status = 100
+        self.pulses_1 = 0
+        self.pulses_2 = 0
+        self.setpoint_1 = 0.0
+        self.setpoint_2 = 0.0
         self.max_speed = max_speed
 
-    # TODO: Implement a function to change encoders per revolution parameter
-
-    def set_speeds(self, speed_1, speed_2):
-        # if abs(speed_1) > abs(self.max_speed):
-        #     speed_1 = self.max_speed
-        # if abs(speed_2) > abs(self.max_speed):
-        #     speed_2 = self.max_speed
-        self.setpoint1 = speed_1
-        self.setpoint2 = speed_2
-        package = pack("<Bff", COMMAND_SETPOINT, speed_2, speed_1)
+    def set_speeds(self, speed_1: float, speed_2: float) -> None:
+        self.setpoint_1 = speed_1
+        self.setpoint_2 = speed_2
+        package = struct.pack("<Bff", COMMAND_SETPOINT, speed_2, speed_1)
         try:
-            self.serialPort.write(package)
-        except:
-            logging.error("setting speeds")
+            self.serial_port.write(package)
+        except OSError:
+            logger.exception("setting speeds")
 
-    def read_delta_encoders_count_state(self):
+    def read_delta_encoders_count_state(self) -> EncoderReading | None:
         try:
-            self.serialPort.write(COMMAND_GETSTATE)
-            header = self.serialPort.read()
-            if header == COMMAND_GETSTATE_RESPONSE:
-                pulses1 = self.serialPort.read()
-                pulses1 += self.serialPort.read()
-                pulses1 += self.serialPort.read()
-                pulses1 += self.serialPort.read()
-                (pulses1,) = unpack("i", pulses1)
-
-                pulses2 = self.serialPort.read()
-                pulses2 += self.serialPort.read()
-                pulses2 += self.serialPort.read()
-                pulses2 += self.serialPort.read()
-                (pulses2,) = unpack("i", pulses2)
-
-                (batteryCharge,) = unpack("B", self.serialPort.read())
-
-                self.lastPulses1 = self.pulses1
-                self.lastPulses2 = self.pulses2
-                self.pulses1 = pulses1
-                self.pulses2 = pulses2
-                self.batteryStatus = batteryCharge
-                delta_pulses1 = self.pulses1 - self.lastPulses1
-                delta_pulses2 = self.pulses2 - self.lastPulses2
-                return delta_pulses2, delta_pulses1, self.batteryStatus, 0, 0
-        except:
-            logging.error("reading encoders")
+            self.serial_port.write(COMMAND_GETSTATE)
+            if self.serial_port.read() != COMMAND_GETSTATE_RESPONSE:
+                return None
+            (pulses_1,) = struct.unpack("i", self.serial_port.read(4))
+            (pulses_2,) = struct.unpack("i", self.serial_port.read(4))
+            (battery_charge,) = struct.unpack("B", self.serial_port.read())
+        except OSError, struct.error:
+            logger.exception("reading encoders")
             return 0, 0, 0, 0, 0
+        delta_pulses_1 = pulses_1 - self.pulses_1
+        delta_pulses_2 = pulses_2 - self.pulses_2
+        self.pulses_1 = pulses_1
+        self.pulses_2 = pulses_2
+        self.battery_status = battery_charge
+        # the shield counts the wheels the other way round
+        return delta_pulses_2, delta_pulses_1, self.battery_status, 0, 0
 
-    def set_constants(self, kc, ki, kd):
-        package = pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)
+    def set_constants(self, kc: float, ki: float, kd: float) -> None:
+        package = struct.pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)
         try:
-            self.serialPort.write(package)
-        except:
-            logging.error("setting constants")
+            self.serial_port.write(package)
+        except OSError:
+            logger.exception("setting constants")
 
-    def reset_encoders(self):
+    def reset_encoders(self) -> None:
         try:
-            self.serialPort.write(COMMAND_ENCODER_RESET)
-        except:
-            logging.error("reseting encoders")
-
-    def start_sampling_speeds(self):
-        try:
-            self.serialPort.write(COMMAND_START_SAMPLING_SPEEDS)
-            self.sampling = True
-        except:
-            logging.error("start sampling")
-
-    def stop_sampling_speeds(self):
-        try:
-            self.serialPort.write(COMMAND_STOP_SAMPLING_SPEEDS)
-            self.sampling = False
-        except:
-            logging.error("stop sampling")
-
-    # For debuggin propuses only
-    # TODO: This should run in other thread
-    def run_sampler(self):
-        sleepLapse = 0.01
-        while True:
-            if self.sampling == True:
-                try:
-                    while self.serialPort.inWaiting() < 4:
-                        sleep(sleepLapse)
-                    speed1 = self.serialPort.read()
-                    speed1 += self.serialPort.read()
-                    speed1 += self.serialPort.read()
-                    speed1 += self.serialPort.read()
-                    (speed1,) = unpack("f", speed1)
-
-                    while self.serialPort.inWaiting() < 4:
-                        sleep(sleepLapse)
-                    speed2 = self.serialPort.read()
-                    speed2 += self.serialPort.read()
-                    speed2 += self.serialPort.read()
-                    speed2 += self.serialPort.read()
-                    (speed2,) = unpack("f", speed2)
-
-                    self.speed1.append(speed1)
-                    self.speed2.append(speed2)
-                except:
-                    logging.error("running sampler")
-            sleep(sleepLapse)
+            self.serial_port.write(COMMAND_ENCODER_RESET)
+        except OSError:
+            logger.exception("resetting encoders")

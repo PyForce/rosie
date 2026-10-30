@@ -26,6 +26,9 @@ PROFILES_DIR = os.path.join(os.path.dirname(__file__), "profiles")
 PLANNERS = {"LINEAR": LinearTrajectoryPlanner, "CUBIC": CubicTrajectoryPlanner}
 LOCALIZERS = {"ODOMETRY_RK2": RungeKutta2Localizer}
 
+ARDUINO_PORT = "/dev/ttyACM0"
+ARDUINO_BAUDRATE = 9600
+
 
 class Robot:
     def __init__(self, clock):
@@ -239,7 +242,7 @@ def _virtual_motors(profile, parameters, clock):
 def _arduino_motors(profile, parameters, _clock):
     from rosie.motion.drivers.arduino import ArduinoMotorDriver
 
-    driver = ArduinoMotorDriver(profile.MAX_SPEED)
+    driver = ArduinoMotorDriver(profile.MAX_SPEED, ARDUINO_PORT, ARDUINO_BAUDRATE)
     driver.set_constants(parameters.constant_kc, parameters.constant_ki, parameters.constant_kd)
     return HardwareSpeedMotorHandler(driver)
 

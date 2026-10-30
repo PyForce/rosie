@@ -1,96 +1,38 @@
 from abc import ABC, abstractmethod
 
+from rosie.motion.models import EncoderReading
+
 
 class MotorDriver(ABC):
-    """
-    Abstract class representing a driver used to control 2 motors
-
-    """
-
-    def __init__(self):
-        pass
+    """A board driving the robot's two motors."""
 
     @abstractmethod
-    def read_delta_encoders_count_state(self):
-        """
-        Reads the encoders count since last read and state of the motors
-
-        @rtype : tuple
-        @return: encoders count since last read (2 integers), battery voltage (float), motor's current (2 floats)
-        """
-        pass
+    def read_delta_encoders_count_state(self) -> EncoderReading | None: ...
 
 
 class SpeedMotorDriver(MotorDriver):
-    """
-    Abstract class representing a driver used to control 2 motors using their speeds
-
-    """
-
-    def __init__(self):
-        super().__init__()
+    """A board that takes wheel speeds and controls them itself."""
 
     @abstractmethod
-    def set_speeds(self, speed_1, speed_2):
-        """
-        Method to set the speed for each motor
-
-        @type speed_2: float
-        @type speed_1: float
-        @param speed_1: Speed for motor 1
-        @param speed_2: Speed for motor 2
-        """
-        pass
+    def set_speeds(self, speed_1: float, speed_2: float) -> None: ...
 
 
 class PowerMotorDriver(MotorDriver):
-    """
-    Abstract class representing a driver used to control 2 motors using their powers
+    """A board that only takes motor powers: rosie controls the speeds."""
 
-    """
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self) -> None:
         self.real_speed_1 = 0.0
         self.real_speed_2 = 0.0
 
     @abstractmethod
-    def set_powers(self, power_1, power_2):
-        """
-        Method to set the power for each motor
+    def set_powers(self, power_1: float, power_2: float) -> None: ...
 
-        @type power_2: float
-        @type power_1: float
-        @param power_1: Power for motor 1
-        @param power_2: Power for motor 2
-        """
-        pass
+    @abstractmethod
+    def reset(self) -> None: ...
 
-    def set_real_speeds(self, real_speed_1, real_speed_2):
-        """
-        Method to set the real speed of the motors
-
-        @type real_speed_2: float
-        @type real_speed_1: float
-        @param real_speed_1: Speed for motor 1
-        @param real_speed_2: Speed for motor 2
-        """
+    def set_real_speeds(self, real_speed_1: float, real_speed_2: float) -> None:
         self.real_speed_1 = real_speed_1
         self.real_speed_2 = real_speed_2
 
-    def get_real_speeds(self):
-        """
-        Method to get the real speed of the motors
-
-        @rtype : tuple
-        @return : Two floats with the real speed for both motors
-        """
+    def get_real_speeds(self) -> tuple[float, float]:
         return self.real_speed_1, self.real_speed_2
-
-    @abstractmethod
-    def reset(self):
-        """
-        Reset the driver
-
-        """
-        pass

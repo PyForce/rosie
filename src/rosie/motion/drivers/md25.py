@@ -1,62 +1,51 @@
+"""The MD25 motor controller board, over the I2C bus."""
+
+import importlib
 import logging
 
-try:
-    import smbus
-except:
-    logging.error("smbus unavailable")
+from rosie.errors import HardwareUnavailableError
 from rosie.motion.drivers.base import PowerMotorDriver
+from rosie.motion.models import EncoderReading
+
+logger = logging.getLogger(__name__)
+
+# a jump larger than this between two readings is a glitch: the previous delta is used instead
+MAX_ENCODER_COUNT_DELTA = 180
+# the encoders are reset before they get anywhere near overflowing
+MAX_ENCODER_COUNT = 2000000000
+MAX_INT_32 = 2**31
 
 
 class MD25MotorDriver(PowerMotorDriver):
-    """
-    Class to use MD25 motor controller board using I2C bus
-
-    @param i2c_bus_number: I2C bus number to use
-    @param i2c_bus_address:  I2C bus address of the MD25 board
-    @type i2c_bus_address: int
-    @type i2c_bus_number: int
-    """
-
-    MAX_ENCODER_COUNT_DELTA = 180
-    MAX_ENCODER_COUNT = 2000000000
-
-    def __init__(self, i2c_bus_number, i2c_bus_address):
+    def __init__(self, i2c_bus_number: int, i2c_bus_address: int) -> None:
         super().__init__()
+        try:
+            # only robots with this board need smbus
+            smbus = importlib.import_module("smbus")
+        except ModuleNotFoundError as error:
+            raise HardwareUnavailableError("the MD25 motor driver needs smbus") from error
+        try:
+            self.i2c_bus = smbus.SMBus(i2c_bus_number)
+        except OSError as error:
+            raise HardwareUnavailableError(f"no I2C bus {i2c_bus_number}") from error
+        self.i2c_bus_address = i2c_bus_address
         self.prev_encoder_count_1 = 0
         self.prev_encoder_count_2 = 0
         self.encoder_count_1 = 0
         self.encoder_count_2 = 0
         self.prev_delta_encoder_count_1 = 0
         self.prev_delta_encoder_count_2 = 0
-
-        self.i2c_bus_address = i2c_bus_address
-        self.i2c_bus = smbus.SMBus(i2c_bus_number)
-
         self.reset_encoders()
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 15, 1)
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 16, 48)
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 14, 10)
 
-    def set_powers(self, power_1, power_2):
-        """
-        Method to set the power for each motor
-
-        @type power_2: float
-        @type power_1: float
-        @param power_1: Power for motor 1
-        @param power_2: Power for motor 2
-        """
+    def set_powers(self, power_1: float, power_2: float) -> None:
         self.i2c_bus.write_i2c_block_data(self.i2c_bus_address, 0, [int(power_1), int(power_2)])
 
-    def read_delta_encoders_count_state(self):
-        """
-        Reads the encoders count since last read and state of the motors
-
-        @rtype : tuple
-        @return: encoders count since last read (2 integers), battery voltage (float), motor's current (2 floats)
-        """
+    def read_delta_encoders_count_state(self) -> EncoderReading:
         encoder_count_1, encoder_count_2, battery_voltage, current_left, current_right = (
-            self.read_state()
+            self._read_state()
         )
 
         delta_encoder_count_1 = encoder_count_1 - self.prev_encoder_count_1
@@ -65,40 +54,33 @@ class MD25MotorDriver(PowerMotorDriver):
         self.encoder_count_1 = encoder_count_1
         self.encoder_count_2 = encoder_count_2
 
-        if (
-            delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
-            or delta_encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
-        ):
-            temp = delta_encoder_count_1
+        if abs(delta_encoder_count_1) > MAX_ENCODER_COUNT_DELTA:
+            logger.info(
+                "encoder 1 jumped %d steps, using %d",
+                delta_encoder_count_1,
+                self.prev_delta_encoder_count_1,
+            )
             delta_encoder_count_1 = self.prev_delta_encoder_count_1
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
-            logging.info("delta_encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA")
-            logging.info(delta_encoder_count_1, temp)
 
-        if (
-            delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
-            or delta_encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT_DELTA
-        ):
-            temp = delta_encoder_count_2
+        if abs(delta_encoder_count_2) > MAX_ENCODER_COUNT_DELTA:
+            logger.info(
+                "encoder 2 jumped %d steps, using %d",
+                delta_encoder_count_2,
+                self.prev_delta_encoder_count_2,
+            )
             delta_encoder_count_2 = self.prev_delta_encoder_count_2
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
-            logging.info("delta_encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT_DELTA")
-            logging.info(delta_encoder_count_2, temp)
 
-        if (
-            encoder_count_1 > MD25MotorDriver.MAX_ENCODER_COUNT
-            or encoder_count_1 < -MD25MotorDriver.MAX_ENCODER_COUNT
-            or encoder_count_2 > MD25MotorDriver.MAX_ENCODER_COUNT
-            or encoder_count_2 < -MD25MotorDriver.MAX_ENCODER_COUNT
-        ):
+        if abs(encoder_count_1) > MAX_ENCODER_COUNT or abs(encoder_count_2) > MAX_ENCODER_COUNT:
+            logger.info("encoders reset before overflowing")
             self.encoder_count_1 = 0
             self.encoder_count_2 = 0
             self.reset_encoders()
-            logging.info("MD25MotorDriver.MAX_ENCODER_COUNT")
 
         self.prev_encoder_count_1 = self.encoder_count_1
         self.prev_encoder_count_2 = self.encoder_count_2
@@ -114,11 +96,7 @@ class MD25MotorDriver(PowerMotorDriver):
             current_right,
         )
 
-    def reset(self):
-        """
-        Reset the driver
-
-        """
+    def reset(self) -> None:
         self.prev_encoder_count_1 = 0
         self.prev_encoder_count_2 = 0
         self.encoder_count_1 = 0
@@ -127,33 +105,22 @@ class MD25MotorDriver(PowerMotorDriver):
         self.prev_delta_encoder_count_2 = 0
         self.reset_encoders()
 
-    def reset_encoders(self):
-        """
-        Private method to reset the encoders count of the MD25 board
-
-        """
+    def reset_encoders(self) -> None:
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 16, 32)
 
-    def read_state(self):
-        """
-        Private method to read the state of the MD25 board
-
-        @rtype : tuple
-        @return : both motors' encoders count (2 int), battery's voltage (float), both motors' current (2 float)
-        """
+    def _read_state(self) -> tuple[int, int, float, float, float]:
         result = self.i2c_bus.read_i2c_block_data(self.i2c_bus_address, 2, 11)
-        max_int_32 = 2**31
 
-        encoder1 = (result[0] << 24) + (result[1] << 16) + (result[2] << 8) + result[3]
-        if encoder1 > max_int_32:
-            encoder1 = -(2**32 - encoder1)
+        encoder_1 = (result[0] << 24) + (result[1] << 16) + (result[2] << 8) + result[3]
+        if encoder_1 > MAX_INT_32:
+            encoder_1 = -(2**32 - encoder_1)
 
-        encoder2 = (result[4] << 24) + (result[5] << 16) + (result[6] << 8) + result[7]
-        if encoder2 > max_int_32:
-            encoder2 = -(2**32 - encoder2)
+        encoder_2 = (result[4] << 24) + (result[5] << 16) + (result[6] << 8) + result[7]
+        if encoder_2 > MAX_INT_32:
+            encoder_2 = -(2**32 - encoder_2)
 
         battery_voltage = result[8] / float(10)
         current_left = result[9] / float(10)
         current_right = result[10] / float(10)
 
-        return encoder1, encoder2, battery_voltage, current_left, current_right
+        return encoder_1, encoder_2, battery_voltage, current_left, current_right
