@@ -46,7 +46,7 @@ class ArduinoMotorDriver(SpeedMotorDriver):
             (pulses_1,) = struct.unpack("i", self.serial_port.read(4))
             (pulses_2,) = struct.unpack("i", self.serial_port.read(4))
             (battery_charge,) = struct.unpack("B", self.serial_port.read())
-        except OSError, struct.error:
+        except (OSError, struct.error):
             logger.exception("reading encoders")
             return 0, 0, 0, 0, 0
         delta_pulses_1 = pulses_1 - self.pulses_1

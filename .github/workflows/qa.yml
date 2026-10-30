@@ -11,5 +11,5 @@ jobs:
     with:
       cookie-pyrate-ref: v1.1.0
       python-version: "3.15"
-      # A library can also run its tests on the newer Pythons its users have:
-      # test-python-versions: '["3.12", "3.13", "3.14", "3.15"]'
+      # the client runs on users' own Pythons; the robot's image uses 3.15
+      test-python-versions: '["3.12", "3.13", "3.14", "3.15"]'
