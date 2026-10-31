@@ -38,6 +38,12 @@ robot.
 
 ## Quick start
 
+rosie runs next to the robot, or next to a simulated one, and takes orders over a web API. There are
+several ways to use it: from a browser, from Python, from plain HTTP, or by changing rosie itself. Each
+one below starts with the simulated robot, so no hardware is needed.
+
+### In the browser
+
 ```bash
 docker run -p 8080:8080 ghcr.io/pyforce/rosie
 ```
@@ -45,21 +51,53 @@ docker run -p 8080:8080 ghcr.io/pyforce/rosie
 Open <http://localhost:8080>: [WebRosie](https://github.com/PyForce/WebRosie), with a simulated robot in a
 house. Click the map to send it somewhere, or drive it with the keyboard.
 
-Or with Python:
+### As a Python package
 
 ```bash
 pip install "pyforce-rosie[robot]"
 rosie start
 ```
 
-and from another terminal, script or notebook:
+This runs rosie's web API on port 5000, without the web interface. Flags or `ROSIE_*` environment
+variables pick another robot, map or port.
+
+### From a Python script or notebook
+
+With rosie running (either way above), on the same computer or any other:
 
 ```python
-from rosie.client import RosieClient  # pip install pyforce-rosie, on any computer
+import time
 
-robot = RosieClient("http://localhost:5000")
+from rosie.client import RosieClient  # pip install pyforce-rosie
+
+robot = RosieClient("http://localhost:8080")  # 5000 with rosie start
+print(robot.odometry())  # Position(x=0.0, y=0.0, theta=0.0)
 robot.goto(1, 0.5, 4)  # to (1 m, 0.5 m) in 4 s
+time.sleep(5)
+print(robot.odometry())  # about Position(x=1.0, y=0.5, theta=0.46)
 ```
+
+### Over HTTP
+
+The web API is plain HTTP and JSON, so any language or tool can drive the robot:
+
+```bash
+curl -X POST localhost:8080/goto -d '{"target": [1, 0.5, 4]}'
+curl localhost:8080/odometry
+```
+
+### From the source
+
+To change rosie itself, for example to try your own controller:
+
+```bash
+git clone https://github.com/PyForce/rosie
+cd rosie
+uv sync
+uv run rosie start
+```
+
+[Getting started](docs/getting-started.md) covers each of these in more detail, plus configuration.
 
 ## What you can learn
 
