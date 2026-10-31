@@ -43,7 +43,7 @@ class PIDState:
 
     error_1: float  # error one step ago
     error_2: float  # error two steps ago
-    action_1: float  # control action one step ago
+    power: float  # power one step ago
 
 
 class Drive(Protocol):

@@ -5,22 +5,22 @@ from rosie.models import PIDGains
 
 
 @pytest.mark.parametrize(
-    ("ki", "kd", "actions"),
+    ("ki", "kd", "powers"),
     [
         pytest.param(0, 0, [20, 10, 5], id="proportional"),
-        # incremental forms: kc e + (ki - kc) e[-1] + u[-1], and with kd the full PID
-        pytest.param(0.5, 0, [20, 11, 6.5], id="proportional-integral"),
+        # one formula for all: the power changes by kc (e - e₋₁) + ki e + kd (e - 2 e₋₁ + e₋₂)
+        pytest.param(0.5, 0, [21, 11.5, 6.75], id="proportional-integral"),
         pytest.param(0.5, 0.1, [21.2, 11.4, 6.7], id="with derivative"),
     ],
 )
-def test_regulate_speed(ki: float, kd: float, actions: list[float]) -> None:
+def test_regulate_speed(ki: float, kd: float, powers: list[float]) -> None:
     gains = PIDGains(kc=10, ki=ki, kd=kd)
-    history = RESTING_PID
-    powers = []
+    state = RESTING_PID
+    steps = []
     for error in [2, 1, 0.5]:
-        power, history = regulate_speed(gains, 100, history, error)
-        powers.append(power)
-    assert powers == pytest.approx(actions)
+        power, state = regulate_speed(gains, 100, state, error)
+        steps.append(power)
+    assert steps == pytest.approx(powers)
 
 
 def test_regulate_speed_saturates() -> None:
