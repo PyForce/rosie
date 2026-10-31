@@ -4,7 +4,7 @@
 
 # rosie
 
-**Modular robot control system**
+**Mobile robots, in Python you can read**
 
 [![QA](https://github.com/PyForce/rosie/actions/workflows/qa.yml/badge.svg)](https://github.com/PyForce/rosie/actions/workflows/qa.yml)
 [![Release](https://img.shields.io/github/v/release/PyForce/rosie?label=release)](https://github.com/PyForce/rosie/releases/latest)
@@ -21,23 +21,20 @@
 [![Docs](https://readthedocs.org/projects/rosie/badge/?version=latest)](https://rosie.readthedocs.io)
 -->
 
-[Quick start](#quick-start) · [Usage](#usage) · [Development](#development)
+[Quick start](#quick-start) · [What you can learn](#what-you-can-learn) · [Documentation](#documentation) · [Development](#development)
 
 </div>
 
 ---
 
-rosie drives differential-drive mobile robots: it plans trajectories, tracks them, finds routes around walls and
-furniture, and lets you drive by hand. It runs a simulated robot out of the box, and real ones with an Arduino or
-MD25 motor board. Its web API is what [WebRosie](https://github.com/PyForce/WebRosie) talks to.
+rosie controls differential-drive mobile robots, the two-wheeled kind found in most robotics courses. It
+estimates where the robot is from its wheel encoders, plans trajectories, tracks them with a feedback
+controller, finds routes around walls and furniture, and lets you drive by hand from a browser or from
+Python. Each of those is a short, plain Python module: open it, change it, test it on the simulated robot,
+then run it on a real one.
 
-## Features
-
-- **Robot profiles in TOML.** Wheels, body, boards and control gains, for built-in robots or your own.
-- **Planned movements.** Go to a point or follow a path, with linear or cubic trajectories, until the robot gets there.
-- **Route planning.** Around the walls and furniture of a map.
-- **Manual driving.** Racing-game keys or a touch joystick through WebRosie.
-- **Plugins.** A REST + WebSocket API and sensors, each switched on in the configuration.
+It's made for learning and teaching robotics, from the control equations to the web page that drives the
+robot.
 
 ## Quick start
 
@@ -45,27 +42,51 @@ MD25 motor board. Its web API is what [WebRosie](https://github.com/PyForce/WebR
 docker run -p 8080:8080 ghcr.io/pyforce/rosie
 ```
 
-Then open <http://localhost:8080>: WebRosie, with a simulated robot to drive. For a real robot, see
-[DEVELOPMENT.md](DEVELOPMENT.md#building-a-docker-image).
+Open <http://localhost:8080>: [WebRosie](https://github.com/PyForce/WebRosie), with a simulated robot in a
+house. Click the map to send it somewhere, or drive it with the keyboard.
 
-From the source:
-
-```bash
-uv sync
-uv run rosie start
-```
-
-The first start writes a `config.ini` (simulated robot, web API on port 5000).
-
-## Usage
+Or with Python:
 
 ```bash
-curl -X POST localhost:5000/goto -d '{"target": [1, 0.5, 4]}'   # to (1, 0.5) in 4 s
-curl localhost:5000/odometry
+pip install "pyforce-rosie[robot]"
+rosie start
 ```
 
-The PyPI package is `pyforce-rosie` (the name `rosie` belongs to another project); it installs the `rosie` command
-and the `rosie` Python package.
+and from another terminal, script or notebook:
+
+```python
+from rosie.client import RosieClient  # pip install pyforce-rosie, on any computer
+
+robot = RosieClient("http://localhost:5000")
+robot.goto(1, 0.5, 4)  # to (1 m, 0.5 m) in 4 s
+```
+
+## What you can learn
+
+| Topic | In rosie |
+|---|---|
+| Wheel odometry | second-order Runge-Kutta, from encoder counts |
+| Trajectory generation | straight lines, or cubic polynomials that round the corners |
+| Trajectory tracking | input-output linearization; plug in your own controller as one class |
+| Reaching a point | a polar go-to-point controller |
+| Wheel speed control | an incremental PID |
+| Route planning | free space, a visibility graph, A* |
+| Hardware | serial and I2C motor boards, an ultrasound sensor board |
+| Integration | a REST + WebSocket API, a web interface, a Python client, plugins |
+
+The simulated robot runs on a clock you control, so a script can simulate a 10-second movement in
+milliseconds, the same every time. Every planned movement can be recorded to CSV, one row per control step,
+ready for pandas.
+
+## Documentation
+
+- [Getting started](docs/getting-started.md): running, driving and configuring rosie.
+- [How rosie works](docs/how-rosie-works.md): the control loop, and where everything lives.
+- [Motion control](docs/motion-control.md) and [Navigation](docs/navigation.md): the algorithms, with their
+  equations.
+- [Teaching with rosie](docs/teaching.md): lab ideas.
+- [Robots and hardware](docs/robots.md), [Web API and plugins](docs/integration.md),
+  [Python client](docs/client.md).
 
 ## Development
 
@@ -77,7 +98,8 @@ Issues and pull requests are welcome; `make qa` must pass.
 
 ## License
 
-MIT: see [LICENSE](LICENSE).
+MIT: see [LICENSE](LICENSE). rosie is a [PyForce](https://github.com/PyForce) project, started in 2015:
+[authors](docs/about.md).
 
 ---
 

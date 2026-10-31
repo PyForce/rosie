@@ -1,11 +1,27 @@
 [project]
 site_name = "rosie"
-site_description = "Modular robot control system"
+site_description = "Mobile robot control in plain Python, for learning and teaching robotics"
 site_dir = "dist/docs"
 nav = [
   { "🏠 Home" = "index.md" },
+  { "🚀 Getting started" = "getting-started.md" },
+  { "Learn" = [
+    { "How rosie works" = "how-rosie-works.md" },
+    { "Motion control" = "motion-control.md" },
+    { "Navigation" = "navigation.md" },
+    { "Teaching with rosie" = "teaching.md" },
+  ] },
+  { "Use" = [
+    { "Robots and hardware" = "robots.md" },
+    { "Web API and plugins" = "integration.md" },
+    { "Python client" = "client.md" },
+  ] },
   { "📖 Reference" = "reference.md" },
   { "ℹ️ About" = "about.md" },
+]
+extra_javascript = [
+  "javascripts/mathjax.js",
+  "https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js",
 ]
 
 [project.plugins.search]
@@ -56,6 +72,12 @@ guess_lang = false
 linenums = true
 
 [project.markdown_extensions.pymdownx.superfences] # Enhances fenced code blocks
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true
 
 [project.markdown_extensions.toc]
 permalink = true

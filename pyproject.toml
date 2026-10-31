@@ -1,7 +1,7 @@
 [project]
 name = "pyforce-rosie"
 version = "2.0.0-beta0"
-description = "Modular robot control system"
+description = "Mobile robot control in plain Python, for learning and teaching robotics"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [
