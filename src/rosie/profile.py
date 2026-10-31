@@ -1,7 +1,7 @@
 """
 Robot profiles: a folder per robot with profile.toml, a picture
 (thumbnail.png), an icon (vector.svg) and, if you like, the robot's own
-floor maps (maps/*.json). rosie's own profiles are picked by name, yours by
+floor maps (maps/*.geojson). rosie's own profiles are picked by name, yours by
 the path of their folder.
 """
 

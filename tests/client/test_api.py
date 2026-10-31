@@ -99,7 +99,9 @@ def test_maps(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
     assert client.maps() == [DEFAULT_MAP]
     assert client.map(DEFAULT_MAP) == client.current_map()
-    assert set(client.current_map()["rooms"]) == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
+    features = client.current_map()["features"]
+    rooms = {f["properties"]["name"] for f in features if f["properties"]["kind"] == "room"}
+    assert rooms == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
     client.use_map(DEFAULT_MAP)
     with pytest.raises(RequestError, match="404: no map Nowhere") as refused:
         client.use_map("Nowhere")

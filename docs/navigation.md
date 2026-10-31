@@ -7,29 +7,35 @@ robot follows the route's corners like any other path.
 
 ## Maps
 
-`world/maps.py` · `src/rosie/builtin/maps/house.json`
+`world/maps.py` · `src/rosie/builtin/maps/house.geojson`
 
-A map is a JSON file of rooms, in metres, with [GeoJSON](https://geojson.org/) shapes:
+A map is a [GeoJSON](https://geojson.org/) `FeatureCollection` in metres, with a `name`, and one feature per
+room, wall, door and obstacle, told apart by their `kind` property:
 
 ```json
 {
+  "type": "FeatureCollection",
   "name": "Garage",
-  "rooms": {
-    "Garage": {
-      "borders": {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [4, 0], [4, 3], [0, 3]]]}},
-      "walls": {"type": "Feature", "geometry": {"type": "MultiLineString", "coordinates": [[[0, 0], [4, 0]]]}},
-      "doors": {"type": "Feature", "geometry": {"type": "MultiLineString", "coordinates": []}},
-      "items": {
-        "Car": {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[1, 1], [3, 1], [3, 2], [1, 2]]]}}
-      }
-    }
-  }
+  "features": [
+    {"type": "Feature", "properties": {"kind": "room", "name": "Garage"},
+     "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [4, 0], [4, 3], [0, 3], [0, 0]]]}},
+    {"type": "Feature", "properties": {"kind": "wall", "room": "Garage"},
+     "geometry": {"type": "MultiLineString", "coordinates": [[[1, 0], [4, 0], [4, 3], [0, 3], [0, 0]]]}},
+    {"type": "Feature", "properties": {"kind": "door", "room": "Garage"},
+     "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 0]]}},
+    {"type": "Feature", "properties": {"kind": "obstacle", "name": "Car", "room": "Garage"},
+     "geometry": {"type": "Polygon", "coordinates": [[[1.5, 1], [3.5, 1], [3.5, 2], [1.5, 2], [1.5, 1]]]}}
+  ]
 }
 ```
 
-- **borders**: the room's floor. All the rooms together must make one connected floor.
-- **items**: furniture, the obstacles.
-- **walls** and **doors**: drawn by WebRosie; the planner uses only the floor and the items.
+- **room**: a floor. All the rooms together must make one connected floor.
+- **wall**: lines the robot can't cross; the gaps between them are the doors.
+- **door**: where WebRosie draws a door (the planner only needs the gap in the walls).
+- **obstacle**: furniture.
+
+Any GeoJSON tool can draw or edit a map: [geojson.io](https://geojson.io) in a browser, or QGIS. Their
+coordinates are longitude and latitude, but rosie reads them as metres on the floor, so keep them small.
 
 rosie comes with "Gustavo's House"; your own maps go in the `maps/` folder of your
 [robot's profile](robots.md#profiles), and win a name over rosie's. `rosie start --map` picks the map at

@@ -59,7 +59,8 @@ alone.
 
 *Read:* [Navigation](navigation.md), `planning/path.py`, `world/maps.py`.
 
-1. Draw a map of your lab room as a JSON file and drive the robot across it with the planner.
+1. Draw a map of your lab room (GeoJSON, with [geojson.io](https://geojson.io)) and drive the robot across it
+   with the planner.
 2. Plot the visibility graph on top of the map, for two clearances.
 3. Count the vertices A* explores with and without its heuristic.
 

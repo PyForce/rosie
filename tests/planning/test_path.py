@@ -1,8 +1,8 @@
 import math
 from itertools import pairwise
 
-import numpy as np
 import pytest
+from shapely.geometry import LineString, Polygon
 
 from rosie.errors import NoRouteError
 from rosie.planning.path import plan_path
@@ -12,8 +12,9 @@ from rosie.world.models import World
 # a 4 m x 4 m room with a 1 m box in the middle
 ROOM = World(
     name="Box room",
-    border=np.array([(0, 0), (4, 0), (4, 4), (0, 4)]),
-    obstacles=[np.array([(1.5, 1.5), (2.5, 1.5), (2.5, 2.5), (1.5, 2.5)])],
+    floor=Polygon([(0, 0), (4, 0), (4, 4), (0, 4)]),
+    walls=(),
+    obstacles=(Polygon([(1.5, 1.5), (2.5, 1.5), (2.5, 2.5), (1.5, 2.5)]),),
 )
 
 
@@ -44,3 +45,16 @@ def test_a_target_inside_an_obstacle() -> None:
     graph = visibility_graph(ROOM, 0.2)
     with pytest.raises(NoRouteError, match=r"no route from \(0.50, 0.50\) to \(2.00, 2.00\)"):
         plan_path(graph, (0.5, 0.5), (2.0, 2.0))
+
+
+def test_walls_make_the_robot_use_the_door() -> None:
+    # two 2 m x 2 m rooms side by side; the wall between them leaves a door at the bottom
+    two_rooms = World(
+        name="Two rooms",
+        floor=Polygon([(0, 0), (4, 0), (4, 2), (0, 2)]),
+        walls=(LineString([(2, 0.8), (2, 2)]),),
+        obstacles=(),
+    )
+    route = plan_path(visibility_graph(two_rooms, 0.1), (1.0, 1.5), (3.0, 1.5))
+    assert len(route) > 2  # not the straight line through the wall
+    assert all(y < 0.8 for _, y in route[1:-1])  # through the door

@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "name": "Gustavo's House",
+  "features": [
+    {"type": "Feature", "properties": {"kind": "room", "name": "Living Room"}, "geometry": {"type": "Polygon", "coordinates": [[[0.0, 0.0], [0.0, 2.38], [2.63, 2.38], [2.63, 0.96], [2.78, 0.0], [0.0, 0.0]]]}},
+    {"type": "Feature", "properties": {"kind": "room", "name": "Hall"}, "geometry": {"type": "Polygon", "coordinates": [[[2.63, 0.96], [3.34, 0.96], [3.43, 0.23], [3.1, 0.23], [3.1, 0.0], [2.78, 0.0], [2.63, 0.96]]]}},
+    {"type": "Feature", "properties": {"kind": "room", "name": "Dinning Room"}, "geometry": {"type": "Polygon", "coordinates": [[[3.43, 0.0], [3.43, 0.23], [3.34, 0.96], [3.34, 2.38], [5.47, 2.38], [5.47, 2.28], [5.82, 2.28], [5.82, 2.38], [7.16, 2.38], [7.16, 0.22], [6.85, 0.22], [6.25, 0.16], [5.86, 0.0], [3.43, 0.0]]]}},
+    {"type": "Feature", "properties": {"kind": "room", "name": "Kitchen"}, "geometry": {"type": "Polygon", "coordinates": [[[7.16, 2.38], [7.16, 1.49], [7.22, 1.49], [7.22, 0.22], [8.24, 0.22], [8.24, 2.38], [7.16, 2.38]]]}},
+    {"type": "Feature", "properties": {"kind": "wall", "room": "Living Room"}, "geometry": {"type": "MultiLineString", "coordinates": [[[0.0, 1.28], [0.0, 0.0], [1.98, 0.0]], [[0.0, 2.16], [0.0, 2.38], [2.63, 2.38], [2.63, 0.96]]]}},
+    {"type": "Feature", "properties": {"kind": "wall", "room": "Hall"}, "geometry": {"type": "MultiLineString", "coordinates": [[[2.63, 0.96], [3.34, 0.96]], [[2.78, 0.0], [3.1, 0.0], [3.1, 0.23], [3.43, 0.23]]]}},
+    {"type": "Feature", "properties": {"kind": "wall", "room": "Dinning Room"}, "geometry": {"type": "MultiLineString", "coordinates": [[[3.34, 0.96], [3.34, 2.38], [5.47, 2.38], [5.47, 2.28], [5.82, 2.28], [5.82, 2.38], [7.16, 2.38]], [[3.43, 0.23], [3.43, 0.0], [5.86, 0.0], [6.25, 0.16]], [[6.85, 0.22], [7.16, 0.22], [7.16, 1.49]]]}},
+    {"type": "Feature", "properties": {"kind": "wall", "room": "Kitchen"}, "geometry": {"type": "MultiLineString", "coordinates": [[[7.16, 1.49], [7.22, 1.49], [7.22, 0.22], [8.24, 0.22], [8.24, 2.38], [7.16, 2.38]]]}},
+    {"type": "Feature", "properties": {"kind": "door", "room": "Living Room"}, "geometry": {"type": "MultiLineString", "coordinates": [[[0.0, 1.28], [0.0, 2.16]], [[1.98, 0.0], [2.78, 0.0]]]}},
+    {"type": "Feature", "properties": {"kind": "door", "room": "Hall"}, "geometry": {"type": "MultiLineString", "coordinates": []}},
+    {"type": "Feature", "properties": {"kind": "door", "room": "Dinning Room"}, "geometry": {"type": "MultiLineString", "coordinates": [[[6.85, 0.22], [6.25, 0.16]]]}},
+    {"type": "Feature", "properties": {"kind": "door", "room": "Kitchen"}, "geometry": {"type": "MultiLineString", "coordinates": []}},
+    {"type": "Feature", "properties": {"kind": "obstacle", "name": "chair1", "room": "Living Room"}, "geometry": {"type": "Polygon", "coordinates": [[[1.9, 1.75], [1.9, 2.25], [2.4, 2.25], [2.4, 1.75], [1.9, 1.75]]]}},
+    {"type": "Feature", "properties": {"kind": "obstacle", "name": "chair2", "room": "Living Room"}, "geometry": {"type": "Polygon", "coordinates": [[[1.2, 1.75], [1.2, 2.25], [1.7, 2.25], [1.7, 1.75], [1.2, 1.75]]]}},
+    {"type": "Feature", "properties": {"kind": "obstacle", "name": "refrigerator", "room": "Dinning Room"}, "geometry": {"type": "Polygon", "coordinates": [[[5.9, 1.75], [5.9, 2.3], [6.5, 2.3], [6.5, 1.75], [5.9, 1.75]]]}},
+    {"type": "Feature", "properties": {"kind": "obstacle", "name": "table", "room": "Dinning Room"}, "geometry": {"type": "Polygon", "coordinates": [[[3.9, 1.0], [3.9, 1.9], [5.2, 1.9], [5.2, 1.0], [3.9, 1.0]]]}},
+    {"type": "Feature", "properties": {"kind": "obstacle", "name": "table", "room": "Kitchen"}, "geometry": {"type": "Polygon", "coordinates": [[[7.35, 0.3], [7.35, 0.9], [8.1, 0.9], [8.1, 0.3], [7.35, 0.3]]]}}
+  ]
+}

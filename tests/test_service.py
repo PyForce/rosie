@@ -45,8 +45,8 @@ def test_runs_the_robot_and_its_web_api_until_a_signal(
     robot = tmp_path / "my-robot"
     (robot / "maps").mkdir(parents=True)
     (robot / "profile.toml").write_text((BUILTIN_PROFILES / "simubot" / "profile.toml").read_text())
-    house = (BUILTIN_MAPS / "house.json").read_text()
-    (robot / "maps" / "garage.json").write_text(house.replace(DEFAULT_MAP, "Garage"))
+    house = (BUILTIN_MAPS / "house.geojson").read_text()
+    (robot / "maps" / "garage.geojson").write_text(house.replace(DEFAULT_MAP, "Garage"))
 
     async def scenario() -> tuple[str, str]:
         running = asyncio.create_task(service.run(settings(str(robot), port)))

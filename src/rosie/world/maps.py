@@ -1,28 +1,28 @@
 """
-Floor maps (JSON files, rosie's own in rosie/builtin/maps): rooms with their borders, and the
-items (furniture) in them.
+Maps: GeoJSON FeatureCollections (rosie's own in rosie/builtin/maps), with a
+name and one feature per room, wall, door and obstacle (its "kind" property).
 """
 
 import json
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, MultiLineString, Polygon, shape
 from shapely.ops import unary_union
 
 from rosie.errors import SetupError
-from rosie.world.models import Points, World
+from rosie.world.models import World
 
 BUILTIN_MAPS = Path(__file__).parents[1] / "builtin" / "maps"
 DEFAULT_MAP = "Gustavo's House"
+KINDS = ("room", "wall", "door", "obstacle")
 
 
 def list_maps(search: list[Path]) -> dict[str, Path]:
     """Map name -> file, from every folder of `search` (the first one wins a name)."""
     maps: dict[str, Path] = {}
     for folder in reversed(search):
-        maps |= {read_map(path)["name"]: path for path in sorted(folder.glob("*.json"))}
+        maps |= {read_map(path)["name"]: path for path in sorted(folder.glob("*.geojson"))}
     return maps
 
 
@@ -33,19 +33,22 @@ def read_map(path: Path) -> dict[str, Any]:
 
 def load_world(path: Path) -> World:
     data = read_map(path)
-    rooms = data["rooms"].values()
-    union = unary_union([Polygon(_room_border(room)) for room in rooms])
-    if not isinstance(union, Polygon):
+    shapes: dict[str, list[Any]] = {kind: [] for kind in KINDS}
+    try:
+        for feature in data["features"]:
+            kind = feature["properties"]["kind"]
+            if kind not in shapes:
+                raise SetupError(f"{path.name}: unknown kind {kind!r} (known: {', '.join(KINDS)})")
+            shapes[kind].append(shape(feature["geometry"]))
+    except (KeyError, TypeError) as error:
+        raise SetupError(f"{path.name}: not a rosie map ({error})") from error
+    floor = unary_union(shapes["room"])
+    if not isinstance(floor, Polygon):
         raise SetupError(f"the rooms of {path.name} don't form one connected floor")
-    obstacles = [
-        np.array(item["geometry"]["coordinates"][0])
-        for room in rooms
-        for item in room["items"].values()
-        if item["geometry"]["coordinates"]
+    walls = [
+        line
+        for wall in shapes["wall"]
+        for line in (wall.geoms if isinstance(wall, MultiLineString) else [wall])
+        if isinstance(line, LineString)
     ]
-    return World(data["name"], np.array(union.exterior.coords)[:-1], obstacles)
-
-
-def _room_border(room: dict[str, Any]) -> Points:
-    rings = room["borders"]["geometry"]["coordinates"]
-    return np.array([(x, y) for ring in rings for x, y in ring])
+    return World(data["name"], floor, tuple(walls), tuple(shapes["obstacle"]))

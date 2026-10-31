@@ -158,7 +158,10 @@ def test_maps(robot: Robot) -> None:
     assert robot.map_name == DEFAULT_MAP
     house = robot.get_map(DEFAULT_MAP)
     assert house is not None
-    assert set(house["rooms"]) == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
+    rooms = {
+        f["properties"]["name"] for f in house["features"] if f["properties"]["kind"] == "room"
+    }
+    assert rooms == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
     assert robot.get_map("Nowhere") is None
     with pytest.raises(ValueError, match="unknown map"):
         robot.use_map("Nowhere")

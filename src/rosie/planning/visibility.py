@@ -1,7 +1,7 @@
 """
 Visibility graph: the corners of the free space (the floor shrunk by the robot's
-clearance, minus its obstacles grown by it), linked when the robot can drive
-straight from one to the other.
+clearance, minus its walls and obstacles grown by it), linked when the robot can
+drive straight from one to the other.
 """
 
 from collections.abc import Iterable
@@ -16,8 +16,12 @@ from rosie.world.models import Points, World
 
 
 def visibility_graph(world: World, clearance: float) -> VisibilityGraph:
-    floor = Polygon(world.border).buffer(-clearance, join_style="mitre")
-    grown = [Polygon(item).buffer(clearance, join_style="mitre") for item in world.obstacles]
+    floor = world.floor.buffer(-clearance, join_style="mitre")
+    grown = [item.buffer(clearance, join_style="mitre") for item in world.obstacles]
+    # square caps: the robot keeps its clearance from a wall's ends too, at the doors
+    grown += [
+        wall.buffer(clearance, cap_style="square", join_style="mitre") for wall in world.walls
+    ]
     free_space = floor.difference(unary_union(grown))
     if not isinstance(free_space, Polygon | MultiPolygon) or free_space.is_empty:
         raise NoRouteError(f"no free space on {world.name} with a clearance of {clearance:.2f} m")
