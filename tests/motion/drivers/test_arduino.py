@@ -42,20 +42,20 @@ def test_reads_encoder_deltas_with_the_wheels_swapped(
     driver: ArduinoMotorDriver, serial: FakeSerial
 ) -> None:
     serial.incoming += state(100, 40, 90)
-    assert driver.read_delta_encoders_count_state() == (40, 100, 90, 0, 0)
+    assert driver.read_encoders() == (40, 100, 90, 0, 0)
     serial.incoming += state(130, 30, 89)
-    assert driver.read_delta_encoders_count_state() == (-10, 30, 89, 0, 0)
+    assert driver.read_encoders() == (-10, 30, 89, 0, 0)
     assert serial.written == [b"\xa8", b"\xa8"]
 
 
 def test_ignores_an_unexpected_answer(driver: ArduinoMotorDriver, serial: FakeSerial) -> None:
     serial.incoming += b"\x00"
-    assert driver.read_delta_encoders_count_state() is None
+    assert driver.read_encoders() is None
 
 
 def test_a_cut_answer_reads_as_still(driver: ArduinoMotorDriver, serial: FakeSerial) -> None:
     serial.incoming += b"\xa9\x01\x02"
-    assert driver.read_delta_encoders_count_state() == (0, 0, 0, 0, 0)
+    assert driver.read_encoders() == (0, 0, 0, 0, 0)
 
 
 def test_write_errors_are_logged_not_raised(caplog: pytest.LogCaptureFixture) -> None:
@@ -63,7 +63,7 @@ def test_write_errors_are_logged_not_raised(caplog: pytest.LogCaptureFixture) ->
     driver.set_speeds(1, 1)
     driver.set_constants(1, 1, 1)
     driver.reset_encoders()
-    assert driver.read_delta_encoders_count_state() == (0, 0, 0, 0, 0)
+    assert driver.read_encoders() == (0, 0, 0, 0, 0)
     assert [record.message for record in caplog.records] == [
         "setting speeds",
         "setting constants",

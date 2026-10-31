@@ -23,7 +23,7 @@ runs one **control step**:
    writes a row.
 
 Under manual control, steps 3 and 4 are replaced by the pressed keys. That's all of
-`MovementController.closed_loop_movement_control` in `motion/controller.py`, about 60 lines.
+`MotionController.planned_step` in `motion/controller.py`, about 60 lines.
 
 ## One process, one loop, no threads
 

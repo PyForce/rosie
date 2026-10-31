@@ -19,7 +19,7 @@ alone.
 
 *Read:* [Odometry](motion-control.md#where-is-the-robot-odometry), `motion/odometry.py`.
 
-1. Drive a square by hand (User Mode) and come back to the start. Where does rosie think the robot is?
+1. Drive a square by hand (Manual Mode) and come back to the start. Where does rosie think the robot is?
 2. The simulated robot has no separate truth: its position *is* its odometry. Add one: a
    [supervisor](integration.md#extending-rosie) that integrates the wheel speeds of every `RobotState`
    with a wheel radius 2 % off, and plot how the two positions drift apart along a path.

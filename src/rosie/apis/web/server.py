@@ -51,9 +51,9 @@ def create_app(robot: Robot) -> FastAPI:
     app.include_router(routes.router)
 
     supervisor = routes.WebSupervisor(robot)
-    robot.supervisor().append(supervisor)
+    robot.supervisors.append(supervisor)
     # bound methods can't use the decorators
     app.add_api_websocket_route("/websocket", supervisor.websocket)
-    app.add_api_route("/auto_mode", supervisor.auto_mode, methods=["PUT", "POST"])
-    app.add_api_route("/manual_mode", supervisor.manual_mode, methods=["PUT", "POST"])
+    app.add_api_route("/manual", supervisor.manual, methods=["PUT", "POST"])
+    app.add_api_route("/planned", supervisor.planned, methods=["PUT", "POST"])
     return app

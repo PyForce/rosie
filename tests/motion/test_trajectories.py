@@ -13,12 +13,12 @@ def plan(
     points: list[tuple[float, float]],
 ) -> list[Pose]:
     planner = planner_type()
-    planner.initialize_track(
+    planner.plan(
         TrajectoryParameters([Pose(0, 0, 0), *(Pose(x, y, 0) for x, y in points)], 1.0, SAMPLE_TIME)
     )
     poses = []
     while not planner.has_finished():
-        pose, _ = planner.get_next_point()
+        pose, _ = planner.next_reference()
         poses.append(pose)
     return poses
 

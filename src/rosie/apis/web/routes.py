@@ -76,9 +76,9 @@ async def goto(request: Request, robot: RobotDependency) -> Response:
     x, y, t = order.target
     try:
         if order.planner:
-            robot.go_to_with_planner(x, y, t)
+            robot.goto_with_planner(x, y, t)
         else:
-            robot.go_to(x, y, t)
+            robot.goto(x, y, t)
     except NoRouteError as error:
         return JSONResponse({"error": str(error)}, status_code=409)
     except ValueError as error:
@@ -132,7 +132,7 @@ class WebSupervisor(MovementSupervisor):
 
     def __init__(self, robot: Robot) -> None:
         self.robot = robot
-        self.manual = False
+        self.is_manual = False
         self.clients: list[WebSocket] = []
         # pending sends, kept until done (the event loop only keeps weak references)
         self.sending: set[asyncio.Task[None]] = set()
@@ -171,26 +171,26 @@ class WebSupervisor(MovementSupervisor):
             self.sending.add(task)
             task.add_done_callback(self._sent)
 
-    def manual_mode(self) -> Response:
-        self.manual = True
-        self.robot.start_open_loop_control()
+    def manual(self) -> Response:
+        self.is_manual = True
+        self.robot.start_manual()
         return Response()
 
-    def auto_mode(self) -> Response:
-        self.manual = False
-        self.robot.stop_open_loop_control()
+    def planned(self) -> Response:
+        self.is_manual = False
+        self.robot.stop_manual()
         return Response()
 
     def _receive(self, text: str) -> None:
         message = json.loads(text)
-        if not isinstance(message, dict) or message.get("type") != "move" or not self.manual:
+        if not isinstance(message, dict) or message.get("type") != "move" or not self.is_manual:
             return
         try:
             move = Move.model_validate(message)
         except ValidationError:
             logger.warning("ignoring malformed move: %s", text)
             return
-        self.robot.add_movement(list(move.data))
+        self.robot.move(list(move.data))
 
     def _sent(self, task: asyncio.Task[None]) -> None:
         """Forget a finished send; a client gone meanwhile is not an error."""

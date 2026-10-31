@@ -24,7 +24,7 @@ The interactive documentation of every route is at `/docs` (for example <http://
 | `GET /map`, `GET /map/{name}` | the map in use, or another one (JSON) |
 | `POST /map/{name}` | plan on that map from now on |
 | `GET /sensor/{name}` | a sensor's reading, e.g. `/sensor/usound` |
-| `POST /manual_mode`, `POST /auto_mode` | drive by hand, or go back to planned movements |
+| `POST /manual`, `POST /planned` | drive by hand, or go back to planned movements |
 | `/websocket` | positions out, keys in (below) |
 
 Errors: 422 for a malformed or impossible order (a time shorter than one control step), 409 when the planner
@@ -79,6 +79,6 @@ time](getting-started.md#simulate-faster-than-real-time)). From there it can:
   `/sensor/name`. For a sensor that profiles can name, write a function from its profile table to that
   reading function (like `open_sensor` in `sensors/usound.py`) and add it to `SENSORS` in `robot.py`;
 - **follow every movement**: subclass `MovementSupervisor` (`movement_begin`, `movement_update`,
-  `movement_end`) and `robot.supervisor().append(...)`; `movement_update` gets the full `RobotState` of each
+  `movement_end`) and `robot.supervisors.append(...)`; `movement_update` gets the full `RobotState` of each
   control step. The web API and the recorder are both supervisors;
-- **give orders**: anything `Robot` offers, such as `go_to`, `follow` or `position`.
+- **give orders**: anything `Robot` offers, such as `goto`, `follow` or `position`.

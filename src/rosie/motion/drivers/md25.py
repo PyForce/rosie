@@ -34,7 +34,7 @@ class MD25MotorDriver(PowerMotorDriver):
     def set_powers(self, power_1: float, power_2: float) -> None:
         self.i2c_bus.write_i2c_block_data(self.i2c_bus_address, 0, [int(power_1), int(power_2)])
 
-    def read_delta_encoders_count_state(self) -> EncoderReading:
+    def read_encoders(self) -> EncoderReading:
         encoder_count_1, encoder_count_2, battery_voltage, current_left, current_right = (
             self._read_state()
         )

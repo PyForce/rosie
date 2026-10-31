@@ -45,7 +45,7 @@ for position in robot.positions():
 
 ## Driving by hand
 
-Inside a `drive()` block the robot is under manual control, like WebRosie's User Mode:
+Inside a `drive()` block the robot is under manual control, like WebRosie's Manual Mode:
 
 ```python
 import time

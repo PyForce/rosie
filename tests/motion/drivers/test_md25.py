@@ -47,24 +47,24 @@ def test_powers(driver: MD25MotorDriver, bus: FakeI2C) -> None:
 
 def test_reads_deltas_battery_and_currents(driver: MD25MotorDriver, bus: FakeI2C) -> None:
     bus.blocks += [block(50, -30), block(120, -100)]
-    assert driver.read_delta_encoders_count_state() == (50, -30, 12.0, 0.5, 0.7)
-    assert driver.read_delta_encoders_count_state() == (70, -70, 12.0, 0.5, 0.7)
+    assert driver.read_encoders() == (50, -30, 12.0, 0.5, 0.7)
+    assert driver.read_encoders() == (70, -70, 12.0, 0.5, 0.7)
 
 
 def test_a_jump_is_a_glitch(driver: MD25MotorDriver, bus: FakeI2C) -> None:
     bus.blocks += [block(50, 50), block(5000, 100), block(40, 2000)]
-    driver.read_delta_encoders_count_state()
+    driver.read_encoders()
     bus.calls.clear()
-    assert driver.read_delta_encoders_count_state()[:2] == (50, 50)  # wheel 1 jumped
+    assert driver.read_encoders()[:2] == (50, 50)  # wheel 1 jumped
     assert ("write_byte_data", ADDRESS, 16, 32) in bus.calls
     # counting starts again from 0
-    assert driver.read_delta_encoders_count_state()[:2] == (40, 50)  # wheel 2 jumped
+    assert driver.read_encoders()[:2] == (40, 50)  # wheel 2 jumped
 
 
 def test_resets_before_overflowing(driver: MD25MotorDriver, bus: FakeI2C) -> None:
     driver.prev_encoder_count_1 = 2_000_000_000
     bus.blocks += [block(2_000_000_100, 0)]
-    assert driver.read_delta_encoders_count_state()[:2] == (100, 0)
+    assert driver.read_encoders()[:2] == (100, 0)
     assert driver.prev_encoder_count_1 == 0
     assert bus.calls[-1] == ("write_byte_data", ADDRESS, 16, 32)
 
@@ -72,7 +72,7 @@ def test_resets_before_overflowing(driver: MD25MotorDriver, bus: FakeI2C) -> Non
 def test_reset(driver: MD25MotorDriver, bus: FakeI2C) -> None:
     driver.real_speed_1 = 3.0
     bus.blocks += [block(50, 50)]
-    driver.read_delta_encoders_count_state()
+    driver.read_encoders()
     driver.reset()
     assert (driver.prev_encoder_count_1, driver.prev_delta_encoder_count_2) == (0, 0)
     assert bus.calls[-1] == ("write_byte_data", ADDRESS, 16, 32)

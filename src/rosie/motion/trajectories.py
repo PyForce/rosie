@@ -14,7 +14,7 @@ class TrajectoryPlanner(ABC):
         self.current_point_index = 0
         self.finished = False
 
-    def initialize_track(self, params: TrajectoryParameters) -> None:
+    def plan(self, params: TrajectoryParameters) -> None:
         self.current_point_index = 0
         self.finished = False
         poses, velocities = self._plan(params)
@@ -24,10 +24,10 @@ class TrajectoryPlanner(ABC):
         self.reference_locations = [*poses, Pose(target.x, target.y, heading)]
         self.reference_speeds = [*velocities, STILL]
 
-    def get_length(self) -> int:
+    def steps(self) -> int:
         return len(self.reference_locations)
 
-    def get_next_point(self) -> tuple[Pose, Velocity]:
+    def next_reference(self) -> tuple[Pose, Velocity]:
         if self.current_point_index >= len(self.reference_locations):
             self.finished = True
             return self.reference_locations[-1], self.reference_speeds[-1]

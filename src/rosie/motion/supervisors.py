@@ -17,7 +17,7 @@ class MovementSupervisor(ABC):
     def movement_end(self) -> None: ...
 
 
-class SupervisorContainer(MovementSupervisor, list[MovementSupervisor]):
+class Supervisors(MovementSupervisor, list[MovementSupervisor]):
     def movement_begin(self, expected_updates: int | None) -> None:
         for supervisor in self:
             supervisor.movement_begin(expected_updates)

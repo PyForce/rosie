@@ -113,7 +113,7 @@ class RosieClient:
 
         The robot stops, and planned movements are accepted again, when the block ends.
         """
-        self._request("POST", "/manual_mode", None)
+        self._request("POST", "/manual", None)
         try:
             with self._websocket() as websocket:
                 driver = Driver(websocket)
@@ -122,7 +122,7 @@ class RosieClient:
                 finally:
                     driver.stop()
         finally:
-            self._request("POST", "/auto_mode", None)
+            self._request("POST", "/planned", None)
 
     def _websocket(self) -> ClientConnection:
         address = urllib.parse.urlsplit(self.url)

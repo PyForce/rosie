@@ -45,7 +45,7 @@ The PyPI package is `pyforce-rosie` because the name `rosie` was taken; you stil
 - **Single Point Mode**: click the map, the robot goes there. In the settings, choose how many seconds it
   takes, and whether it goes around walls and furniture (the planner).
 - **Path Mode**: click several points, then send the robot along them.
-- **User Mode**: drive by hand, like a racing game: W and S for throttle, A and D to steer while moving, Q
+- **Manual Mode**: drive by hand, like a racing game: W and S for throttle, A and D to steer while moving, Q
   and E to turn on the spot (left and right). On a phone, a joystick.
 
 **From Python**, with the [client](client.md):

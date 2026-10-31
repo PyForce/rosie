@@ -45,14 +45,10 @@ class IOLinearizationTracker(TrajectoryTracker):
         u2 = y2d_dot + self.k2 * (y2d - y2)
         u1 = y1d_dot + self.k1 * (y1d - y1)
 
-        the_v = math.cos(pose.theta) * u1 + u2 * math.sin(pose.theta)
-        the_omega = u1 * (-math.sin(pose.theta) / self.b) + u2 * math.cos(pose.theta) / self.b
+        v = math.cos(pose.theta) * u1 + u2 * math.sin(pose.theta)
+        omega = u1 * (-math.sin(pose.theta) / self.b) + u2 * math.cos(pose.theta) / self.b
 
-        set_point_2 = (
-            the_v / self.wheels.radius + the_omega * self.wheels.distance / 2 / self.wheels.radius
-        )
-        set_point_1 = (
-            the_v / self.wheels.radius - the_omega * self.wheels.distance / 2 / self.wheels.radius
-        )
+        set_point_2 = v / self.wheels.radius + omega * self.wheels.distance / 2 / self.wheels.radius
+        set_point_1 = v / self.wheels.radius - omega * self.wheels.distance / 2 / self.wheels.radius
 
         return set_point_1, set_point_2, u1, u2

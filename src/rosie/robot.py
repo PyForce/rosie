@@ -9,7 +9,7 @@ from pathlib import Path
 
 from rosie.core import Robot
 from rosie.models import MotorHandlerFactory, Profile, SensorFactory
-from rosie.motion.controller import MovementController
+from rosie.motion.controller import MotionController
 from rosie.motion.drivers.arduino import ArduinoMotorDriver
 from rosie.motion.drivers.buses import open_i2c, open_serial
 from rosie.motion.drivers.md25 import MD25MotorDriver
@@ -24,7 +24,7 @@ from rosie.motion.motors import (
 )
 from rosie.motion.odometry import RungeKutta2Localizer
 from rosie.motion.recording import MovementRecorder
-from rosie.motion.supervisors import SupervisorContainer
+from rosie.motion.supervisors import Supervisors
 from rosie.motion.tracking import IOLinearizationTracker
 from rosie.motion.trajectories import (
     CubicTrajectoryPlanner,
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock: Clock) -> Robot:
-    supervisors = SupervisorContainer()
+    supervisors = Supervisors()
     sensors = {
         name: _choose(SENSORS, "sensor", name)(table) for name, table in profile.sensors.items()
     }
@@ -53,10 +53,8 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     return Robot(profile, motion, planner, sensors, supervisors)
 
 
-def motion_controller(
-    profile: Profile, supervisors: SupervisorContainer, clock: Clock
-) -> MovementController:
-    return MovementController(
+def motion_controller(profile: Profile, supervisors: Supervisors, clock: Clock) -> MotionController:
+    return MotionController(
         supervisors,
         _choose(TRAJECTORIES, "trajectory", profile.trajectory)(),
         RungeKutta2Localizer(profile.wheels),

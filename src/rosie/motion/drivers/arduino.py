@@ -38,7 +38,7 @@ class ArduinoMotorDriver(SpeedMotorDriver):
         except OSError:
             logger.exception("setting speeds")
 
-    def read_delta_encoders_count_state(self) -> EncoderReading | None:
+    def read_encoders(self) -> EncoderReading | None:
         try:
             self.serial_port.write(COMMAND_GETSTATE)
             if self.serial_port.read() != COMMAND_GETSTATE_RESPONSE:

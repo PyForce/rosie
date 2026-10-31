@@ -7,7 +7,7 @@ class MotorDriver(ABC):
     """A board driving the robot's two motors."""
 
     @abstractmethod
-    def read_delta_encoders_count_state(self) -> EncoderReading | None: ...
+    def read_encoders(self) -> EncoderReading | None: ...
 
 
 class SpeedMotorDriver(MotorDriver):
@@ -30,9 +30,9 @@ class PowerMotorDriver(MotorDriver):
     @abstractmethod
     def reset(self) -> None: ...
 
-    def set_real_speeds(self, real_speed_1: float, real_speed_2: float) -> None:
+    def set_measured_speeds(self, real_speed_1: float, real_speed_2: float) -> None:
         self.real_speed_1 = real_speed_1
         self.real_speed_2 = real_speed_2
 
-    def get_real_speeds(self) -> tuple[float, float]:
+    def measured_speeds(self) -> tuple[float, float]:
         return self.real_speed_1, self.real_speed_2

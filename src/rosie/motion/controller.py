@@ -28,7 +28,7 @@ APPROACH_GAIN_ANGLE = 3.0
 MIN_ELAPSED_TIME = 0.0000000001
 
 
-class MovementController:
+class MotionController:
     """
     Runs the robot's movements, one control step per tick(): follows the
     planned trajectory (closed loop) or the pressed keys (manual, open loop).
@@ -36,7 +36,7 @@ class MovementController:
 
     def __init__(
         self,
-        movement_supervisor: MovementSupervisor,
+        supervisors: MovementSupervisor,
         trajectory_planner: TrajectoryPlanner,
         odometry_localizer: OdometryLocalizer,
         trajectory_tracker: TrajectoryTracker,
@@ -45,9 +45,9 @@ class MovementController:
         control: Control,
         clock: Clock,
     ) -> None:
-        self.ordered_stop = True
+        self.stop_requested = True
         self.sample_time = control.sample_time
-        self.movement_supervisor = movement_supervisor
+        self.supervisors = supervisors
         self.wheels = wheels
         self.control = control
         self.clock = clock
@@ -58,7 +58,7 @@ class MovementController:
         self.robot_state = RESTING
 
         self.running = False
-        self.step = self.closed_loop_movement_control
+        self.step = self.planned_step
         self.prev_time = self.clock()
         self.finished_planning_at = self.prev_time
 
@@ -69,45 +69,36 @@ class MovementController:
         if self.running:
             self.step()
 
-    def movement_init(self, trajectory_parameters: TrajectoryParameters | None) -> None:
-        """Prepare a planned movement, or manual control when there are no parameters."""
-        if trajectory_parameters:
-            self.trajectory_planner.initialize_track(trajectory_parameters)
-            self.movement_supervisor.movement_begin(self.trajectory_planner.get_length())
-        else:
-            self.step = self.open_loop_movement_control
-            self.movement_supervisor.movement_begin(None)
-        self.motor_handler.reset()
-        self.trajectory_tracker.reset()
+    def start_planned(self, trajectory: TrajectoryParameters) -> None:
+        self.trajectory_planner.plan(trajectory)
+        self.supervisors.movement_begin(self.trajectory_planner.steps())
+        self._start()
 
-    def movement_start(self) -> None:
-        self.ordered_stop = False
-        self.prev_time = self.clock()
-        self.running = True
+    def start_manual(self) -> None:
+        self.step = self.manual_step
+        self.supervisors.movement_begin(None)
+        self._start()
 
-    def movement_stop(self) -> None:
-        self.ordered_stop = True
-
-    def movement_finish(self) -> None:
+    def finish(self) -> None:
         self.running = False
-        self.step = self.closed_loop_movement_control
-        self.movement_stop()
+        self.step = self.planned_step
+        self.stop_requested = True
         self.motor_handler.stop_motors()
-        self.movement_supervisor.movement_end()
+        self.supervisors.movement_end()
 
-    def closed_loop_movement_control(self) -> None:
+    def planned_step(self) -> None:
         now = self.clock()
         elapsed_time = now - self.prev_time
         self.prev_time = now
 
-        if self.ordered_stop:
-            self.movement_finish()
+        if self.stop_requested:
+            self.finish()
             return
 
         if self.trajectory_planner.has_finished():
             target = self.trajectory_planner.final_pose()
             if self._arrived(target) or self._overtime(now):
-                self.movement_finish()
+                self.finish()
                 return
 
         measured = self._measure(elapsed_time)
@@ -134,10 +125,10 @@ class MovementController:
                 battery_voltage,
                 elapsed_time,
             )
-            self.movement_supervisor.movement_update(self.robot_state)
+            self.supervisors.movement_update(self.robot_state)
             return
 
-        reference_location, reference_speed = self.trajectory_planner.get_next_point()
+        reference_location, reference_speed = self.trajectory_planner.next_reference()
         if self.trajectory_planner.has_finished():
             self.finished_planning_at = now
 
@@ -163,15 +154,15 @@ class MovementController:
             elapsed_time,
         )
 
-        self.movement_supervisor.movement_update(self.robot_state)
+        self.supervisors.movement_update(self.robot_state)
 
-    def open_loop_movement_control(self) -> None:
+    def manual_step(self) -> None:
         now = self.clock()
         elapsed_time = max(now - self.prev_time, 0.00001)
         self.prev_time = now
 
-        if self.ordered_stop:
-            self.movement_finish()
+        if self.stop_requested:
+            self.finish()
             return
 
         measured = self._measure(elapsed_time)
@@ -199,7 +190,7 @@ class MovementController:
             elapsed_time,
         )
 
-        self.movement_supervisor.movement_update(self.robot_state)
+        self.supervisors.movement_update(self.robot_state)
 
     def measure_speeds(
         self, delta_steps_1: float, delta_steps_2: float, elapsed_time: float
@@ -215,11 +206,18 @@ class MovementController:
 
         return angular_speed_1, angular_speed_2
 
+    def _start(self) -> None:
+        self.motor_handler.reset()
+        self.trajectory_tracker.reset()
+        self.stop_requested = False
+        self.prev_time = self.clock()
+        self.running = True
+
     def _measure(
         self, elapsed_time: float
     ) -> tuple[Pose, float, float, float, float, float] | None:
         """Read the encoders: (pose, wheel speeds, battery voltage, motor currents)."""
-        reading = self.motor_handler.read_delta_encoders_count_state()
+        reading = self.motor_handler.read_encoders()
         if not reading:
             logger.error("no reading from the motor driver")
             return None
@@ -228,7 +226,7 @@ class MovementController:
             delta_steps_1, delta_steps_2, elapsed_time
         )
         self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
-        location = self.odometry_localizer.update_location(delta_steps_1, delta_steps_2)
+        location = self.odometry_localizer.update(delta_steps_1, delta_steps_2)
         return location, angular_speed_1, angular_speed_2, battery_voltage, current_1, current_2
 
     def _approach_speeds(self, pose: Pose, target: Pose) -> tuple[float, float]:

@@ -33,14 +33,14 @@ def test_robots_are_independent(robot: Robot, simubot_profile: Profile) -> None:
 
 
 def test_goto_reaches_the_target(robot: Robot, run: Run) -> None:
-    robot.go_to(1, 0.5, 4)
+    robot.goto(1, 0.5, 4)
     run(robot, 5)
     assert distance(robot, 1, 0.5) < 0.01
 
 
 def test_goto_after_teleport(robot: Robot, run: Run) -> None:
     robot.teleport(1, 1, 0)
-    robot.go_to(2, 1, 3)
+    robot.goto(2, 1, 3)
     run(robot, 5)
     assert distance(robot, 2, 1) < 0.01
 
@@ -68,7 +68,7 @@ def test_too_fast_follow_still_arrives(robot: Robot, run: Run) -> None:
 
 def test_planner_crosses_rooms(robot: Robot, run: Run) -> None:
     robot.teleport(1, 1, 0)
-    robot.go_to_with_planner(7.7, 1.2, 3)
+    robot.goto_with_planner(7.7, 1.2, 3)
     run(robot, 1)
     assert distance(robot, 1, 1) > 0.05  # no idle first segment
     run(robot, 30)
@@ -78,13 +78,13 @@ def test_planner_crosses_rooms(robot: Robot, run: Run) -> None:
 def test_planner_refuses_unreachable_targets(robot: Robot) -> None:
     robot.teleport(1, 1, 0)
     with pytest.raises(NoRouteError, match="not found"):
-        robot.go_to_with_planner(5, 1, 3)
+        robot.goto_with_planner(5, 1, 3)
 
 
 @pytest.mark.parametrize("t", [0, 0.01])
 def test_rejects_times_shorter_than_a_control_step(robot: Robot, t: float) -> None:
     with pytest.raises(ValueError, match="control step"):
-        robot.go_to(1, 0, t)
+        robot.goto(1, 0, t)
     with pytest.raises(ValueError, match="control step"):
         robot.follow([(1, 0)], t)
 
@@ -101,15 +101,15 @@ def test_rejects_times_shorter_than_a_control_step(robot: Robot, t: float) -> No
 def test_steering_needs_throttle(
     robot: Robot, run: Run, keys: list[list[float]], turn: float
 ) -> None:
-    robot.start_open_loop_control()
-    robot.add_movement([sum(axis) for axis in zip(*keys, strict=True)])
+    robot.start_manual()
+    robot.move([sum(axis) for axis in zip(*keys, strict=True)])
     run(robot, 1.5)
     assert math.degrees(robot.position()[2]) == pytest.approx(turn, abs=3)
 
 
 def test_w_drives_forward(robot: Robot, run: Run) -> None:
-    robot.start_open_loop_control()
-    robot.add_movement(W)
+    robot.start_manual()
+    robot.move(W)
     run(robot, 1.5)
     x, y, theta = robot.position()
     assert x == pytest.approx(0.58, abs=0.05)
@@ -117,16 +117,16 @@ def test_w_drives_forward(robot: Robot, run: Run) -> None:
 
 
 def test_steering_alone_does_nothing(robot: Robot, run: Run) -> None:
-    robot.start_open_loop_control()
-    robot.add_movement(A)
+    robot.start_manual()
+    robot.move(A)
     run(robot, 1.5)
     assert robot.position() == (0.0, 0.0, 0.0)
 
 
 @pytest.mark.parametrize(("key", "sign"), [(Q, 1), (E, -1)], ids=["Q left", "E right"])
 def test_q_and_e_turn_on_the_spot(robot: Robot, run: Run, key: list[float], sign: int) -> None:
-    robot.start_open_loop_control()
-    robot.add_movement(key)
+    robot.start_manual()
+    robot.move(key)
     run(robot, 0.5)
     x, y, theta = robot.position()
     assert (x, y) == pytest.approx((0, 0), abs=1e-9)
@@ -134,17 +134,17 @@ def test_q_and_e_turn_on_the_spot(robot: Robot, run: Run, key: list[float], sign
 
 
 def test_stop_ends_manual_control(robot: Robot, run: Run) -> None:
-    robot.start_open_loop_control()
-    robot.add_movement(W)
+    robot.start_manual()
+    robot.move(W)
     run(robot, 0.5)
-    robot.stop_open_loop_control()
+    robot.stop_manual()
     before = robot.position()
     run(robot, 1)
     assert robot.position() == before
 
 
 def test_stop_ends_a_movement(robot: Robot, run: Run) -> None:
-    robot.go_to(2, 0, 4)
+    robot.goto(2, 0, 4)
     run(robot, 1)
     robot.stop()
     before = robot.position()

@@ -28,7 +28,7 @@ class VirtualMotorDriver(SpeedMotorDriver):
         self.current_speed_2 = self._clamp(speed_2)
         self.history.append((self.current_speed_1, self.current_speed_2, self.clock()))
 
-    def read_delta_encoders_count_state(self) -> EncoderReading:
+    def read_encoders(self) -> EncoderReading:
         self.history.append((self.current_speed_1, self.current_speed_2, self.clock()))
         delta_steps_1, delta_steps_2 = self._integrate()
         self.history = [(self.current_speed_1, self.current_speed_2, self.clock())]

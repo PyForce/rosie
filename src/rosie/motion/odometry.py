@@ -10,12 +10,12 @@ class OdometryLocalizer(ABC):
         self.pose = ORIGIN
 
     @abstractmethod
-    def update_location(self, delta_steps_1: float, delta_steps_2: float) -> Pose:
+    def update(self, delta_steps_1: float, delta_steps_2: float) -> Pose:
         """The pose after the wheels turned these encoder steps."""
 
 
 class RungeKutta2Localizer(OdometryLocalizer):
-    def update_location(self, delta_steps_1: float, delta_steps_2: float) -> Pose:
+    def update(self, delta_steps_1: float, delta_steps_2: float) -> Pose:
         dfr = delta_steps_2 * 2 * math.pi / self.wheels.encoder_steps
         dfl = delta_steps_1 * 2 * math.pi / self.wheels.encoder_steps
 

@@ -61,7 +61,7 @@ class PIDSpeedController(SpeedController):
 
 class MotorHandler(ABC):
     @abstractmethod
-    def read_delta_encoders_count_state(self) -> EncoderReading | None: ...
+    def read_encoders(self) -> EncoderReading | None: ...
 
     @abstractmethod
     def set_speeds(self, speed_1: float, speed_2: float) -> None: ...
@@ -85,8 +85,8 @@ class HardwareSpeedMotorHandler(MotorHandler):
     def set_speeds(self, speed_1: float, speed_2: float) -> None:
         self.speed_motor_driver.set_speeds(speed_1, speed_2)
 
-    def read_delta_encoders_count_state(self) -> EncoderReading | None:
-        return self.speed_motor_driver.read_delta_encoders_count_state()
+    def read_encoders(self) -> EncoderReading | None:
+        return self.speed_motor_driver.read_encoders()
 
     def set_measured_speeds(self, measured_speed_1: float, measured_speed_2: float) -> None:
         pass
@@ -108,17 +108,17 @@ class SoftwareSpeedMotorHandler(MotorHandler):
         self.speed_controller = speed_controller
 
     def set_speeds(self, speed_1: float, speed_2: float) -> None:
-        real_speed_1, real_speed_2 = self.power_motor_driver.get_real_speeds()
+        real_speed_1, real_speed_2 = self.power_motor_driver.measured_speeds()
         control_action_1, control_action_2 = self.speed_controller.regulate(
             speed_1, speed_2, real_speed_1, real_speed_2
         )
         self.power_motor_driver.set_powers(control_action_1, control_action_2)
 
-    def read_delta_encoders_count_state(self) -> EncoderReading | None:
-        return self.power_motor_driver.read_delta_encoders_count_state()
+    def read_encoders(self) -> EncoderReading | None:
+        return self.power_motor_driver.read_encoders()
 
     def set_measured_speeds(self, measured_speed_1: float, measured_speed_2: float) -> None:
-        self.power_motor_driver.set_real_speeds(measured_speed_1, measured_speed_2)
+        self.power_motor_driver.set_measured_speeds(measured_speed_1, measured_speed_2)
 
     def stop_motors(self) -> None:
         self.power_motor_driver.set_powers(0.0, 0.0)

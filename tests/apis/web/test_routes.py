@@ -141,14 +141,14 @@ def test_websocket_drives_in_manual_mode(
         tick(client, robot, clock, 0.5)
         assert robot.position() == (0, 0, 0)
 
-        assert client.post("/manual_mode").status_code == 200
+        assert client.post("/manual").status_code == 200
         websocket.send_text(move)
         websocket.send_text('{"type": "move", "data": "fast"}')
         tick(client, robot, clock, 0.05)  # lets the server read the messages
         tick(client, robot, clock, 1)
         assert robot.position()[0] > 0.2
 
-        assert client.put("/auto_mode").status_code == 200
+        assert client.put("/planned").status_code == 200
         before = robot.position()
         tick(client, robot, clock, 1)
         assert robot.position() == before

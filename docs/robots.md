@@ -115,7 +115,7 @@ docker run -p 8080:8080 --device /dev/i2c-1 --group-add $(getent group i2c | cut
 A driver is a class, and talks to its hardware through what it's given, so it can be tested with a fake:
 
 - a board that controls the wheel speeds itself: subclass `SpeedMotorDriver` (`set_speeds`,
-  `read_delta_encoders_count_state`), and wrap it in a `HardwareSpeedMotorHandler`;
+  `read_encoders`), and wrap it in a `HardwareSpeedMotorHandler`;
 - a board that takes powers: subclass `PowerMotorDriver` (`set_powers`, `reset`, and the encoder reading),
   and wrap it in a `SoftwareSpeedMotorHandler` with a `PIDSpeedController`.
 
