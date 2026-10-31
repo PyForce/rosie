@@ -13,8 +13,8 @@ from collections.abc import Callable
 from typing import Any
 
 from rosie.hardware.buses import open_i2c
+from rosie.hardware.models import I2CBus
 from rosie.hardware.sensors.models import UltrasoundSettings
-from rosie.models import I2CBus
 from rosie.profile import read_table
 
 logger = logging.getLogger(__name__)

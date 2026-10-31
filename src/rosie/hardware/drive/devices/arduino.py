@@ -9,7 +9,8 @@ import struct
 from rosie.errors import SetupError
 from rosie.hardware.buses import open_serial
 from rosie.hardware.drive.models import ArduinoSettings, EncoderReading
-from rosie.models import Clock, Profile, SerialPort
+from rosie.hardware.models import SerialPort
+from rosie.models import Clock, Profile
 from rosie.profile import read_table
 
 logger = logging.getLogger(__name__)

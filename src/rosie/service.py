@@ -5,10 +5,11 @@ import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 
+from rosie.apis.models import Interface
 from rosie.apis.web.server import start_web_api
 from rosie.core import Robot
 from rosie.errors import SetupError
-from rosie.models import Interface, Settings
+from rosie.models import Settings
 from rosie.profile import load_profile
 from rosie.robot import build_robot
 

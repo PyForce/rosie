@@ -6,7 +6,8 @@ from rosie.errors import SetupError
 from rosie.hardware.buses import open_i2c
 from rosie.hardware.drive.models import EncoderReading, MD25Settings
 from rosie.hardware.drive.pid import RESTING_PID, regulate_speed
-from rosie.models import Clock, I2CBus, PIDGains, Profile
+from rosie.hardware.models import I2CBus
+from rosie.models import Clock, PIDGains, Profile
 from rosie.profile import read_table
 
 logger = logging.getLogger(__name__)

@@ -1,18 +1,11 @@
 from collections.abc import Callable
-from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol
-
-if TYPE_CHECKING:
-    from rosie.core import Robot
+from typing import Any
 
 type Clock = Callable[[], float]  # s, only differences matter
 
 type Row = tuple[float | None, ...]  # a recorded control step, one value per column
-
-# an interface serves the robot while inside its context
-type Interface = Callable[[Robot, Settings], AbstractAsyncContextManager[None]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,24 +101,6 @@ class Settings:
     host: str  # where the web API listens
     port: int
     record: Path | None  # folder for a CSV of every planned movement
-
-
-class SerialPort(Protocol):
-    def write(self, data: bytes, /) -> int | None: ...
-
-    def read(self, size: int = 1, /) -> bytes: ...
-
-
-class I2CBus(Protocol):
-    def write_byte(self, address: int, value: int, /) -> None: ...
-
-    def read_byte(self, address: int, /) -> int: ...
-
-    def write_byte_data(self, address: int, register: int, value: int, /) -> None: ...
-
-    def write_i2c_block_data(self, address: int, register: int, data: list[int], /) -> None: ...
-
-    def read_i2c_block_data(self, address: int, register: int, length: int, /) -> list[int]: ...
 
 
 ORIGIN = Pose(0.0, 0.0, 0.0)

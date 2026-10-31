@@ -96,7 +96,8 @@ src/rosie/
 │   │   ├── pid.py        speed control, for drives that only take powers (MD25)
 │   │   └── models.py     Drive, its settings
 │   ├── sensors/          the ultrasound board, and its settings (models.py)
-│   └── buses.py          opening serial ports and I2C buses
+│   ├── buses.py          opening serial ports and I2C buses
+│   └── models.py         SerialPort, I2CBus
 ├── localization/         where the robot is
 │   └── odometry.py       encoder steps → wheel speeds and pose
 ├── planning/             where it should be
@@ -108,7 +109,8 @@ src/rosie/
 │   ├── teleoperation.py  driving by hand: steering, throttle, spin
 │   ├── movement.py       one control step: which controller, when a movement ends
 │   └── models.py         Planned, Manual, RobotState, MovementSupervisor
-├── apis/web/             the REST + WebSocket API (FastAPI)
+├── apis/                 what an interface is (models.py: Interface)
+│   └── web/              the REST + WebSocket API (FastAPI)
 ├── client/               the Python client
 └── builtin/
     ├── profiles/         rosie's own robot profiles
