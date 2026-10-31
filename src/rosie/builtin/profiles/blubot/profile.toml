@@ -12,11 +12,16 @@ distance = 0.3  # m between the wheels
 encoder_steps = 360  # per wheel turn
 max_speed = 10.0  # rad/s
 
-[board]
+[drive]
 type = "md25"  # speed PID in rosie, powers over I2C
 bus = 1
 address = 0x58
 max_power = 127.0  # powers go from -max_power to max_power
+
+[drive.gains]  # the wheel-speed PID
+kc = 3.75
+ki = 1.25
+kd = 1.25
 
 [control]
 sample_time = 0.05  # s between control steps
@@ -27,8 +32,3 @@ arrival_timeout = 5.0  # s it may take, after the planned time, to get that clos
 b = 0.1  # m, the tracked point ahead of the wheel axis
 k1 = 1.0
 k2 = 1.0
-
-[control.speed]  # wheel speed PID (not used by the virtual board)
-kc = 3.75
-ki = 1.25
-kd = 1.25

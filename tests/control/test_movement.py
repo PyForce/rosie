@@ -2,11 +2,11 @@ import pytest
 
 from rosie.control.models import Planned
 from rosie.control.movement import is_over, planned_step
-from rosie.models import STILL, Control, Pose, SpeedControl, Tracking, Velocity, Wheels
+from rosie.models import STILL, Control, Pose, Tracking, Velocity, Wheels
 from rosie.planning.models import Reference
 
 WHEELS = Wheels(radius=0.05, distance=0.3, encoder_steps=360, max_speed=10.0)
-CONTROL = Control(0.05, 0.01, 5.0, Tracking(0.1, 1.0, 1.0), SpeedControl(1.0, 1.0, 1.0))
+CONTROL = Control(0.05, 0.01, 5.0, Tracking(0.1, 1.0, 1.0))
 READING = (0.0, 0.0, 12.0, 0.1, 0.2)  # steps, steps, V, A, A
 
 

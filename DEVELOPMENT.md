@@ -327,7 +327,7 @@ Generates `rosie:latest`: rosie, WebRosie and nginx in front of both, on port 80
 release publishes downloads the WebRosie release named by `WEBROSIE_VERSION` and
 `WEBROSIE_SHA256` in the Dockerfile instead.
 
-For a real robot, give the container the board and your robot's folder:
+For a real robot, give the container the drive's device and your robot's folder:
 
 ```bash
 docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot-profile /robot

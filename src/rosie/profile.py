@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from rosie.errors import SetupError
-from rosie.models import Body, Control, Profile, SpeedControl, Tracking, Wheels
+from rosie.models import Body, Control, PIDGains, Profile, Tracking, Wheels
 
 BUILTIN_PROFILES = Path(__file__).parent / "builtin" / "profiles"
 
@@ -30,12 +30,13 @@ def load_profile(profile: str) -> Profile:
 
 def _parse(path: Path) -> Profile:
     data = tomllib.loads(path.read_text())
-    if not isinstance(data.get("board"), dict):
+    if not isinstance(data.get("drive"), dict):
         raise SetupError(
-            f'{path}: needs a [board] table, with its type = "virtual", "arduino" or "md25"'
+            f'{path}: needs a [drive] table, with its type = "virtual", "arduino" or "md25"'
         )
     try:
-        board: dict[str, Any] = dict(data["board"])
+        drive: dict[str, Any] = dict(data["drive"])
+        gains = drive.pop("gains", None)
         control = data["control"]
         return Profile(
             id=path.parent.resolve().name,
@@ -45,14 +46,14 @@ def _parse(path: Path) -> Profile:
             video=data.get("video"),
             body=Body(**data["body"]),
             wheels=Wheels(**data["wheels"]),
-            board=board.pop("type"),
-            board_settings=board,
+            drive=drive.pop("type"),
+            drive_settings=drive,
+            gains=None if gains is None else PIDGains(**gains),
             control=Control(
                 sample_time=control["sample_time"],
                 arrival_tolerance=control["arrival_tolerance"],
                 arrival_timeout=control["arrival_timeout"],
                 tracking=Tracking(**control["tracking"]),
-                speed=SpeedControl(**control["speed"]),
             ),
             sensors=data.get("sensors", {}),
         )

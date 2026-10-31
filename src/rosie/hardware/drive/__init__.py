@@ -1,4 +1,4 @@
-"""The motor boards rosie drives, one module each, picked by the profile's [board] type."""
+"""The drives rosie knows, one module each, picked by the profile's [drive] type."""
 
 from rosie.errors import SetupError
 from rosie.hardware.drive import arduino, md25, virtual
@@ -7,9 +7,9 @@ from rosie.models import Clock, Profile
 
 
 def open_drive(profile: Profile, clock: Clock) -> Drive:
-    if profile.board not in DRIVES:
-        raise SetupError(f"unsupported board: {profile.board} (known: {', '.join(DRIVES)})")
-    return DRIVES[profile.board](profile, clock)
+    if profile.drive not in DRIVES:
+        raise SetupError(f"unsupported drive: {profile.drive} (known: {', '.join(DRIVES)})")
+    return DRIVES[profile.drive](profile, clock)
 
 
 DRIVES: dict[str, DriveFactory] = {

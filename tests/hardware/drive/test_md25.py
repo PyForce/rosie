@@ -2,7 +2,7 @@ import pytest
 
 from conftest import FakeI2C
 from rosie.hardware.drive.md25 import MD25Drive
-from rosie.models import SpeedControl
+from rosie.models import PIDGains
 
 ADDRESS = 0x58
 
@@ -26,13 +26,13 @@ def bus() -> FakeI2C:
 
 @pytest.fixture
 def driver(bus: FakeI2C) -> MD25Drive:
-    driver = MD25Drive(bus, ADDRESS, SpeedControl(kc=10, ki=0, kd=0), 100)
+    driver = MD25Drive(bus, ADDRESS, PIDGains(kc=10, ki=0, kd=0), 100)
     bus.calls.clear()
     return driver
 
 
 def test_sets_the_board_up(bus: FakeI2C) -> None:
-    MD25Drive(bus, ADDRESS, SpeedControl(kc=10, ki=0, kd=0), 100)
+    MD25Drive(bus, ADDRESS, PIDGains(kc=10, ki=0, kd=0), 100)
     assert bus.calls == [
         ("write_byte_data", ADDRESS, 16, 32),  # reset the encoders
         ("write_byte_data", ADDRESS, 15, 1),  # mode 1: signed speeds

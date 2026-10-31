@@ -6,6 +6,7 @@ The rosie motor driver shield on an Arduino, over a serial port
 import logging
 import struct
 
+from rosie.errors import SetupError
 from rosie.hardware.buses import open_serial
 from rosie.hardware.drive.models import ArduinoSettings, EncoderReading
 from rosie.models import Clock, Profile, SerialPort
@@ -82,8 +83,9 @@ class ArduinoDrive:
 
 
 def open_drive(profile: Profile, _clock: Clock) -> ArduinoDrive:
-    settings = read_table(ArduinoSettings, profile.board_settings, f"[board] of {profile.id}")
+    settings = read_table(ArduinoSettings, profile.drive_settings, f"[drive] of {profile.id}")
+    if profile.gains is None:
+        raise SetupError(f"[drive.gains] of {profile.id}: the arduino drive needs its PID gains")
     drive = ArduinoDrive(open_serial(settings.port, settings.baudrate))
-    speed = profile.control.speed
-    drive.set_constants(speed.kc, speed.ki, speed.kd)
+    drive.set_constants(profile.gains.kc, profile.gains.ki, profile.gains.kd)
     return drive

@@ -133,16 +133,16 @@ after the planned time, with a warning in the log.
 
 Wheel speeds are what the tracker asks for; motors take power. Something has to close that loop:
 
-- the **Arduino** board runs its own speed controller; rosie sends it the gains at start-up;
-- the **MD25** board only takes powers, so rosie runs a PID for each wheel, in incremental form:
+- the **Arduino** drive runs its own speed controller; rosie sends it the gains at start-up;
+- the **MD25** drive only takes powers, so rosie runs a PID for each wheel, in incremental form:
 
 $$
 u_k = u_{k-1} + k_c (e_k - e_{k-1}) + k_i\, e_k + k_d (e_k - 2e_{k-1} + e_{k-2})
 $$
 
-  limited to $\pm$`max_power` (the MD25's `[board]`). Gains in the profile's `[control.speed]`: `kc`, `ki`,
+  limited to $\pm$`max_power` (the MD25's `[drive]`). Gains in the profile's `[drive.gains]`: `kc`, `ki`,
   `kd`.
-- the **simulated** board turns its wheels at exactly the speed asked, up to `max_speed`.
+- the **simulated** drive turns its wheels at exactly the speed asked, up to `max_speed`.
 
 ## Driving by hand
 

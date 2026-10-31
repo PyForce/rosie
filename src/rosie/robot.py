@@ -35,7 +35,9 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     planner.use_map(map_name)
     supervisors: list[MovementSupervisor] = []
     if recordings:
-        supervisors.append(MovementRecorder(profile.wheels, profile.control, recordings))
+        supervisors.append(
+            MovementRecorder(profile.wheels, profile.control, profile.gains, recordings)
+        )
     logger.info("profile: %s", profile.id)
     return Robot(
         profile,

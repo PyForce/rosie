@@ -1,7 +1,7 @@
 import pytest
 
 from rosie.hardware.drive.pid import RESTING_PID, pid
-from rosie.models import SpeedControl
+from rosie.models import PIDGains
 
 
 @pytest.mark.parametrize(
@@ -14,7 +14,7 @@ from rosie.models import SpeedControl
     ],
 )
 def test_pid(ki: float, kd: float, actions: list[float]) -> None:
-    gains = SpeedControl(kc=10, ki=ki, kd=kd)
+    gains = PIDGains(kc=10, ki=ki, kd=kd)
     history = RESTING_PID
     powers = []
     for error in [2, 1, 0.5]:
@@ -24,6 +24,6 @@ def test_pid(ki: float, kd: float, actions: list[float]) -> None:
 
 
 def test_pid_saturates() -> None:
-    gains = SpeedControl(kc=10, ki=0.5, kd=0)
+    gains = PIDGains(kc=10, ki=0.5, kd=0)
     assert pid(gains, 30, RESTING_PID, 10)[0] == 30
     assert pid(gains, 30, RESTING_PID, -10)[0] == -30

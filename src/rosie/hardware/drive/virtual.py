@@ -63,5 +63,5 @@ class VirtualDrive:
 
 
 def open_drive(profile: Profile, clock: Clock) -> VirtualDrive:
-    read_table(VirtualSettings, profile.board_settings, f"[board] of {profile.id}")
+    read_table(VirtualSettings, profile.drive_settings, f"[drive] of {profile.id}")
     return VirtualDrive(profile.wheels.encoder_steps, profile.wheels.max_speed, clock)

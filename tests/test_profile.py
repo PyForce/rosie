@@ -51,12 +51,12 @@ def test_unknown_profile(tmp_path: Path) -> None:
 
 
 def test_incomplete_profile(tmp_path: Path) -> None:
-    (tmp_path / "profile.toml").write_text('name = "HALF"\n[board]\ntype = "virtual"\n')
+    (tmp_path / "profile.toml").write_text('name = "HALF"\n[drive]\ntype = "virtual"\n')
     with pytest.raises(ValueError, match="missing or unknown setting"):
         load_profile(str(tmp_path))
 
 
 def test_a_profile_from_rosie_1(tmp_path: Path) -> None:
     (tmp_path / "profile.toml").write_text('name = "OLD"\nboard = "virtual"\n')
-    with pytest.raises(ValueError, match=r"needs a \[board\] table"):
+    with pytest.raises(ValueError, match=r"needs a \[drive\] table"):
         load_profile(str(tmp_path))

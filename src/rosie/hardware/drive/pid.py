@@ -1,11 +1,11 @@
 from rosie.hardware.drive.models import PIDHistory
-from rosie.models import SpeedControl
+from rosie.models import PIDGains
 
 RESTING_PID = PIDHistory(0.0, 0.0, 0.0)
 
 
 def pid(
-    gains: SpeedControl, max_power: float, history: PIDHistory, error: float
+    gains: PIDGains, max_power: float, history: PIDHistory, error: float
 ) -> tuple[float, PIDHistory]:
     """
     One step of the incremental speed PID: the power for one motor, from -max_power to

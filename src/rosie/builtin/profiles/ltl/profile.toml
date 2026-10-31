@@ -13,10 +13,15 @@ distance = 0.249  # m between the wheels
 encoder_steps = 270.9  # per wheel turn
 max_speed = 8.0  # rad/s
 
-[board]
+[drive]
 type = "arduino"  # speed PID on the board, over a serial port
 port = "/dev/ttyACM0"
 baudrate = 9600
+
+[drive.gains]  # the wheel-speed PID
+kc = 3.75
+ki = 1.25
+kd = 1.25
 
 [control]
 sample_time = 0.05  # s between control steps
@@ -27,8 +32,3 @@ arrival_timeout = 5.0  # s it may take, after the planned time, to get that clos
 b = 0.1  # m, the tracked point ahead of the wheel axis
 k1 = 1.0
 k2 = 1.0
-
-[control.speed]  # wheel speed PID (not used by the virtual board)
-kc = 3.75
-ki = 1.25
-kd = 1.25

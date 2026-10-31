@@ -18,7 +18,7 @@ runs one **control step**:
 3. Take the next point of the planned **trajectory**: where the robot should be now, and how fast it should
    be going.
 4. The **tracker** compares the two and decides how fast each wheel should turn.
-5. **Speed control** makes the wheels turn at those speeds: on the motor board itself, or in rosie (a PID).
+5. **Speed control** makes the wheels turn at those speeds: on the drive itself, or in rosie (a PID).
 6. Tell the **supervisors** what happened: the web API sends the new position to its clients, the recorder
    writes a row.
 
@@ -61,7 +61,7 @@ drive from a test, a notebook or your own loop.
 | Trajectory | a function, `TrajectoryShape` | `linear`, `cubic` (`trajectory` in the profile) |
 | Odometry | a function | `advance`: second-order Runge-Kutta |
 | Trajectory tracker | a function, `Tracker` | `io_linearization`: input-output linearization |
-| Drive | a class with the `Drive` methods | simulated, Arduino, MD25 (`[board]` in the profile) |
+| Drive | a class with the `Drive` methods | simulated, Arduino, MD25 (`[drive]` in the profile) |
 | Route planner | `Planner` | visibility graph + A* |
 | Supervisors | a class with the `MovementSupervisor` methods | web API, CSV recorder |
 
@@ -74,7 +74,7 @@ there is real state: the drives (their hardware), the supervisors, and the robot
 `build_robot` takes a `clock`: a function returning the time in seconds. `rosie start` gives it `time.monotonic`;
 tests and experiments give it a clock they move by hand, so a 10-second movement is simulated in
 milliseconds and comes out the same every run ([example](getting-started.md#simulate-faster-than-real-time)).
-The simulated motor board uses the same clock to integrate the wheel speeds.
+The simulated drive uses the same clock to integrate the wheel speeds.
 
 ## Where things are
 

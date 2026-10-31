@@ -16,7 +16,7 @@ from dataclasses import asdict, astuple
 from pathlib import Path
 
 from rosie.control.models import RobotState
-from rosie.models import STILL, Control, Row, Wheels
+from rosie.models import STILL, Control, PIDGains, Row, Wheels
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +36,14 @@ COLUMNS = (
 class MovementRecorder:
     """A MovementSupervisor that writes a CSV file per planned movement."""
 
-    def __init__(self, wheels: Wheels, control: Control, directory: Path) -> None:
+    def __init__(
+        self, wheels: Wheels, control: Control, gains: PIDGains | None, directory: Path
+    ) -> None:
         # as the profile names them: wheels.radius, control.tracking.b...
-        self.settings = _flatten("", {"wheels": asdict(wheels), "control": asdict(control)})
+        tables: dict[str, object] = {"wheels": asdict(wheels), "control": asdict(control)}
+        if gains:
+            tables["drive"] = {"gains": asdict(gains)}
+        self.settings = _flatten("", tables)
         self.directory = directory
         directory.mkdir(parents=True, exist_ok=True)
         self.rows: list[Row] | None = None  # None: not recording (manual control)

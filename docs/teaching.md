@@ -53,7 +53,7 @@ alone.
 
 1. The PID is tested on its own in `tests/hardware/drive/test_pid.py`: extend it with a simple motor model
    (first-order lag) and plot step responses for different gains.
-2. On a robot with an MD25 board, record a movement and plot each wheel's speed against its set point.
+2. On a robot with an MD25 drive, record a movement and plot each wheel's speed against its set point.
 
 ## Lab 5: navigation
 

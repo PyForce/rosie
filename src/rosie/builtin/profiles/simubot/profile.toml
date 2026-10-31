@@ -12,7 +12,7 @@ distance = 0.2995  # m between the wheels
 encoder_steps = 360  # per wheel turn
 max_speed = 20.0  # rad/s
 
-[board]
+[drive]
 type = "virtual"  # simulated
 
 [control]
@@ -24,8 +24,3 @@ arrival_timeout = 5.0  # s it may take, after the planned time, to get that clos
 b = 0.1  # m, the tracked point ahead of the wheel axis
 k1 = 1.0
 k2 = 1.0
-
-[control.speed]  # wheel speed PID (not used by the virtual board)
-kc = 2.0
-ki = 1.0
-kd = 1.0

@@ -2,10 +2,11 @@
 
 import logging
 
+from rosie.errors import SetupError
 from rosie.hardware.buses import open_i2c
 from rosie.hardware.drive.models import EncoderReading, MD25Settings
 from rosie.hardware.drive.pid import RESTING_PID, pid
-from rosie.models import Clock, I2CBus, Profile, SpeedControl
+from rosie.models import Clock, I2CBus, PIDGains, Profile
 from rosie.profile import read_table
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class MD25Drive:
     """The MD25 only takes motor powers: rosie's PID turns the wheel speeds into them."""
 
     def __init__(
-        self, i2c_bus: I2CBus, i2c_bus_address: int, gains: SpeedControl, max_power: float
+        self, i2c_bus: I2CBus, i2c_bus_address: int, gains: PIDGains, max_power: float
     ) -> None:
         self.gains = gains
         self.max_power = max_power
@@ -139,7 +140,7 @@ class MD25Drive:
 
 
 def open_drive(profile: Profile, _clock: Clock) -> MD25Drive:
-    settings = read_table(MD25Settings, profile.board_settings, f"[board] of {profile.id}")
-    return MD25Drive(
-        open_i2c(settings.bus), settings.address, profile.control.speed, settings.max_power
-    )
+    settings = read_table(MD25Settings, profile.drive_settings, f"[drive] of {profile.id}")
+    if profile.gains is None:
+        raise SetupError(f"[drive.gains] of {profile.id}: the md25 drive needs its PID gains")
+    return MD25Drive(open_i2c(settings.bus), settings.address, profile.gains, settings.max_power)

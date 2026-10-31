@@ -46,8 +46,8 @@ class Tracking:
 
 
 @dataclass(frozen=True, slots=True)
-class SpeedControl:
-    """The wheel speed PID: on the board (arduino) or in rosie (md25)."""
+class PIDGains:
+    """The drive's wheel-speed PID: run by the Arduino shield, or by rosie for the MD25."""
 
     kc: float
     ki: float
@@ -60,7 +60,6 @@ class Control:
     arrival_tolerance: float  # m: a planned movement ends this close to its last point
     arrival_timeout: float  # s it may take, after the planned time, to get that close
     tracking: Tracking
-    speed: SpeedControl
 
 
 type Row = tuple[float | None, ...]  # a recorded control step, one value per column
@@ -94,8 +93,9 @@ class Profile:
     video: str | None  # stream served by another program, ":port/path" on this host
     body: Body
     wheels: Wheels
-    board: str  # virtual, arduino or md25
-    board_settings: dict[str, Any]  # the rest of the [board] table, as the profile gives it
+    drive: str  # virtual, arduino or md25
+    drive_settings: dict[str, Any]  # the rest of the [drive] table, as the profile gives it
+    gains: PIDGains | None  # [drive.gains]; the virtual drive has no PID
     control: Control
     sensors: dict[str, dict[str, Any]]  # sensor name -> its table, as the profile gives it
 

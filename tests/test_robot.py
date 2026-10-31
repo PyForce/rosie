@@ -8,7 +8,7 @@ import rosie.hardware.drive.arduino
 import rosie.hardware.drive.md25
 from conftest import FakeClock, FakeI2C, FakeSerial, distance
 from rosie.core import Robot
-from rosie.models import Profile
+from rosie.models import PIDGains, Profile
 from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.profile import load_profile
 from rosie.robot import build_robot
@@ -26,15 +26,15 @@ def test_records_planned_movements(
     lines = recording.read_text().splitlines()
     assert lines[0] == "# wheels.radius = 0.05"
     assert "# control.tracking.b = 0.1" in lines
-    assert lines[13].startswith("time,elapsed,x,y,theta")
-    assert len(lines) > 14 + 30
+    assert lines[10].startswith("time,elapsed,x,y,theta")  # simubot: no drive gains
+    assert len(lines) > 11 + 30
 
 
 @pytest.mark.parametrize(
     ("change", "message"),
     [
         (lambda p: dataclasses.replace(p, trajectory="spline"), "unsupported trajectory: spline"),
-        (lambda p: dataclasses.replace(p, board="lego"), "unsupported board: lego"),
+        (lambda p: dataclasses.replace(p, drive="lego"), "unsupported drive: lego"),
     ],
 )
 def test_unknown_profile_choices(
@@ -61,15 +61,15 @@ class StuckArduino(FakeSerial):
 
 
 @pytest.fixture
-def fake_boards(monkeypatch: pytest.MonkeyPatch) -> tuple[FakeSerial, FakeI2C]:
+def fake_drives(monkeypatch: pytest.MonkeyPatch) -> tuple[FakeSerial, FakeI2C]:
     serial, bus = StuckArduino(), FakeI2C()
     monkeypatch.setattr(rosie.hardware.drive.arduino, "open_serial", lambda port, baudrate: serial)
     monkeypatch.setattr(rosie.hardware.drive.md25, "open_i2c", lambda number: bus)
     return serial, bus
 
 
-def test_arduino_robot(fake_boards: tuple[FakeSerial, FakeI2C], clock: FakeClock, run: Run) -> None:
-    serial, _ = fake_boards
+def test_arduino_robot(fake_drives: tuple[FakeSerial, FakeI2C], clock: FakeClock, run: Run) -> None:
+    serial, _ = fake_drives
     robot = build_robot(load_profile("kevin"), DEFAULT_MAP, None, clock)
     assert serial.written[0][0] == 0xA6  # the board's PID constants
     robot.goto(1, 0, 2)
@@ -79,8 +79,8 @@ def test_arduino_robot(fake_boards: tuple[FakeSerial, FakeI2C], clock: FakeClock
     )  # speeds
 
 
-def test_md25_robot(fake_boards: tuple[FakeSerial, FakeI2C], clock: FakeClock, run: Run) -> None:
-    _, bus = fake_boards
+def test_md25_robot(fake_drives: tuple[FakeSerial, FakeI2C], clock: FakeClock, run: Run) -> None:
+    _, bus = fake_drives
     robot = build_robot(load_profile("rovert"), DEFAULT_MAP, None, clock)
     robot.goto(1, 0, 2)
     run(robot, 0.5)
@@ -88,7 +88,7 @@ def test_md25_robot(fake_boards: tuple[FakeSerial, FakeI2C], clock: FakeClock, r
 
 
 def test_gives_up_on_a_robot_that_never_arrives(
-    fake_boards: tuple[FakeSerial, FakeI2C],
+    fake_drives: tuple[FakeSerial, FakeI2C],
     clock: FakeClock,
     run: Run,
     caplog: pytest.LogCaptureFixture,
@@ -108,7 +108,7 @@ def test_cubic_robot(simubot_profile: Profile, clock: FakeClock, run: Run) -> No
     assert distance(robot, 1, 1) < 0.01
 
 
-def test_the_board_settings_come_from_the_profile(
+def test_the_drive_settings_come_from_the_profile(
     simubot_profile: Profile, clock: FakeClock, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     opened: list[tuple[str, int]] = []
@@ -120,14 +120,35 @@ def test_the_board_settings_come_from_the_profile(
     monkeypatch.setattr(rosie.hardware.drive.arduino, "open_serial", open_serial)
     arduino = dataclasses.replace(
         simubot_profile,
-        board="arduino",
-        board_settings={"port": "/dev/ttyUSB1", "baudrate": 115200},
+        drive="arduino",
+        drive_settings={"port": "/dev/ttyUSB1", "baudrate": 115200},
+        gains=PIDGains(kc=1.0, ki=0.5, kd=0.25),
     )
     build_robot(arduino, DEFAULT_MAP, None, clock)
     assert opened == [("/dev/ttyUSB1", 115200)]
 
 
-def test_an_unknown_board_setting(simubot_profile: Profile, clock: FakeClock) -> None:
-    virtual = dataclasses.replace(simubot_profile, board_settings={"port": "/dev/ttyACM0"})
-    with pytest.raises(ValueError, match=r"\[board\] of simubot: unknown setting"):
+def test_an_unknown_drive_setting(simubot_profile: Profile, clock: FakeClock) -> None:
+    virtual = dataclasses.replace(simubot_profile, drive_settings={"port": "/dev/ttyACM0"})
+    with pytest.raises(ValueError, match=r"\[drive\] of simubot: unknown setting"):
         build_robot(virtual, DEFAULT_MAP, None, clock)
+
+
+@pytest.mark.parametrize("drive", ["arduino", "md25"])
+def test_a_drive_with_a_pid_needs_its_gains(
+    simubot_profile: Profile, clock: FakeClock, fake_drives: tuple[FakeSerial, FakeI2C], drive: str
+) -> None:
+    without = dataclasses.replace(simubot_profile, drive=drive)  # simubot has no [drive.gains]
+    with pytest.raises(ValueError, match=rf"\[drive.gains\] of simubot: the {drive} drive needs"):
+        build_robot(without, DEFAULT_MAP, None, clock)
+
+
+def test_recordings_name_the_drive_gains(
+    simubot_profile: Profile, clock: FakeClock, run: Run, tmp_path: Path
+) -> None:
+    with_gains = dataclasses.replace(simubot_profile, gains=PIDGains(kc=2.0, ki=1.0, kd=0.5))
+    robot = build_robot(with_gains, DEFAULT_MAP, tmp_path, clock)
+    robot.goto(1, 0, 2)
+    run(robot, 4)
+    (recording,) = tmp_path.iterdir()
+    assert "# drive.gains.kc = 2.0" in recording.read_text().splitlines()

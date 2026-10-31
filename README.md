@@ -109,7 +109,7 @@ uv run rosie start
 | Reaching a point | a polar go-to-point controller |
 | Wheel speed control | an incremental PID |
 | Route planning | free space, a visibility graph, A* |
-| Hardware | serial and I2C motor boards, an ultrasound sensor board |
+| Hardware | serial and I2C motor drives, an ultrasound sensor board |
 | Integration | a REST + WebSocket API, a web interface, a Python client |
 
 The simulated robot runs on a clock you control, so a script can simulate a 10-second movement in
