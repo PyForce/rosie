@@ -1,6 +1,7 @@
 import math
 
 from rosie.control.models import TrackerOutput
+from rosie.hardware.drive.kinematics import compute_wheel_speeds
 from rosie.models import Pose, Tracking, Velocity, Wheels
 
 
@@ -31,7 +32,5 @@ def io_linearization(
     v = math.cos(pose.theta) * u1 + u2 * math.sin(pose.theta)
     omega = u1 * (-math.sin(pose.theta) / tracking.b) + u2 * math.cos(pose.theta) / tracking.b
 
-    set_point_2 = v / wheels.radius + omega * wheels.distance / 2 / wheels.radius
-    set_point_1 = v / wheels.radius - omega * wheels.distance / 2 / wheels.radius
-
+    set_point_1, set_point_2 = compute_wheel_speeds(v, omega, wheels)
     return set_point_1, set_point_2, u1, u2

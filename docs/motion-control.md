@@ -22,6 +22,8 @@ $$
 \omega_1 = \frac{v}{r} - \frac{\omega L}{2r} \qquad \omega_2 = \frac{v}{r} + \frac{\omega L}{2r}
 $$
 
+In rosie: `hardware/drive/kinematics.py` · `compute_wheel_speeds`, which every controller ends with.
+
 The robot can't move sideways: it's *nonholonomic*, which is what makes controlling it interesting.
 
 ## Where is the robot? Odometry
@@ -185,6 +187,7 @@ robot's own frame:
 import math
 
 from rosie.control.models import TrackerOutput
+from rosie.hardware.drive.kinematics import compute_wheel_speeds
 from rosie.models import Pose, Velocity, Wheels
 
 
@@ -206,8 +209,7 @@ def kanayama(
     v_ref = math.hypot(reference_velocity.x, reference_velocity.y)
     v = v_ref * math.cos(etheta) + kx * ex
     omega = reference_velocity.theta + v_ref * (ky * ey + ktheta * math.sin(etheta))
-    r, half_axis = wheels.radius, wheels.distance / 2
-    return (v - omega * half_axis) / r, (v + omega * half_axis) / r, v, omega
+    return (*compute_wheel_speeds(v, omega, wheels), v, omega)
 ```
 
 Give it to a robot, here the simulated one from
