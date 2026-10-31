@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from rosie.profile import PROFILES_DIR, load_profile
+from rosie.profile import BUILTIN_PROFILES, load_profile
 
 
 @pytest.mark.parametrize("profile_id", ["simubot", "kevin", "ltl", "rovert", "blubot"])
@@ -16,7 +16,7 @@ def test_builtin_profiles_load(profile_id: str) -> None:
 
 def copy_of_simubot(folder: Path, extra: str = "") -> Path:
     folder.mkdir()
-    text = (PROFILES_DIR / "simubot" / "profile.toml").read_text()
+    text = (BUILTIN_PROFILES / "simubot" / "profile.toml").read_text()
     (folder / "profile.toml").write_text(text.replace('name = "SIMUBOT"', 'name = "MINE"') + extra)
     return folder
 

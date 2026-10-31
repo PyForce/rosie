@@ -98,8 +98,9 @@ src/rosie/
 │   └── drivers/       simulated, Arduino, MD25 boards, and their settings (models.py)
 ├── planning/          maps, visibility graph, A*, route planner
 ├── apis/web/          the REST + WebSocket API (FastAPI)
-├── sensors/          the ultrasound board, and its settings (models.py)
+├── sensors/           the ultrasound board, and its settings (models.py)
 ├── client/            the Python client
-├── profiles/          built-in robots
-└── maps/              built-in maps
+└── builtin/
+    ├── profiles/      rosie's own robot profiles
+    └── maps/          rosie's own maps
 ```

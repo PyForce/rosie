@@ -1,5 +1,5 @@
 """
-Floor maps (JSON files in rosie/maps): rooms with their borders, and the
+Floor maps (JSON files, rosie's own in rosie/builtin/maps): rooms with their borders, and the
 items (furniture) in them.
 """
 
@@ -14,7 +14,7 @@ from shapely.ops import unary_union
 from rosie.errors import SetupError
 from rosie.planning.models import Map, Points
 
-MAPS_DIR = Path(__file__).parent.parent / "maps"
+BUILTIN_MAPS = Path(__file__).parent.parent / "builtin" / "maps"
 DEFAULT_MAP = "Gustavo's House"
 
 

@@ -4,7 +4,7 @@
 
 A robot is a folder with a `profile.toml`, a `thumbnail.png` (its picture), a `vector.svg` (its icon on the
 map) and, if you like, its own floor maps in `maps/` ([Navigation](navigation.md#maps)). rosie's own are in
-`src/rosie/profiles/` and you pick them by name (`rosie start --robot-profile kevin`); yours by the path of
+`src/rosie/builtin/profiles/` and you pick them by name (`rosie start --robot-profile kevin`); yours by the path of
 the folder (`rosie start --robot-profile ./my-robot`). To change a built-in robot, copy its folder.
 
 ```toml

@@ -11,8 +11,8 @@ import pytest
 from rosie import service
 from rosie.errors import HardwareUnavailableError
 from rosie.models import Profile, Settings
-from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR
-from rosie.profile import PROFILES_DIR
+from rosie.planning.maps import BUILTIN_MAPS, DEFAULT_MAP
+from rosie.profile import BUILTIN_PROFILES
 from rosie.robot import build_robot
 
 
@@ -43,8 +43,8 @@ def test_runs_the_robot_and_its_web_api_until_a_signal(
     # your robot, with a map of its own next to rosie's
     robot = tmp_path / "my-robot"
     (robot / "maps").mkdir(parents=True)
-    (robot / "profile.toml").write_text((PROFILES_DIR / "simubot" / "profile.toml").read_text())
-    house = (MAPS_DIR / "house.json").read_text()
+    (robot / "profile.toml").write_text((BUILTIN_PROFILES / "simubot" / "profile.toml").read_text())
+    house = (BUILTIN_MAPS / "house.json").read_text()
     (robot / "maps" / "garage.json").write_text(house.replace(DEFAULT_MAP, "Garage"))
 
     async def scenario() -> tuple[str, str]:
@@ -71,7 +71,7 @@ def test_runs_the_robot_and_its_web_api_until_a_signal(
 
 def test_a_robot_with_an_ultrasound_board_needs_it(tmp_path: Path) -> None:
     (tmp_path / "profile.toml").write_text(
-        (PROFILES_DIR / "simubot" / "profile.toml").read_text() + "\n[sensors.usound]\n"
+        (BUILTIN_PROFILES / "simubot" / "profile.toml").read_text() + "\n[sensors.usound]\n"
     )
     with pytest.raises(HardwareUnavailableError):  # no I2C bus here
         asyncio.run(service.run(settings(str(tmp_path), free_port())))

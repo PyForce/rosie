@@ -13,16 +13,18 @@ from rosie.errors import SetupError
 from rosie.models import Body, Profile
 from rosie.motion.models import Control, SpeedControl, Tracking, Wheels
 
-PROFILES_DIR = Path(__file__).parent / "profiles"
+BUILTIN_PROFILES = Path(__file__).parent / "builtin" / "profiles"
 
 
 def load_profile(profile: str) -> Profile:
     """One of rosie's profiles by name (simubot), or yours by its folder (./my-robot)."""
-    builtin = PROFILES_DIR / profile
+    builtin = BUILTIN_PROFILES / profile
     folder = builtin if "/" not in profile and builtin.is_dir() else Path(profile).expanduser()
     path = folder / "profile.toml"
     if not path.is_file():
-        known = ", ".join(sorted(path.parent.name for path in PROFILES_DIR.glob("*/profile.toml")))
+        known = ", ".join(
+            sorted(path.parent.name for path in BUILTIN_PROFILES.glob("*/profile.toml"))
+        )
         raise SetupError(f"unknown robot profile {profile}: no {path} (rosie's own: {known})")
     return _parse(path)
 

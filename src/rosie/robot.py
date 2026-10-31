@@ -32,7 +32,7 @@ from rosie.motion.trajectories import (
     LinearTrajectoryPlanner,
     TrajectoryPlanner,
 )
-from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.planning.maps import BUILTIN_MAPS, list_maps
 from rosie.planning.planner import Planner
 from rosie.sensors import usound
 
@@ -46,7 +46,7 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     }
     motion = motion_controller(profile, supervisors, clock)
     # the robot's own maps first: they win a name over rosie's
-    planner = Planner(list_maps([profile.maps, MAPS_DIR]))
+    planner = Planner(list_maps([profile.maps, BUILTIN_MAPS]))
     planner.use_map(map_name)
     if recordings:
         supervisors.append(MovementRecorder(profile.wheels, profile.control, recordings))

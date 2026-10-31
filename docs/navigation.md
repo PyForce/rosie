@@ -7,7 +7,7 @@ robot follows the route's corners like any other path.
 
 ## Maps
 
-`planning/maps.py` · `src/rosie/maps/house.json`
+`planning/maps.py` · `src/rosie/builtin/maps/house.json`
 
 A map is a JSON file of rooms, in metres, with [GeoJSON](https://geojson.org/) shapes:
 
