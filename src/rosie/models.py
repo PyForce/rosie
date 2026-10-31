@@ -74,12 +74,5 @@ class I2CBus(Protocol):
     def read_i2c_block_data(self, address: int, register: int, length: int, /) -> list[int]: ...
 
 
-class Tickable(Protocol):
-    @property
-    def sample_time(self) -> float: ...
-
-    def tick(self) -> None: ...
-
-
 # an interface serves the robot while inside its context
 type Interface = Callable[[Robot, Settings], AbstractAsyncContextManager[None]]

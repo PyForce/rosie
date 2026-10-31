@@ -21,7 +21,7 @@ web page that drives it.
 | Wheel speed control (PID) | `motion/pid.py` | [Motion control](motion-control.md#turning-the-wheels-speed-control) |
 | Route planning (visibility graph, A*) | `planning/` | [Navigation](navigation.md) |
 | Talking to hardware (serial, I2C) | `boards/`, `sensors/`, `buses.py` | [Robots and hardware](robots.md) |
-| Robot software architecture | `core.py`, `robot.py`, `service.py`, `ticker.py` | [How rosie works](how-rosie-works.md) |
+| Robot software architecture | `core.py`, `robot.py`, `service.py` | [How rosie works](how-rosie-works.md) |
 | Web APIs, WebSockets, clients | `apis/web/`, `client/` | [Web API and extensions](integration.md), [Python client](client.md) |
 
 ## Try it

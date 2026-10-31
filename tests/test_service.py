@@ -4,6 +4,7 @@ import os
 import signal
 import socket
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -114,3 +115,27 @@ def test_control_loop_stops_the_motors_on_the_way_out(simubot_profile: Profile) 
 
     asyncio.run(scenario())
     assert robot.position()[0] > 0
+
+
+async def call_for(seconds: float, action: Callable[[], None]) -> None:
+    running = asyncio.create_task(service.run_every(0.01, action))
+    await asyncio.sleep(seconds)
+    running.cancel()
+
+
+def test_run_every_keeps_the_period() -> None:
+    calls: list[float] = []
+    asyncio.run(call_for(0.1, lambda: calls.append(time.monotonic())))
+    assert 8 <= len(calls) <= 12
+
+
+def test_run_every_doesnt_rush_after_a_late_call() -> None:
+    calls: list[float] = []
+
+    def late_once() -> None:
+        calls.append(time.monotonic())
+        if len(calls) == 1:
+            time.sleep(0.05)  # five periods late
+
+    asyncio.run(call_for(0.1, late_once))
+    assert len(calls) <= 8  # 0.05 s lost, the rest at the normal pace

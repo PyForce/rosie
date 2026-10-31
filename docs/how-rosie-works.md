@@ -33,7 +33,7 @@ reading and the writing; the step itself is a function in `motion/control.py`, `
 `rosie start` runs one Python process with one [asyncio](https://docs.python.org/3/library/asyncio.html)
 event loop:
 
-- The control loop (`ticker.py`) calls `robot.tick()` every `sample_time` seconds. A late step doesn't make
+- The control loop (`run_every` in `service.py`) calls `robot.tick()` every `sample_time` seconds. A late step doesn't make
   the next ones rush to catch up.
 - Each interface (the web API, by default) is a task on the same loop.
 - A stop signal (Ctrl+C, `docker stop`) stops the control loop first, then the motors, then the interfaces.
@@ -84,7 +84,6 @@ src/rosie/
 ├── cli.py             rosie start and its options (Typer)
 ├── models.py          Settings, Profile, and the types the modules share
 ├── service.py         rosie start: the robot, its control loop and its interfaces
-├── ticker.py          the control loop's timing
 ├── core.py            Robot: its state, its tick, and what interfaces can ask of it
 ├── robot.py           build_robot: a Robot from its profile (boards, sensors, maps)
 ├── profile.py         reading a profile.toml

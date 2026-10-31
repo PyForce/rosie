@@ -14,7 +14,7 @@ from rosie.errors import NoRouteError, RequestError
 from rosie.models import Profile
 from rosie.planning.maps import DEFAULT_MAP
 from rosie.robot import build_robot
-from rosie.ticker import keep_ticking
+from rosie.service import start_control_loop
 
 FORWARD = (0.0, 1.0, 0.0)
 
@@ -31,9 +31,8 @@ def served(simubot_profile: Profile) -> Iterator[tuple[RosieClient, Robot]]:
     )
 
     async def serve() -> None:
-        ticking = asyncio.create_task(keep_ticking(robot))
-        await server.serve()
-        ticking.cancel()
+        async with start_control_loop(robot):
+            await server.serve()
 
     thread = threading.Thread(target=asyncio.run, args=(serve(),))
     thread.start()

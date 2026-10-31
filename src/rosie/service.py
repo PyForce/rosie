@@ -2,7 +2,7 @@ import asyncio
 import logging
 import signal
 import time
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 
 from rosie.apis.web.server import start_web_api
@@ -11,7 +11,6 @@ from rosie.errors import SetupError
 from rosie.models import Interface, Settings
 from rosie.profile import load_profile
 from rosie.robot import build_robot
-from rosie.ticker import keep_ticking
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +59,27 @@ async def start_interfaces(
 @asynccontextmanager
 async def start_control_loop(robot: Robot) -> AsyncGenerator[None, None]:
     """Start the control loop; on the way out of the block, end it and stop the motors."""
-    ticking = asyncio.create_task(keep_ticking(robot))
+    ticking = asyncio.create_task(run_every(robot.sample_time, robot.tick))
     try:
         yield
     finally:
         ticking.cancel()
         robot.stop()
         await asyncio.gather(ticking, return_exceptions=True)
+
+
+async def run_every(period: float, action: Callable[[], None]) -> None:
+    """
+    Call `action` every `period` seconds, until cancelled. After a late call the
+    next ones keep the period: they don't rush to catch up.
+    """
+    loop = asyncio.get_running_loop()
+    deadline = loop.time()
+    while True:
+        action()
+        now = loop.time()
+        deadline = max(deadline + period, now)
+        await asyncio.sleep(deadline - now)
 
 
 INTERFACES: dict[str, Interface] = {"web": start_web_api}
