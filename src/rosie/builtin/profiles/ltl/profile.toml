@@ -1,5 +1,5 @@
 name = "LTL3.0"
-trajectory = "linear"  # linear or cubic
+trajectory_planner = "linear"  # linear or cubic
 video = ":8080/stream/video.mjpeg"  # stream served by another program, ":port/path" on this host
 
 [body]  # m

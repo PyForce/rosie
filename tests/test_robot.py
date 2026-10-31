@@ -33,7 +33,10 @@ def test_records_planned_movements(
 @pytest.mark.parametrize(
     ("change", "message"),
     [
-        (lambda p: dataclasses.replace(p, trajectory="spline"), "unsupported trajectory: spline"),
+        (
+            lambda p: dataclasses.replace(p, trajectory_planner="spline"),
+            "unsupported trajectory planner: spline",
+        ),
         (lambda p: dataclasses.replace(p, drive_type="lego"), "unsupported drive: lego"),
     ],
 )
@@ -103,7 +106,7 @@ def test_gives_up_on_a_robot_that_never_arrives(
 
 
 def test_cubic_robot(simubot_profile: Profile, clock: FakeClock, run: Run) -> None:
-    cubic = dataclasses.replace(simubot_profile, trajectory="cubic")
+    cubic = dataclasses.replace(simubot_profile, trajectory_planner="cubic")
     robot = build_robot(cubic, DEFAULT_MAP, None, clock)
     robot.follow([(1.0, 0.0), (1.0, 1.0)], 3)
     run(robot, 8)

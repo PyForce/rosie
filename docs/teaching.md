@@ -21,7 +21,7 @@ alone.
 
 1. Drive a square by hand (Manual Mode) and come back to the start. Where does rosie think the robot is?
 2. The simulated robot has no separate truth: its position *is* its odometry. Add one: a
-   [observer](integration.md#extending-rosie) that integrates the wheel speeds of every `RobotState`
+   [observer](integration.md#extending-rosie) that integrates the wheel speeds of every `Telemetry`
    with a wheel radius 2 % off, and plot how the two positions drift apart along a path.
 3. On a real robot: order a 1 m straight line, measure where it really stopped, and correct the profile's
    wheel `radius` (or `distance`, with a turn on the spot).
@@ -32,7 +32,7 @@ alone.
 
 *Read:* [Trajectories](motion-control.md#where-should-it-be-trajectories), `planning/trajectory.py`.
 
-1. Follow the same square with `trajectory = "linear"` and `"cubic"`, with [recordings](motion-control.md#watch-it-recordings)
+1. Follow the same square with `trajectory_planner = "linear"` and `"cubic"`, with [recordings](motion-control.md#watch-it-recordings)
    on. Plot the reference paths and the driven ones.
 2. Plot the reference speeds: where does the linear plan ask the impossible?
 3. Change the cubic planner's $k$ (the tangent gain) and describe the shapes.

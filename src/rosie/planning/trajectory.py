@@ -5,9 +5,9 @@ from rosie.models import ORIGIN, STILL, Pose, Velocity
 from rosie.planning.models import TrajectoryPlanner, TrajectoryPoint, TrajectoryRequest
 
 
-def plan(shape: TrajectoryPlanner, trajectory: TrajectoryRequest) -> list[TrajectoryPoint]:
+def plan(planner: TrajectoryPlanner, trajectory: TrajectoryRequest) -> list[TrajectoryPoint]:
     """One reference pose and velocity per control step, ending on the last key pose, standing."""
-    poses, velocities = shape(trajectory)
+    poses, velocities = planner(trajectory)
     target = trajectory.key_poses[-1]
     heading = poses[-1].theta if poses else target.theta
     return [

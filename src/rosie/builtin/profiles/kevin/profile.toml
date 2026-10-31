@@ -1,5 +1,5 @@
 name = "Kevin"
-trajectory = "linear"  # linear or cubic
+trajectory_planner = "linear"  # linear or cubic
 
 [body]  # m
 length = 0.24  # front to back

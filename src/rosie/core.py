@@ -31,7 +31,7 @@ class Robot:
         self,
         profile: Profile,
         drive: Drive,
-        shape: TrajectoryPlanner,
+        trajectory_planner: TrajectoryPlanner,
         track: Tracker,
         planner: Planner,
         sensors: dict[str, Callable[[], object]],
@@ -40,7 +40,7 @@ class Robot:
     ) -> None:
         self.profile = profile
         self.drive = drive
-        self.shape = shape
+        self.trajectory_planner = trajectory_planner
         self.track = track
         self.planner = planner
         # sensor name -> function reading it (extensions can add theirs)
@@ -79,16 +79,16 @@ class Robot:
 
         match movement:
             case PlannedMovement():
-                self.movement, set_points, state = planned_step(
+                self.movement, wheel_speeds, telemetry = planned_step(
                     movement, self.pose, speeds, reading, elapsed_time, now, wheels, self.track
                 )
             case ManualMovement():
-                set_points, state = manual_step(
+                wheel_speeds, telemetry = manual_step(
                     movement, self.pose, speeds, reading, elapsed_time, wheels
                 )
-        self.drive.set_speeds(*set_points, *speeds)
+        self.drive.set_speeds(*wheel_speeds, *speeds)
         for observer in self.observers:
-            observer.movement_update(state)
+            observer.movement_update(telemetry)
 
     def stop(self) -> None:
         self.movement = None
@@ -155,10 +155,10 @@ class Robot:
             raise ValueError(f"the time must be at least one control step ({self.sample_time} s)")
 
     def _start_planned(self, key_poses: list[Pose], t: float) -> None:
-        references = plan(self.shape, TrajectoryRequest(key_poses, t, self.sample_time))
+        points = plan(self.trajectory_planner, TrajectoryRequest(key_poses, t, self.sample_time))
         for observer in self.observers:
-            observer.movement_begin(len(references))
-        self._start(PlannedMovement(tuple(references), 0, self.last_step))
+            observer.movement_begin(len(points))
+        self._start(PlannedMovement(tuple(points), 0, self.last_step))
 
     def _start(self, movement: Movement) -> None:
         self.drive.reset()

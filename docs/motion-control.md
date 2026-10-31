@@ -81,7 +81,7 @@ $$
 \theta_d = \operatorname{atan2}(\dot y, \dot x) \qquad \dot\theta_d = \frac{\ddot y \dot x - \ddot x \dot y}{\dot x^2 + \dot y^2}
 $$
 
-Pick one in the [profile](robots.md#profiles): `trajectory = "linear"` or `"cubic"`.
+Pick one in the [profile](robots.md#profiles): `trajectory_planner = "linear"` or `"cubic"`.
 
 ## Getting there: trajectory tracking
 

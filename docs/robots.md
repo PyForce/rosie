@@ -9,7 +9,7 @@ the folder (`rosie start --robot-profile ./my-robot`). To change a built-in robo
 
 ```toml
 name = "SIMUBOT"
-trajectory = "linear"  # linear or cubic
+trajectory_planner = "linear"  # linear or cubic
 # video = ":8085/stream.mjpeg"  # a camera stream served by another program, ":port/path" on this host
 
 [body]  # m
@@ -43,7 +43,7 @@ drive with a PID, its `[drive.gains]`: see [Drives](#drives). A sensor the robot
 [ultrasound board](integration.md#the-ultrasound-board).
 
 A profile from rosie 1 (with `board = "..."` and `interpolation = "..."` at the top) needs a `[drive]` table
-(`type = "..."` and the drive's settings), `trajectory` instead of `interpolation`, and its `[control.speed]`
+(`type = "..."` and the drive's settings), `trajectory_planner` instead of `interpolation`, and its `[control.speed]`
 gains as `[drive.gains]`, without `max_power` (an MD25's `[drive]` setting); rosie says so when it reads one.
 
 ## Built-in robots

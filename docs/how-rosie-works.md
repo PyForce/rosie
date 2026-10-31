@@ -25,7 +25,7 @@ runs one **control step**:
 Under manual control, steps 3 and 4 are replaced by the driving commands (steering, throttle, spin). `Robot.tick` (in `core.py`) does the
 reading and the writing; the step itself is a function in `control/movement.py`, `planned_step` or
 `manual_step`: the movement, the pose and the measured speeds in; the wheel speeds to ask for and the step's
-`RobotState` out. The movement is a value too: `PlannedMovement` (the trajectory's points, and the next one to
+`Telemetry` out. The movement is a value too: `PlannedMovement` (the trajectory's points, and the next one to
 follow) or `ManualMovement` (the steering, throttle and spin).
 
 ## One process, one loop, no threads
@@ -58,7 +58,7 @@ drive from a test, a notebook or your own loop.
 
 | Part | Shape | rosie's |
 |---|---|---|
-| Trajectory | a function, `TrajectoryPlanner` | `plan_linear`, `plan_cubic` (`trajectory` in the profile) |
+| Trajectory | a function, `TrajectoryPlanner` | `plan_linear`, `plan_cubic` (`trajectory_planner` in the profile) |
 | Odometry | a function | `advance`: second-order Runge-Kutta |
 | Trajectory tracker | a function, `Tracker` | `track_by_io_linearization`: input-output linearization |
 | Drive | a class with the `Drive` methods | simulated, Arduino, MD25 (`[drive]` in the profile) |
@@ -108,7 +108,7 @@ src/rosie/
 │   ├── regulation.py     stop on a point (the go-to-point controller)
 │   ├── teleoperation.py  driving by hand: steering, throttle, spin
 │   ├── movement.py       one control step: which controller, when a movement ends
-│   └── models.py         PlannedMovement, ManualMovement, RobotState, MovementObserver
+│   └── models.py         PlannedMovement, ManualMovement, Telemetry, MovementObserver
 ├── apis/                 what an interface is (models.py: Interface)
 │   └── web/              the REST + WebSocket API (FastAPI)
 ├── client/               the Python client

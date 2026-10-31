@@ -42,7 +42,7 @@ def _parse(path: Path) -> Profile:
             folder_name=path.parent.resolve().name,
             directory=path.parent,
             name=data["name"],
-            trajectory=data["trajectory"],
+            trajectory_planner=data["trajectory_planner"],
             video=data.get("video"),
             body=Body(**data["body"]),
             wheels=Wheels(**data["wheels"]),

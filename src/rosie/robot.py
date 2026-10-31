@@ -1,5 +1,5 @@
 """
-A robot built from its profile: its drive, trajectory and tracker, the
+A robot built from its profile: its drive, trajectory planner and tracker, the
 route planner with the robot's own maps and rosie's, and the sensors the
 profile names.
 """
@@ -26,9 +26,11 @@ logger = logging.getLogger(__name__)
 
 def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock: Clock) -> Robot:
     sensors = open_sensors(profile)
-    if profile.trajectory not in TRAJECTORIES:
-        known = ", ".join(TRAJECTORIES)
-        raise SetupError(f"unsupported trajectory: {profile.trajectory} (known: {known})")
+    if profile.trajectory_planner not in TRAJECTORY_PLANNERS:
+        known = ", ".join(TRAJECTORY_PLANNERS)
+        raise SetupError(
+            f"unsupported trajectory planner: {profile.trajectory_planner} (known: {known})"
+        )
     drive = open_drive(profile, clock)
     # the robot's own maps first: they win a name over rosie's
     planner = Planner(list_maps([profile.maps_folder, BUILTIN_MAPS]))
@@ -42,7 +44,7 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     return Robot(
         profile,
         drive,
-        TRAJECTORIES[profile.trajectory],
+        TRAJECTORY_PLANNERS[profile.trajectory_planner],
         partial(track_by_io_linearization, profile.control.tracking, profile.wheels),
         planner,
         sensors,
@@ -51,4 +53,4 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     )
 
 
-TRAJECTORIES: dict[str, TrajectoryPlanner] = {"linear": plan_linear, "cubic": plan_cubic}
+TRAJECTORY_PLANNERS: dict[str, TrajectoryPlanner] = {"linear": plan_linear, "cubic": plan_cubic}

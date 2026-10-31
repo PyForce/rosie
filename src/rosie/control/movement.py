@@ -1,7 +1,7 @@
 """
 One control step of a movement, as functions: given the movement, the pose and
 what the encoders just measured, the wheel speeds to ask for and the step's
-RobotState. Which controller runs (tracking, then regulation onto the last
+Telemetry. Which controller runs (tracking, then regulation onto the last
 point; or teleoperation), and when a planned movement is over.
 The robot (core.py) reads the drive, calls them, and writes the drive.
 """
@@ -10,7 +10,7 @@ import logging
 import math
 from dataclasses import replace
 
-from rosie.control.models import ManualMovement, PlannedMovement, RobotState, Tracker, WheelSpeeds
+from rosie.control.models import ManualMovement, PlannedMovement, Telemetry, Tracker, WheelSpeeds
 from rosie.control.regulation import go_to_point
 from rosie.control.teleoperation import steer
 from rosie.hardware.drive.models import DriveReading
@@ -26,7 +26,7 @@ def is_over(movement: PlannedMovement, pose: Pose, now: float, control: ControlS
     """A planned movement ends when its trajectory is done and the robot is there, or too late."""
     if not movement.trajectory_done:
         return False
-    target = movement.references[-1].pose
+    target = movement.points[-1].pose
     if math.hypot(pose.x - target.x, pose.y - target.y) <= control.arrival_tolerance:
         return True
     if now - movement.finished_at <= control.arrival_timeout:
@@ -50,13 +50,13 @@ def planned_step(
     now: float,
     wheels: Wheels,
     track: Tracker,
-) -> tuple[PlannedMovement, WheelSpeeds, RobotState]:
-    """Follow the next reference; once they are all followed, drive onto the last one."""
+) -> tuple[PlannedMovement, WheelSpeeds, Telemetry]:
+    """Follow the next point; once they are all followed, drive onto the last one."""
     speed_1, speed_2 = speeds
     if movement.trajectory_done:
-        target = movement.references[-1].pose
+        target = movement.points[-1].pose
         set_point_1, set_point_2 = go_to_point(pose, target, wheels)
-        state = RobotState(
+        telemetry = Telemetry(
             pose=pose,
             reference_pose=target,
             reference_velocity=STILL,
@@ -71,18 +71,18 @@ def planned_step(
             battery_voltage=reading.battery_voltage,
             elapsed_time=elapsed_time,
         )
-        return movement, (set_point_1, set_point_2), state
+        return movement, (set_point_1, set_point_2), telemetry
 
-    reference = movement.references[movement.next_index]
+    point = movement.points[movement.next_index]
     following = replace(movement, next_index=movement.next_index + 1)
     if following.trajectory_done:
         following = replace(following, finished_at=now)
-    output = track(reference.pose, reference.velocity, pose)
+    output = track(point.pose, point.velocity, pose)
     set_point_1, set_point_2 = output.wheel_speeds
-    state = RobotState(
+    telemetry = Telemetry(
         pose=pose,
-        reference_pose=reference.pose,
-        reference_velocity=reference.velocity,
+        reference_pose=point.pose,
+        reference_velocity=point.velocity,
         tracker_x=output.x,
         tracker_y=output.y,
         wheel_1_speed=speed_1,
@@ -94,7 +94,7 @@ def planned_step(
         battery_voltage=reading.battery_voltage,
         elapsed_time=elapsed_time,
     )
-    return following, (set_point_1, set_point_2), state
+    return following, (set_point_1, set_point_2), telemetry
 
 
 def manual_step(
@@ -104,13 +104,13 @@ def manual_step(
     reading: DriveReading,
     elapsed_time: float,
     wheels: Wheels,
-) -> tuple[WheelSpeeds, RobotState]:
+) -> tuple[WheelSpeeds, Telemetry]:
     """Drive as the commands say."""
     speed_1, speed_2 = speeds
     set_point_1, set_point_2 = steer(
         movement.steering, movement.throttle, movement.spin, wheels.max_speed
     )
-    state = RobotState(
+    telemetry = Telemetry(
         pose=pose,
         reference_pose=None,
         reference_velocity=None,
@@ -125,4 +125,4 @@ def manual_step(
         battery_voltage=reading.battery_voltage,
         elapsed_time=elapsed_time,
     )
-    return (set_point_1, set_point_2), state
+    return (set_point_1, set_point_2), telemetry

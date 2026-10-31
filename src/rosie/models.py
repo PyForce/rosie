@@ -70,7 +70,7 @@ class Profile:
     folder_name: str
     directory: Path
     name: str
-    trajectory: str  # linear or cubic
+    trajectory_planner: str  # linear or cubic
     video: str | None  # stream served by another program, ":port/path" on this host
     body: Body
     wheels: Wheels

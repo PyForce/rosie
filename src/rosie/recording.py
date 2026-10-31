@@ -15,7 +15,7 @@ import time
 from dataclasses import asdict, astuple
 from pathlib import Path
 
-from rosie.control.models import RobotState
+from rosie.control.models import Telemetry
 from rosie.models import STILL, ControlSettings, PIDGains, RecordedRow, Wheels
 
 logger = logging.getLogger(__name__)
@@ -53,27 +53,27 @@ class MovementRecorder:
         self.rows = None if expected_updates is None else []
         self.time = 0.0
 
-    def movement_update(self, robot_state: RobotState) -> None:
+    def movement_update(self, telemetry: Telemetry) -> None:
         if self.rows is None:
             return
-        self.time += robot_state.elapsed_time
-        reference = robot_state.reference_pose or robot_state.pose
-        velocity = robot_state.reference_velocity or STILL
+        self.time += telemetry.elapsed_time
+        reference = telemetry.reference_pose or telemetry.pose
+        velocity = telemetry.reference_velocity or STILL
         self.rows.append(
             (
                 self.time,
-                robot_state.elapsed_time,
-                *astuple(robot_state.pose),
+                telemetry.elapsed_time,
+                *astuple(telemetry.pose),
                 *astuple(reference),
                 *astuple(velocity),
-                robot_state.tracker_x,
-                robot_state.tracker_y,
-                robot_state.wheel_1_speed,
-                robot_state.wheel_1_setpoint,
-                robot_state.wheel_1_current,
-                robot_state.wheel_2_speed,
-                robot_state.wheel_2_setpoint,
-                robot_state.wheel_2_current,
+                telemetry.tracker_x,
+                telemetry.tracker_y,
+                telemetry.wheel_1_speed,
+                telemetry.wheel_1_setpoint,
+                telemetry.wheel_1_current,
+                telemetry.wheel_2_speed,
+                telemetry.wheel_2_setpoint,
+                telemetry.wheel_2_current,
             )
         )
 

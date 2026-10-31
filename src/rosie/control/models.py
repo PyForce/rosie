@@ -23,7 +23,7 @@ class TrackerOutput:
 
 
 @dataclass(frozen=True, slots=True)
-class RobotState:
+class Telemetry:
     pose: Pose  # where the robot is on the map
     reference_pose: Pose | None  # None under manual control
     reference_velocity: Velocity | None
@@ -41,15 +41,15 @@ class RobotState:
 
 @dataclass(frozen=True, slots=True)
 class PlannedMovement:
-    """A planned movement: one reference per control step, and the next one to follow."""
+    """A planned movement: one trajectory point per control step, and the next one to follow."""
 
-    references: tuple[TrajectoryPoint, ...]
+    points: tuple[TrajectoryPoint, ...]
     next_index: int
-    finished_at: float  # when the last reference was followed (clock time)
+    finished_at: float  # when the last point was followed (clock time)
 
     @property
     def trajectory_done(self) -> bool:
-        return self.next_index >= len(self.references)
+        return self.next_index >= len(self.points)
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +67,6 @@ class MovementObserver(Protocol):
     def movement_begin(self, expected_updates: int | None) -> None:
         """`expected_updates`: control steps of a planned movement, None under manual control."""
 
-    def movement_update(self, robot_state: RobotState) -> None: ...
+    def movement_update(self, telemetry: Telemetry) -> None: ...
 
     def movement_end(self) -> None: ...

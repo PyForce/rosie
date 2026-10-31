@@ -1,5 +1,5 @@
 name = "SIMUBOT"
-trajectory = "linear"  # linear or cubic
+trajectory_planner = "linear"  # linear or cubic
 
 [body]  # m
 length = 0.2  # front to back

@@ -16,7 +16,7 @@ from rosie.apis.web.models import (
     PositionUpdate,
     RobotInfo,
 )
-from rosie.control.models import RobotState
+from rosie.control.models import Telemetry
 from rosie.core import Robot
 from rosie.errors import NoRouteError
 
@@ -163,8 +163,8 @@ class WebObserver:
     def movement_end(self) -> None:
         pass
 
-    def movement_update(self, robot_state: RobotState) -> None:
-        pose = robot_state.pose
+    def movement_update(self, telemetry: Telemetry) -> None:
+        pose = telemetry.pose
         location = (pose.x, pose.y, pose.theta)
         if location == self.last_location:
             return
