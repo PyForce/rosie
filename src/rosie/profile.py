@@ -59,3 +59,11 @@ def _parse(path: Path) -> Profile:
         )
     except (KeyError, TypeError) as error:
         raise SetupError(f"{path}: missing or unknown setting ({error})") from error
+
+
+def read_table[T](settings: type[T], table: dict[str, Any], where: str) -> T:
+    """A table of the profile as its settings dataclass; `where` names the table in the error."""
+    try:
+        return settings(**table)
+    except TypeError as error:
+        raise SetupError(f"{where}: unknown setting ({error})") from error

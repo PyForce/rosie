@@ -129,7 +129,7 @@ after the planned time, with a warning in the log.
 
 ## Turning the wheels: speed control
 
-`motion/motors.py` · `PIDSpeedController`
+`motion/pid.py` · `PIDSpeedController`
 
 Wheel speeds are what the tracker asks for; motors take power. Something has to close that loop:
 

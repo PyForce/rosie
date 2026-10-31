@@ -13,8 +13,8 @@ from collections.abc import Callable
 from typing import Any
 
 from rosie.buses import open_i2c
-from rosie.errors import SetupError
 from rosie.models import I2CBus
+from rosie.profile import read_table
 from rosie.sensors.models import UltrasoundSettings
 
 logger = logging.getLogger(__name__)
@@ -48,10 +48,7 @@ CORRECTIONS = ((10, 0.1), (20, 0.06), (30, 0.03), (40, 0.04), (float("inf"), 0.0
 
 def open_sensor(table: dict[str, Any]) -> Callable[[], list[float | None]]:
     """The board that `[sensors.usound]` in a profile describes, as a sensor reading."""
-    try:
-        settings = UltrasoundSettings(**table)
-    except TypeError as error:
-        raise SetupError(f"[sensors.usound]: unknown setting ({error})") from error
+    settings = read_table(UltrasoundSettings, table, "[sensors.usound]")
     return UltrasoundBoard(open_i2c(settings.bus), settings.address).read_all
 
 

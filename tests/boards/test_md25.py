@@ -1,7 +1,9 @@
 import pytest
 
 from conftest import FakeI2C
-from rosie.motion.drivers.md25 import MD25MotorDriver
+from rosie.boards.md25 import MD25Board
+from rosie.motion.models import SpeedControl
+from rosie.motion.pid import PIDSpeedController
 
 ADDRESS = 0x58
 
@@ -24,14 +26,14 @@ def bus() -> FakeI2C:
 
 
 @pytest.fixture
-def driver(bus: FakeI2C) -> MD25MotorDriver:
-    driver = MD25MotorDriver(bus, ADDRESS)
+def driver(bus: FakeI2C) -> MD25Board:
+    driver = MD25Board(bus, ADDRESS, PIDSpeedController(SpeedControl(kc=10, ki=0, kd=0), 100))
     bus.calls.clear()
     return driver
 
 
 def test_sets_the_board_up(bus: FakeI2C) -> None:
-    MD25MotorDriver(bus, ADDRESS)
+    MD25Board(bus, ADDRESS, PIDSpeedController(SpeedControl(kc=10, ki=0, kd=0), 100))
     assert bus.calls == [
         ("write_byte_data", ADDRESS, 16, 32),  # reset the encoders
         ("write_byte_data", ADDRESS, 15, 1),  # mode 1: signed speeds
@@ -40,18 +42,18 @@ def test_sets_the_board_up(bus: FakeI2C) -> None:
     ]
 
 
-def test_powers(driver: MD25MotorDriver, bus: FakeI2C) -> None:
+def test_powers(driver: MD25Board, bus: FakeI2C) -> None:
     driver.set_powers(20.7, -15.2)
     assert bus.calls == [("write_block", ADDRESS, 0, [20, -15])]
 
 
-def test_reads_deltas_battery_and_currents(driver: MD25MotorDriver, bus: FakeI2C) -> None:
+def test_reads_deltas_battery_and_currents(driver: MD25Board, bus: FakeI2C) -> None:
     bus.blocks += [block(50, -30), block(120, -100)]
     assert driver.read_encoders() == (50, -30, 12.0, 0.5, 0.7)
     assert driver.read_encoders() == (70, -70, 12.0, 0.5, 0.7)
 
 
-def test_a_jump_is_a_glitch(driver: MD25MotorDriver, bus: FakeI2C) -> None:
+def test_a_jump_is_a_glitch(driver: MD25Board, bus: FakeI2C) -> None:
     bus.blocks += [block(50, 50), block(5000, 100), block(40, 2000)]
     driver.read_encoders()
     bus.calls.clear()
@@ -61,7 +63,7 @@ def test_a_jump_is_a_glitch(driver: MD25MotorDriver, bus: FakeI2C) -> None:
     assert driver.read_encoders()[:2] == (40, 50)  # wheel 2 jumped
 
 
-def test_resets_before_overflowing(driver: MD25MotorDriver, bus: FakeI2C) -> None:
+def test_resets_before_overflowing(driver: MD25Board, bus: FakeI2C) -> None:
     driver.prev_encoder_count_1 = 2_000_000_000
     bus.blocks += [block(2_000_000_100, 0)]
     assert driver.read_encoders()[:2] == (100, 0)
@@ -69,10 +71,16 @@ def test_resets_before_overflowing(driver: MD25MotorDriver, bus: FakeI2C) -> Non
     assert bus.calls[-1] == ("write_byte_data", ADDRESS, 16, 32)
 
 
-def test_reset(driver: MD25MotorDriver, bus: FakeI2C) -> None:
-    driver.real_speed_1 = 3.0
+def test_reset(driver: MD25Board, bus: FakeI2C) -> None:
     bus.blocks += [block(50, 50)]
     driver.read_encoders()
     driver.reset()
     assert (driver.prev_encoder_count_1, driver.prev_delta_encoder_count_2) == (0, 0)
     assert bus.calls[-1] == ("write_byte_data", ADDRESS, 16, 32)
+
+
+def test_rosie_controls_the_speeds(driver: MD25Board, bus: FakeI2C) -> None:
+    driver.set_speeds(3.0, 2.0, 1.0, 0.0)  # proportional: 10 x the speed error
+    assert bus.calls[-1] == ("write_block", ADDRESS, 0, [20, 20])
+    driver.stop()
+    assert bus.calls[-1] == ("write_block", ADDRESS, 0, [0, 0])

@@ -77,7 +77,7 @@ time](getting-started.md#simulate-faster-than-real-time)). From there it can:
 
 - **add a sensor**: `robot.sensors["name"] = read`, a function returning the reading; the web API serves it at
   `/sensor/name`. For a sensor that profiles can name, write a function from its profile table to that
-  reading function (like `open_sensor` in `sensors/usound.py`) and add it to `SENSORS` in `robot.py`;
+  reading function (like `open_sensor` in `sensors/usound.py`) and add it to `SENSORS` in `sensors/__init__.py`;
 - **follow every movement**: subclass `MovementSupervisor` (`movement_begin`, `movement_update`,
   `movement_end`) and `robot.supervisors.append(...)`; `movement_update` gets the full `RobotState` of each
   control step. The web API and the recorder are both supervisors;

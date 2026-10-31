@@ -1,14 +1,16 @@
 import math
 from itertools import pairwise
 
-from rosie.motion.drivers.base import SpeedMotorDriver
+from rosie.boards.models import VirtualSettings
+from rosie.models import Profile
 from rosie.motion.models import Clock, EncoderReading
+from rosie.profile import read_table
 
 MOTOR_CURRENT = 0.0  # A
 BATTERY_VOLTAGE = 12.0  # V
 
 
-class VirtualMotorDriver(SpeedMotorDriver):
+class VirtualBoard:
     """
     A simulated board: the wheels turn exactly at the speeds asked, and the
     encoders count what they turned between two readings.
@@ -23,10 +25,18 @@ class VirtualMotorDriver(SpeedMotorDriver):
         # (speed 1, speed 2, since when) for every speed change since the last reading
         self.history: list[tuple[float, float, float]] = []
 
-    def set_speeds(self, speed_1: float, speed_2: float) -> None:
+    def set_speeds(
+        self, speed_1: float, speed_2: float, _measured_1: float, _measured_2: float
+    ) -> None:
         self.current_speed_1 = self._clamp(speed_1)
         self.current_speed_2 = self._clamp(speed_2)
         self.history.append((self.current_speed_1, self.current_speed_2, self.clock()))
+
+    def stop(self) -> None:
+        self.set_speeds(0.0, 0.0, 0.0, 0.0)
+
+    def reset(self) -> None:
+        pass
 
     def read_encoders(self) -> EncoderReading:
         self.history.append((self.current_speed_1, self.current_speed_2, self.clock()))
@@ -51,3 +61,8 @@ class VirtualMotorDriver(SpeedMotorDriver):
             delta_angle_1 / 2.0 / math.pi * self.encoder_steps,
             delta_angle_2 / 2.0 / math.pi * self.encoder_steps,
         )
+
+
+def open_board(profile: Profile, clock: Clock) -> VirtualBoard:
+    read_table(VirtualSettings, profile.board_settings, f"[board] of {profile.id}")
+    return VirtualBoard(profile.wheels.encoder_steps, profile.wheels.max_speed, clock)

@@ -2,9 +2,12 @@
 
 import logging
 
-from rosie.models import I2CBus
-from rosie.motion.drivers.base import PowerMotorDriver
-from rosie.motion.models import EncoderReading
+from rosie.boards.models import MD25Settings
+from rosie.buses import open_i2c
+from rosie.models import I2CBus, Profile
+from rosie.motion.models import Clock, EncoderReading
+from rosie.motion.pid import PIDSpeedController
+from rosie.profile import read_table
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +18,11 @@ MAX_ENCODER_COUNT = 2000000000
 MAX_INT_32 = 2**31
 
 
-class MD25MotorDriver(PowerMotorDriver):
-    def __init__(self, i2c_bus: I2CBus, i2c_bus_address: int) -> None:
-        super().__init__()
+class MD25Board:
+    """The board only takes motor powers: rosie's PID turns the wheel speeds into them."""
+
+    def __init__(self, i2c_bus: I2CBus, i2c_bus_address: int, pid: PIDSpeedController) -> None:
+        self.pid = pid
         self.i2c_bus = i2c_bus
         self.i2c_bus_address = i2c_bus_address
         self.prev_encoder_count_1 = 0
@@ -30,6 +35,14 @@ class MD25MotorDriver(PowerMotorDriver):
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 15, 1)
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 16, 48)
         self.i2c_bus.write_byte_data(self.i2c_bus_address, 14, 10)
+
+    def set_speeds(
+        self, speed_1: float, speed_2: float, measured_1: float, measured_2: float
+    ) -> None:
+        self.set_powers(*self.pid.regulate(speed_1, speed_2, measured_1, measured_2))
+
+    def stop(self) -> None:
+        self.set_powers(0.0, 0.0)
 
     def set_powers(self, power_1: float, power_2: float) -> None:
         self.i2c_bus.write_i2c_block_data(self.i2c_bus_address, 0, [int(power_1), int(power_2)])
@@ -88,6 +101,7 @@ class MD25MotorDriver(PowerMotorDriver):
         )
 
     def reset(self) -> None:
+        self.pid.reset()
         self.prev_encoder_count_1 = 0
         self.prev_encoder_count_2 = 0
         self.encoder_count_1 = 0
@@ -115,3 +129,9 @@ class MD25MotorDriver(PowerMotorDriver):
         current_right = result[10] / float(10)
 
         return encoder_1, encoder_2, battery_voltage, current_left, current_right
+
+
+def open_board(profile: Profile, _clock: Clock) -> MD25Board:
+    settings = read_table(MD25Settings, profile.board_settings, f"[board] of {profile.id}")
+    pid = PIDSpeedController(profile.control.speed, settings.max_power)
+    return MD25Board(open_i2c(settings.bus), settings.address, pid)

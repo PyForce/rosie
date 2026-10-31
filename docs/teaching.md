@@ -49,9 +49,9 @@ alone.
 
 ## Lab 4: speed control
 
-*Read:* [Speed control](motion-control.md#turning-the-wheels-speed-control), `motion/motors.py`.
+*Read:* [Speed control](motion-control.md#turning-the-wheels-speed-control), `motion/pid.py`.
 
-1. The PID is tested on its own in `tests/motion/test_motors.py`: extend it with a simple motor model
+1. The PID is tested on its own in `tests/motion/test_pid.py`: extend it with a simple motor model
    (first-order lag) and plot step responses for different gains.
 2. On a robot with an MD25 board, record a movement and plot each wheel's speed against its set point.
 

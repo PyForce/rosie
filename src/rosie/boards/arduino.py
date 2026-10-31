@@ -6,9 +6,11 @@ The rosie motor driver shield on an Arduino, over a serial port
 import logging
 import struct
 
-from rosie.models import SerialPort
-from rosie.motion.drivers.base import SpeedMotorDriver
-from rosie.motion.models import EncoderReading
+from rosie.boards.models import ArduinoSettings
+from rosie.buses import open_serial
+from rosie.models import Profile, SerialPort
+from rosie.motion.models import Clock, EncoderReading
+from rosie.profile import read_table
 
 logger = logging.getLogger(__name__)
 
@@ -19,17 +21,20 @@ COMMAND_GETSTATE_RESPONSE = b"\xa9"
 COMMAND_ENCODER_RESET = b"\xaa"
 
 
-class ArduinoMotorDriver(SpeedMotorDriver):
-    def __init__(self, serial_port: SerialPort, max_speed: float) -> None:
+class ArduinoBoard:
+    """The shield controls the wheel speeds itself, with the profile's PID gains."""
+
+    def __init__(self, serial_port: SerialPort) -> None:
         self.serial_port = serial_port
         self.battery_status = 100
         self.pulses_1 = 0
         self.pulses_2 = 0
         self.setpoint_1 = 0.0
         self.setpoint_2 = 0.0
-        self.max_speed = max_speed
 
-    def set_speeds(self, speed_1: float, speed_2: float) -> None:
+    def set_speeds(
+        self, speed_1: float, speed_2: float, _measured_1: float, _measured_2: float
+    ) -> None:
         self.setpoint_1 = speed_1
         self.setpoint_2 = speed_2
         package = struct.pack("<Bff", COMMAND_SETPOINT, speed_2, speed_1)
@@ -37,6 +42,12 @@ class ArduinoMotorDriver(SpeedMotorDriver):
             self.serial_port.write(package)
         except OSError:
             logger.exception("setting speeds")
+
+    def stop(self) -> None:
+        self.set_speeds(0.0, 0.0, 0.0, 0.0)
+
+    def reset(self) -> None:
+        pass
 
     def read_encoders(self) -> EncoderReading | None:
         try:
@@ -69,3 +80,11 @@ class ArduinoMotorDriver(SpeedMotorDriver):
             self.serial_port.write(COMMAND_ENCODER_RESET)
         except OSError:
             logger.exception("resetting encoders")
+
+
+def open_board(profile: Profile, _clock: Clock) -> ArduinoBoard:
+    settings = read_table(ArduinoSettings, profile.board_settings, f"[board] of {profile.id}")
+    board = ArduinoBoard(open_serial(settings.port, settings.baudrate))
+    speed = profile.control.speed
+    board.set_constants(speed.kc, speed.ki, speed.kd)
+    return board

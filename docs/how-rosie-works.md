@@ -58,7 +58,7 @@ drive from a test, a notebook or your own loop.
 | Trajectory planner | `TrajectoryPlanner` | linear, cubic (`trajectory` in the profile) |
 | Odometry | `OdometryLocalizer` | second-order Runge-Kutta |
 | Trajectory tracker | `TrajectoryTracker` | input-output linearization |
-| Motors | `MotorHandler` + a driver | simulated, Arduino board, MD25 board (`[board]` in the profile) |
+| Motor board | `Board` | simulated, Arduino board, MD25 board (`[board]` in the profile) |
 | Route planner | `Planner` | visibility graph + A* |
 | Supervisors | `MovementSupervisor` | web API, CSV recorder |
 
@@ -92,10 +92,10 @@ src/rosie/
 │   ├── odometry.py
 │   ├── trajectories.py
 │   ├── tracking.py
-│   ├── motors.py      motor handlers and the speed PID
+│   ├── pid.py         the speed PID
 │   ├── supervisors.py
-│   ├── recording.py   the CSV recorder
-│   └── drivers/       simulated, Arduino, MD25 boards, and their settings (models.py)
+│   └── recording.py   the CSV recorder
+├── boards/            simulated, Arduino, MD25 motor boards, and their settings (models.py)
 ├── planning/          maps, visibility graph, A*, route planner
 ├── apis/web/          the REST + WebSocket API (FastAPI)
 ├── sensors/           the ultrasound board, and its settings (models.py)

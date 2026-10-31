@@ -4,11 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
-from rosie.motion.models import Clock, Control, Wheels
+from rosie.motion.models import Control, Wheels
 
 if TYPE_CHECKING:
     from rosie.core import Robot
-    from rosie.motion.motors import MotorHandler
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,9 +81,5 @@ class Tickable(Protocol):
     def tick(self) -> None: ...
 
 
-# a board's type -> the motor handler driving it, from the profile
-type MotorHandlerFactory = Callable[[Profile, Clock], MotorHandler]
-# a sensor's table in the profile -> the function reading it
-type SensorFactory = Callable[[dict[str, Any]], Callable[[], object]]
 # an interface serves the robot while inside its context
 type Interface = Callable[[Robot, Settings], AbstractAsyncContextManager[None]]

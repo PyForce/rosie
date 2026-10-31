@@ -1,9 +1,7 @@
 import pytest
 
-from conftest import FakeI2C
-from rosie.motion.drivers.md25 import MD25MotorDriver
 from rosie.motion.models import SpeedControl
-from rosie.motion.motors import PIDSpeedController, SoftwareSpeedMotorHandler
+from rosie.motion.pid import PIDSpeedController
 
 
 @pytest.mark.parametrize(
@@ -26,18 +24,3 @@ def test_pid_saturates_and_resets() -> None:
     assert pid.regulate(10, -10, 0, 0) == (30, -30)
     pid.reset()
     assert pid.regulate(1, 0, 0, 0) == (10, 0)
-
-
-def test_software_speed_control_on_a_power_board() -> None:
-    bus = FakeI2C()
-    driver = MD25MotorDriver(bus, 0x58)
-    handler = SoftwareSpeedMotorHandler(
-        PIDSpeedController(SpeedControl(kc=10, ki=0, kd=0), 100), driver
-    )
-    handler.set_measured_speeds(1.0, 0.0)
-    handler.set_speeds(3.0, 2.0)
-    assert bus.calls[-1] == ("write_block", 0x58, 0, [20, 20])
-    handler.stop_motors()
-    assert bus.calls[-1] == ("write_block", 0x58, 0, [0, 0])
-    handler.reset()
-    assert driver.prev_encoder_count_1 == 0

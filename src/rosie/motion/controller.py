@@ -1,6 +1,7 @@
 import logging
 import math
 
+from rosie.boards.models import Board
 from rosie.motion.models import (
     RESTING,
     STILL,
@@ -11,7 +12,6 @@ from rosie.motion.models import (
     TrajectoryParameters,
     Wheels,
 )
-from rosie.motion.motors import MotorHandler
 from rosie.motion.odometry import OdometryLocalizer
 from rosie.motion.supervisors import MovementSupervisor
 from rosie.motion.tracking import TrajectoryTracker
@@ -40,7 +40,7 @@ class MotionController:
         trajectory_planner: TrajectoryPlanner,
         odometry_localizer: OdometryLocalizer,
         trajectory_tracker: TrajectoryTracker,
-        motor_handler: MotorHandler,
+        board: Board,
         wheels: Wheels,
         control: Control,
         clock: Clock,
@@ -51,7 +51,7 @@ class MotionController:
         self.wheels = wheels
         self.control = control
         self.clock = clock
-        self.motor_handler = motor_handler
+        self.board = board
         self.trajectory_tracker = trajectory_tracker
         self.odometry_localizer = odometry_localizer
         self.trajectory_planner = trajectory_planner
@@ -83,7 +83,7 @@ class MotionController:
         self.running = False
         self.step = self.planned_step
         self.stop_requested = True
-        self.motor_handler.stop_motors()
+        self.board.stop()
         self.supervisors.movement_end()
 
     def planned_step(self) -> None:
@@ -109,7 +109,7 @@ class MotionController:
         if self.trajectory_planner.has_finished():
             target = self.trajectory_planner.final_pose()
             set_point_1, set_point_2 = self._approach_speeds(location, target)
-            self.motor_handler.set_speeds(set_point_1, set_point_2)
+            self.board.set_speeds(set_point_1, set_point_2, angular_speed_1, angular_speed_2)
             self.robot_state = RobotState(
                 location,
                 target,
@@ -136,7 +136,7 @@ class MotionController:
             reference_location, reference_speed, location
         )
 
-        self.motor_handler.set_speeds(set_point_1, set_point_2)
+        self.board.set_speeds(set_point_1, set_point_2, angular_speed_1, angular_speed_2)
 
         self.robot_state = RobotState(
             location,
@@ -172,7 +172,7 @@ class MotionController:
 
         set_point_1, set_point_2 = self._wheel_speeds(*self._direction_vector())
 
-        self.motor_handler.set_speeds(set_point_1, set_point_2)
+        self.board.set_speeds(set_point_1, set_point_2, angular_speed_1, angular_speed_2)
 
         self.robot_state = RobotState(
             location,
@@ -207,7 +207,7 @@ class MotionController:
         return angular_speed_1, angular_speed_2
 
     def _start(self) -> None:
-        self.motor_handler.reset()
+        self.board.reset()
         self.trajectory_tracker.reset()
         self.stop_requested = False
         self.prev_time = self.clock()
@@ -217,7 +217,7 @@ class MotionController:
         self, elapsed_time: float
     ) -> tuple[Pose, float, float, float, float, float] | None:
         """Read the encoders: (pose, wheel speeds, battery voltage, motor currents)."""
-        reading = self.motor_handler.read_encoders()
+        reading = self.board.read_encoders()
         if not reading:
             logger.error("no reading from the motor driver")
             return None
@@ -225,7 +225,6 @@ class MotionController:
         angular_speed_1, angular_speed_2 = self.measure_speeds(
             delta_steps_1, delta_steps_2, elapsed_time
         )
-        self.motor_handler.set_measured_speeds(angular_speed_1, angular_speed_2)
         location = self.odometry_localizer.update(delta_steps_1, delta_steps_2)
         return location, angular_speed_1, angular_speed_2, battery_voltage, current_1, current_2
 

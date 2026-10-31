@@ -63,7 +63,7 @@ table, `trajectory` instead of `interpolation`, and `max_power` moved from `[con
 
 ## Boards
 
-`motion/drivers/`
+`boards/`
 
 - **virtual** (`virtual.py`): a simulated board. The wheels turn exactly at the speeds asked (up to
   `max_speed`), and the encoders count what they turned, integrated over rosie's clock.
@@ -75,7 +75,7 @@ table, `trajectory` instead of `interpolation`, and `max_power` moved from `[con
   [speed PID](motion-control.md#turning-the-wheels-speed-control). It also reports the battery voltage and
   the motor currents, and rosie filters out encoder glitches.
 
-Their `[board]` settings, with the defaults (`motion/drivers/models.py`):
+Their `[board]` settings, with the defaults (`boards/models.py`):
 
 ```toml
 [board]
@@ -112,13 +112,17 @@ docker run -p 8080:8080 --device /dev/i2c-1 --group-add $(getent group i2c | cut
 
 ## Your own board
 
-A driver is a class, and talks to its hardware through what it's given, so it can be tested with a fake:
+A board is a module in `boards/` with a class that has the four methods of `Board` (`boards/models.py`):
 
-- a board that controls the wheel speeds itself: subclass `SpeedMotorDriver` (`set_speeds`,
-  `read_encoders`), and wrap it in a `HardwareSpeedMotorHandler`;
-- a board that takes powers: subclass `PowerMotorDriver` (`set_powers`, `reset`, and the encoder reading),
-  and wrap it in a `SoftwareSpeedMotorHandler` with a `PIDSpeedController`.
+- `read_encoders()`: the encoder steps of both wheels since the last reading, the battery voltage and the
+  motor currents;
+- `set_speeds(speed_1, speed_2, measured_1, measured_2)`: the wheel speeds to reach, and the ones just
+  measured. A board that controls the speeds itself sends the first two; one that only takes powers turns
+  them into powers with rosie's `PIDSpeedController`, as the MD25 does;
+- `stop()` and `reset()` (before each new movement).
 
-Then add a factory for it to `BOARDS` in `robot.py`, under the name your profiles use as the `[board]`'s
-`type`, with its settings as a dataclass in `motion/drivers/models.py`.
-The Arduino and MD25 drivers, and their tests in `tests/motion/drivers/`, are the examples to follow.
+It talks to its hardware through what it's given (a serial port, an I2C bus), so it can be tested with a
+fake. The module also has an `open_board(profile, clock)`, which reads the `[board]` settings (a dataclass in
+`boards/models.py`) and opens the hardware; add it to `BOARDS` in `boards/__init__.py`, under the name your
+profiles use as the `[board]`'s `type`. The Arduino and MD25 boards, and their tests in `tests/boards/`, are
+the examples to follow.

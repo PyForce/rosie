@@ -1,4 +1,9 @@
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
+
+# a sensor's table in the profile -> the function reading it
+type SensorFactory = Callable[[dict[str, Any]], Callable[[], object]]
 
 
 @dataclass(frozen=True, slots=True)
