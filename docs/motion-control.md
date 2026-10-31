@@ -1,6 +1,6 @@
 # Motion control
 
-This page follows one planned movement through rosie, from "go to (1, 0.5) in 4 s" to the motors, with the
+This page follows one planned movement through rosie, from "go to (1, 0.5) at 0.3 m/s" to the motors, with the
 equations and the code that implements each of them.
 
 ## The robot: a differential drive
@@ -53,9 +53,11 @@ wrong radius make the estimate drift. `POST /position` (`teleport`) tells rosie 
 
 `planning/trajectory.py`
 
-A movement is a list of key points (the robot's position, then the targets) and a time per stretch. The
-planner turns it into one reference per control step: a pose $(x_d, y_d, \theta_d)$ and a velocity
-$(\dot x_d, \dot y_d, \dot\theta_d)$.
+A movement is a list of key points (the robot's position, then the targets) and a speed. Each stretch takes
+its length divided by the speed, so a short stretch and a long one go at the same pace. The planner turns it
+into one reference per control step: a pose $(x_d, y_d, \theta_d)$ and a velocity
+$(\dot x_d, \dot y_d, \dot\theta_d)$. The speed must be above 0 and at most what the wheels allow,
+`max_speed` × `radius`.
 
 **Linear** (`plan_linear`): straight lines at constant speed, heading along the line. Simple,
 but the heading jumps at every corner, which the robot can't do: watch it overshoot corners in a

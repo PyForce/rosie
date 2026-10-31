@@ -18,16 +18,16 @@ The interactive documentation of every route is at `/docs` (for example <http://
 | `GET /metadata` | its name, profile, size, picture and icon paths, camera stream |
 | `GET /thumbnail`, `GET /vector` | its picture and its icon |
 | `POST /position` | tell it where it is (teleport): `{"x": 1, "y": 2, "theta": 0}` |
-| `POST /goto` | `{"target": [x, y, t]}`: go to (x, y) in t s; add `"planner": true` to go around obstacles |
-| `POST /follow` | `{"path": [[x, y], ...], "time": t}`: through the points, t s from one to the next |
+| `POST /goto` | `{"target": [x, y], "speed": v}`: go to (x, y) at v m/s; add `"planner": true` to go around obstacles |
+| `POST /follow` | `{"path": [[x, y], ...], "speed": v}`: through the points, at v m/s |
 | `GET /maps` | the maps it knows |
 | `GET /map`, `GET /map/{name}` | the map in use, or another one (JSON) |
 | `POST /map/{name}` | plan on that map from now on |
 | `GET /sensor/{name}` | a sensor's reading, e.g. `/sensor/usound` |
 | `POST /manual`, `POST /planned` | drive by hand, or go back to planned movements |
-| `/websocket` | positions out, keys in (below) |
+| `/websocket` | positions out, driving commands in (below) |
 
-Errors: 422 for a malformed or impossible order (a time shorter than one control step), 409 when the planner
+Errors: 422 for a malformed or impossible order (a speed of 0, or faster than the wheels can go), 409 when the planner
 finds no route, 404 for an unknown map or sensor. Any web page may call the API (CORS is open), since
 WebRosie may be served from elsewhere.
 

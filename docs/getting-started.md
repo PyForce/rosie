@@ -42,8 +42,8 @@ The PyPI package is `pyforce-rosie` because the name `rosie` was taken; you stil
 
 **With WebRosie** (the Docker image serves it at <http://localhost:8080>):
 
-- **Single Point Mode**: click the map, the robot goes there. In the settings, choose how many seconds it
-  takes, and whether it goes around walls and furniture (the planner).
+- **Single Point Mode**: click the map, the robot goes there. In the settings, choose its speed, and
+  whether it goes around walls and furniture (the planner).
 - **Path Mode**: click several points, then send the robot along them.
 - **Manual Mode**: drive by hand, like a racing game: W and S for throttle, A and D to steer while moving, Q
   and E to turn on the spot (left and right). On a phone, a joystick.
@@ -54,7 +54,7 @@ The PyPI package is `pyforce-rosie` because the name `rosie` was taken; you stil
 from rosie.client import RosieClient
 
 robot = RosieClient("http://localhost:8080")  # 5000 without Docker
-robot.goto(1, 0.5, 4)  # to (1 m, 0.5 m), in 4 s
+robot.goto(1, 0.5, 0.3)  # to (1 m, 0.5 m), at 0.3 m/s
 for position in robot.positions():
     if position.distance_to(1, 0.5) < 0.02:
         break
@@ -64,7 +64,7 @@ print(robot.odometry())
 **From the command line**, the web API is plain HTTP and JSON:
 
 ```bash
-curl -X POST localhost:8080/goto -d '{"target": [1, 0.5, 4]}'
+curl -X POST localhost:8080/goto -d '{"target": [1, 0.5], "speed": 0.3}'
 curl localhost:8080/odometry
 ```
 
@@ -123,7 +123,7 @@ clock = Clock()
 profile = load_profile("simubot")
 robot = build_robot(profile, "Gustavo's House", Path("recordings"), clock)
 
-robot.follow([(1, 0), (1, 1), (0, 1)], 2)  # 2 s per side
+robot.follow([(1, 0), (1, 1), (0, 1)], 0.5)  # 0.5 m/s: 2 s per side
 for step in range(200):  # 10 s, computed in a blink
     clock.now += robot.sample_time
     robot.tick()

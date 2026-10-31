@@ -17,16 +17,16 @@ print(robot.metadata().name, "at", robot.odometry())
 ## Orders
 
 ```python
-robot.goto(1, 0.5, 4)  # straight to (1 m, 0.5 m) in 4 s
-robot.goto_with_planner(7.7, 1.2, 3)  # around walls and furniture, 3 s per stretch
-robot.follow([(1, 0), (1, 1)], 2)  # through the points, 2 s from one to the next
+robot.goto(1, 0.5, 0.3)  # straight to (1 m, 0.5 m) at 0.3 m/s
+robot.goto_with_planner(7.7, 1.2, 0.5)  # around walls and furniture, at 0.5 m/s
+robot.follow([(1, 0), (1, 1)], 0.5)  # through the points, at 0.5 m/s
 robot.teleport(0, 0, 0)  # tell the robot where it is
 ```
 
 Orders return at once; the robot moves on its own. They raise what the robot itself would:
 
 - `rosie.errors.NoRouteError` when the planner finds no way there;
-- `ValueError` for an impossible order (a time shorter than one control step);
+- `ValueError` for an impossible order (a speed of 0, or faster than the wheels can go);
 - `rosie.errors.RequestError` for anything else rosie refuses (it has `status` and `detail`).
 
 ## Watching
@@ -34,7 +34,7 @@ Orders return at once; the robot moves on its own. They raise what the robot its
 `positions()` gives the robot's position every time it moves, until you stop iterating:
 
 ```python
-robot.goto(1, 0.5, 4)
+robot.goto(1, 0.5, 0.3)
 for position in robot.positions():
     print(f"{position.x:.2f} {position.y:.2f}")
     if position.distance_to(1, 0.5) < 0.02:

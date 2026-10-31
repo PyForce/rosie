@@ -20,7 +20,7 @@ def test_records_planned_movements(
     simubot_profile: Profile, clock: FakeClock, run: Run, tmp_path: Path
 ) -> None:
     robot = build_robot(simubot_profile, DEFAULT_MAP, tmp_path / "recordings", clock)
-    robot.goto(1, 0.5, 2)
+    robot.goto(1, 0.5, 0.5)
     run(robot, 4)
     (recording,) = (tmp_path / "recordings").iterdir()
     lines = recording.read_text().splitlines()
@@ -80,7 +80,7 @@ def test_arduino_robot(fake_drives: tuple[FakeSerial, FakeI2C], clock: FakeClock
     serial, _ = fake_drives
     robot = build_robot(load_profile("kevin"), DEFAULT_MAP, None, clock)
     assert serial.written[0][0] == 0xA6  # the board's PID constants
-    robot.goto(1, 0, 2)
+    robot.goto(1, 0, 0.25)
     run(robot, 0.5)
     assert any(
         package[0] == 0xA7 and package != serial.written[0] for package in serial.written
@@ -90,7 +90,7 @@ def test_arduino_robot(fake_drives: tuple[FakeSerial, FakeI2C], clock: FakeClock
 def test_md25_robot(fake_drives: tuple[FakeSerial, FakeI2C], clock: FakeClock, run: Run) -> None:
     _, bus = fake_drives
     robot = build_robot(load_profile("rovert"), DEFAULT_MAP, None, clock)
-    robot.goto(1, 0, 2)
+    robot.goto(1, 0, 0.5)
     run(robot, 0.5)
     assert bus.blocks_written[-1][0] > 0  # rosie's PID pushes the wheels that don't move
 
@@ -103,8 +103,8 @@ def test_gives_up_on_a_robot_that_never_arrives(
 ) -> None:
     profile = load_profile("kevin")
     robot = build_robot(profile, DEFAULT_MAP, None, clock)  # its wheels never turn
-    robot.goto(1, 0, 1)
-    run(robot, 1 + profile.control.regulation.timeout + 0.5)
+    robot.goto(1, 0, 0.25)  # 4 s: Kevin's top speed is 0.26 m/s
+    run(robot, 4 + profile.control.regulation.timeout + 0.5)
     assert "stopping 1.000 m short of (1.00, 0.00)" in caplog.text
 
 
@@ -113,7 +113,7 @@ def test_cubic_robot(simubot_profile: Profile, clock: FakeClock, run: Run) -> No
         simubot_profile, planning=dataclasses.replace(simubot_profile.planning, planner="cubic")
     )
     robot = build_robot(cubic, DEFAULT_MAP, None, clock)
-    robot.follow([(1.0, 0.0), (1.0, 1.0)], 3)
+    robot.follow([(1.0, 0.0), (1.0, 1.0)], 0.35)
     run(robot, 8)
     assert distance(robot, 1, 1) < 0.01
 
@@ -158,7 +158,7 @@ def test_recordings_name_the_drive_gains(
 ) -> None:
     with_gains = dataclasses.replace(simubot_profile, drive_gains=PIDGains(kc=2.0, ki=1.0, kd=0.5))
     robot = build_robot(with_gains, DEFAULT_MAP, tmp_path, clock)
-    robot.goto(1, 0, 2)
+    robot.goto(1, 0, 0.5)
     run(robot, 4)
     (recording,) = tmp_path.iterdir()
     assert "# drive.gains.kc = 2.0" in recording.read_text().splitlines()

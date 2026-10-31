@@ -1,7 +1,7 @@
 import itertools
 import math
 
-from rosie.models import ORIGIN, STILL, Pose, Velocity
+from rosie.models import STILL, Pose, Velocity
 from rosie.planning.models import TrajectoryPlanner, TrajectoryPoint, TrajectoryRequest
 
 
@@ -19,26 +19,21 @@ def plan(planner: TrajectoryPlanner, trajectory: TrajectoryRequest) -> list[Traj
     ]
 
 
-def plan_linear(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
-    """Straight lines from key pose to key pose, turning on the spot at each."""
-    segments = len(params.key_poses) - 1
-    points_count = int(segments * params.segment_time / params.sample_time)
-    poses = [ORIGIN] * points_count
-    velocities = [STILL] * points_count
-
+def plan_linear(request: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
+    """Straight lines from key pose to key pose, at the request's speed, turning on the spot at each."""
+    poses: list[Pose] = []
+    velocities: list[Velocity] = []
     theta_prev_interval = 0.0
-    points_per_segment = int(params.segment_time / params.sample_time)
+    for start, end in itertools.pairwise(request.key_poses):
+        steps = int(_stretch_time(start, end, request.speed) / request.sample_time)
+        if steps == 0:
+            continue
 
-    for i in range(segments):
-        segment_base_index = i * points_per_segment
-        start = params.key_poses[i]
-        end = params.key_poses[i + 1]
+        delta_x = (end.x - start.x) / float(steps)
+        delta_y = (end.y - start.y) / float(steps)
 
-        delta_x = (end.x - start.x) / float(points_per_segment)
-        delta_y = (end.y - start.y) / float(points_per_segment)
-
-        speed_x = delta_x / params.sample_time
-        speed_y = delta_y / params.sample_time
+        speed_x = delta_x / request.sample_time
+        speed_y = delta_y / request.sample_time
 
         theta_interval = math.atan2(speed_y, speed_x)
 
@@ -54,39 +49,32 @@ def plan_linear(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
         elif diff3 < diff1:
             theta_interval += 2 * math.pi
 
-        poses[segment_base_index] = Pose(start.x, start.y, theta_interval)
-        velocities[segment_base_index] = Velocity(
-            speed_x, speed_y, (theta_interval - theta_prev_interval) / float(params.sample_time)
+        poses.append(Pose(start.x, start.y, theta_interval))
+        velocities.append(
+            Velocity(speed_x, speed_y, (theta_interval - theta_prev_interval) / request.sample_time)
         )
-
         theta_prev_interval = theta_interval
 
-        for j in range(1, points_per_segment):
-            previous = poses[segment_base_index + j - 1]
-            poses[segment_base_index + j] = Pose(
-                previous.x + delta_x, previous.y + delta_y, theta_interval
-            )
-            velocities[segment_base_index + j] = Velocity(speed_x, speed_y, 0.0)
+        for _ in range(1, steps):
+            previous = poses[-1]
+            poses.append(Pose(previous.x + delta_x, previous.y + delta_y, theta_interval))
+            velocities.append(Velocity(speed_x, speed_y, 0.0))
 
     return poses, velocities
 
 
-def plan_cubic(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
-    """Cubic polynomials through the key poses, which round the corners."""
-    points_per_segment = int(params.segment_time / float(params.sample_time))
-    segments = len(params.key_poses) - 1
-    points_count = points_per_segment * segments
-    poses = [ORIGIN] * points_count
-    velocities = [STILL] * points_count
-
-    headings = _headings(params.key_poses)
-    for j in range(segments):
-        x_i = params.key_poses[j].x
-        y_i = params.key_poses[j].y
-        theta_i = headings[j]
-        x_f = params.key_poses[j + 1].x
-        y_f = params.key_poses[j + 1].y
-        theta_f = headings[j + 1]
+def plan_cubic(request: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
+    """Cubic polynomials through the key poses, which round the corners, at the request's speed."""
+    poses: list[Pose] = []
+    velocities: list[Velocity] = []
+    headings = _headings(request.key_poses)
+    for j, (start, end) in enumerate(itertools.pairwise(request.key_poses)):
+        segment_time = _stretch_time(start, end, request.speed)
+        steps = int(segment_time / request.sample_time)
+        if steps == 0:
+            continue
+        x_i, y_i, theta_i = start.x, start.y, headings[j]
+        x_f, y_f, theta_f = end.x, end.y, headings[j + 1]
         # tangent gain: the segment's length, so the curve leaves and arrives at its pace
         k = math.hypot(x_f - x_i, y_f - y_i)
 
@@ -95,9 +83,9 @@ def plan_cubic(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
         beta_x = k * math.cos(theta_i) + 3 * x_i
         beta_y = k * math.sin(theta_i) + 3 * y_i
 
-        positions = []
-        for i in range(points_per_segment):
-            s = i / float(points_per_segment)
+        theta = theta_i
+        for i in range(steps):
+            s = i / float(steps)
             x = (
                 -(s - 1) * (s - 1) * (s - 1) * x_i
                 + s * s * s * x_f
@@ -129,20 +117,19 @@ def plan_cubic(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
                 -6 * (s - 1) * y_i + 6 * s * y_f + alpha_y * (6 * s - 2) + beta_y * (6 * s - 4)
             )
             speed_squared = dx * dx + dy * dy
-            # standing still (a zero-length segment): no turning either
+            # standing still at that point of the curve: no turning either
             dtheta = (yd_dot_dot * dx - xd_dot_dot * dy) / speed_squared if speed_squared else 0.0
-            positions.append((x, y))
-            velocities[points_per_segment * j + i] = Velocity(
-                dx / params.segment_time, dy / params.segment_time, dtheta / params.segment_time
-            )
-
-        theta = theta_i
-        for i, (x, y) in enumerate(positions):
             if i > 0:
-                theta += velocities[points_per_segment * j + i - 1].theta * params.sample_time
-            poses[points_per_segment * j + i] = Pose(x, y, theta)
+                theta += velocities[-1].theta * request.sample_time
+            poses.append(Pose(x, y, theta))
+            velocities.append(Velocity(dx / segment_time, dy / segment_time, dtheta / segment_time))
 
     return poses, velocities
+
+
+def _stretch_time(start: Pose, end: Pose, speed: float) -> float:
+    """s to drive from one key pose to the next, along the straight line between them."""
+    return math.hypot(end.x - start.x, end.y - start.y) / speed
 
 
 def _headings(key_poses: list[Pose]) -> list[float]:

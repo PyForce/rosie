@@ -67,14 +67,14 @@ def test_metadata(served: tuple[RosieClient, Robot]) -> None:
 
 def test_goto_and_watch_it_arrive(served: tuple[RosieClient, Robot]) -> None:
     client, robot = served
-    client.goto(0.5, 0.25, 1)
+    client.goto(0.5, 0.25, 0.5)
     arrive(client, 0.5, 0.25)
     assert Position(*robot.position()).distance_to(0.5, 0.25) < 0.05
 
 
 def test_follow(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
-    client.follow([(0.3, 0), (0.3, 0.3)], 0.6)
+    client.follow([(0.3, 0), (0.3, 0.3)], 0.5)
     arrive(client, 0.3, 0.3)
 
 
@@ -82,17 +82,17 @@ def test_planner(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
     client.teleport(1, 1, 0)
     with pytest.raises(NoRouteError, match="no route from"):
-        client.goto_with_planner(5, 1, 3)
-    client.goto_with_planner(1.5, 1.2, 0.5)
+        client.goto_with_planner(5, 1, 0.5)
+    client.goto_with_planner(1.5, 1.2, 0.8)
     arrive(client, 1.5, 1.2)
 
 
 def test_impossible_orders(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
-    with pytest.raises(ValueError, match="control step"):
+    with pytest.raises(ValueError, match="speed must be above 0"):
         client.goto(1, 0, 0)
-    with pytest.raises(ValueError, match="control step"):
-        client.follow([(1, 0)], 0)
+    with pytest.raises(ValueError, match="speed must be above 0"):
+        client.follow([(1, 0)], 5.0)
 
 
 def test_maps(served: tuple[RosieClient, Robot]) -> None:
@@ -127,5 +127,5 @@ def test_drive_by_hand(served: tuple[RosieClient, Robot]) -> None:
     time.sleep(0.3)
     assert robot.position() == stopped  # stopped when the block ended
     assert stopped[0] > 0.1
-    client.goto(0, 0, 1)  # planned movements again
+    client.goto(0, 0, 0.5)  # planned movements again
     arrive(client, 0, 0)

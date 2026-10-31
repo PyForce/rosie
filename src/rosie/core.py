@@ -127,26 +127,27 @@ class Robot:
     def teleport(self, x: float, y: float, theta: float) -> None:
         self.pose = Pose(x, y, theta)
 
-    def goto(self, x: float, y: float, t: float) -> None:
-        """Drive to (x, y) in t seconds."""
-        self._check_duration(t)
-        self._start_planned([Pose(*self.position()), Pose(x, y, 0.0)], t)
+    def goto(self, x: float, y: float, speed: float) -> None:
+        """Drive straight to (x, y), at speed (m/s)."""
+        self._check_speed(speed)
+        self._start_planned([Pose(*self.position()), Pose(x, y, 0.0)], speed)
 
-    def goto_with_planner(self, x: float, y: float, t: float) -> None:
-        """Drive to (x, y) around walls and furniture, t seconds per straight stretch."""
-        self._check_duration(t)
+    def goto_with_planner(self, x: float, y: float, speed: float) -> None:
+        """Drive to (x, y) around walls and furniture, at speed (m/s)."""
+        self._check_speed(speed)
         x0, y0, _ = self.position()
         body = self.profile.body
         clearance = self.profile.planning.clearance * max(body.width, body.length)
         if self.graph is None:
             self.graph = visibility_graph(self.world, clearance)
         _start, *corners = plan_path(self.graph, (x0, y0), (x, y))
-        self.follow(corners, t)
+        self.follow(corners, speed)
 
-    def follow(self, points: Sequence[Sequence[float]], t: float) -> None:
-        """Drive through the points in order, t seconds from one to the next."""
-        self._check_duration(t)
-        self._start_planned([Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)], t)
+    def follow(self, points: Sequence[Sequence[float]], speed: float) -> None:
+        """Drive through the points in order, at speed (m/s)."""
+        self._check_speed(speed)
+        key_poses = [Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)]
+        self._start_planned(key_poses, speed)
 
     def start_manual(self) -> None:
         """Drive by hand, standing still until the first commands arrive."""
@@ -181,12 +182,16 @@ class Robot:
         self.world = load_world(self.map_files[map_name])
         self.graph = None
 
-    def _check_duration(self, t: float) -> None:
-        if t < self.sample_time:
-            raise ValueError(f"the time must be at least one control step ({self.sample_time} s)")
+    def _check_speed(self, speed: float) -> None:
+        """Above 0, and no faster than the wheels can go."""
+        wheels = self.profile.wheels
+        top = wheels.max_speed * wheels.radius
+        if not 0 < speed <= top:
+            raise ValueError(f"the speed must be above 0 and at most {top:g} m/s")
 
-    def _start_planned(self, key_poses: list[Pose], t: float) -> None:
-        points = plan(self.trajectory_planner, TrajectoryRequest(key_poses, t, self.sample_time))
+    def _start_planned(self, key_poses: list[Pose], speed: float) -> None:
+        request = TrajectoryRequest(key_poses, speed, self.sample_time)
+        points = plan(self.trajectory_planner, request)
         for observer in self.observers:
             observer.movement_begin(len(points))
         self._start(PlannedMovement(tuple(points), 0, self.last_step))

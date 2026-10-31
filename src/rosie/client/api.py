@@ -67,17 +67,19 @@ class RosieClient:
         """Tell the robot it is somewhere else, without moving it."""
         self._request("POST", "/position", {"x": x, "y": y, "theta": theta})
 
-    def goto(self, x: float, y: float, t: float) -> None:
-        """Drive straight to (x, y) in t seconds."""
-        self._request("POST", "/goto", {"target": [x, y, t]})
+    def goto(self, x: float, y: float, speed: float) -> None:
+        """Drive straight to (x, y), at speed (m/s)."""
+        self._request("POST", "/goto", {"target": [x, y], "speed": speed})
 
-    def goto_with_planner(self, x: float, y: float, t: float) -> None:
-        """Drive to (x, y) around the walls and furniture of the map, t seconds per stretch."""
-        self._request("POST", "/goto", {"target": [x, y, t], "planner": True})
+    def goto_with_planner(self, x: float, y: float, speed: float) -> None:
+        """Drive to (x, y) around the walls and furniture of the map, at speed (m/s)."""
+        self._request("POST", "/goto", {"target": [x, y], "speed": speed, "planner": True})
 
-    def follow(self, points: Sequence[tuple[float, float]], t: float) -> None:
-        """Drive through the points in order, t seconds from one to the next."""
-        self._request("POST", "/follow", {"path": [list(point) for point in points], "time": t})
+    def follow(self, points: Sequence[tuple[float, float]], speed: float) -> None:
+        """Drive through the points in order, at speed (m/s)."""
+        self._request(
+            "POST", "/follow", {"path": [list(point) for point in points], "speed": speed}
+        )
 
     def maps(self) -> list[str]:
         maps: list[str] = self._request("GET", "/maps", None)["maps"]

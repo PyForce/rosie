@@ -71,7 +71,7 @@ from rosie.client import RosieClient  # pip install pyforce-rosie
 
 robot = RosieClient("http://localhost:8080")  # 5000 with rosie start
 print(robot.odometry())  # Position(x=0.0, y=0.0, theta=0.0)
-robot.goto(1, 0.5, 4)  # to (1 m, 0.5 m) in 4 s
+robot.goto(1, 0.5, 0.3)  # to (1 m, 0.5 m) at 0.3 m/s
 time.sleep(5)
 print(robot.odometry())  # about Position(x=1.0, y=0.5, theta=0.46)
 ```
@@ -81,7 +81,7 @@ print(robot.odometry())  # about Position(x=1.0, y=0.5, theta=0.46)
 The web API is plain HTTP and JSON, so any language or tool can drive the robot:
 
 ```bash
-curl -X POST localhost:8080/goto -d '{"target": [1, 0.5, 4]}'
+curl -X POST localhost:8080/goto -d '{"target": [1, 0.5], "speed": 0.3}'
 curl localhost:8080/odometry
 ```
 

@@ -14,13 +14,14 @@ class Position(_Frozen):
 
 
 class GotoOrder(_Frozen):
-    target: tuple[float, float, float]  # x (m), y (m), time to get there (s)
+    target: tuple[float, float]  # x, y (m)
+    speed: float  # m/s
     planner: bool = False  # go around walls and furniture
 
 
 class FollowOrder(_Frozen):
     path: list[tuple[float, float]]  # points to drive through (m)
-    time: float  # s from one point to the next
+    speed: float  # m/s
 
 
 class RobotInfo(_Frozen):

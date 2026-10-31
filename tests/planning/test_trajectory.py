@@ -34,3 +34,12 @@ def test_cubic_passes_the_points_and_curves() -> None:
 def test_cubic_keeps_still_on_repeated_points() -> None:
     planned = poses(plan_cubic, [(0, 0)])
     assert all((pose.x, pose.y) == pytest.approx((0, 0)) for pose in planned)
+
+
+@pytest.mark.parametrize("shape", [plan_linear, plan_cubic])
+def test_every_stretch_at_the_same_speed(shape: TrajectoryPlanner) -> None:
+    # 0.5 m then 2 m at 0.5 m/s: 1 s then 4 s, 10 then 40 control steps of 0.1 s
+    key_poses = [Pose(0, 0, 0), Pose(0.5, 0, 0), Pose(0.5, 2, 0)]
+    poses, _ = shape(TrajectoryRequest(key_poses, 0.5, SAMPLE_TIME))
+    assert len(poses) == 50
+    assert (poses[10].x, poses[10].y) == pytest.approx((0.5, 0))  # the second stretch starts

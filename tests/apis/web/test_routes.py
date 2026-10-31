@@ -44,7 +44,7 @@ def test_position_teleports(client: TestClient, robot: Robot) -> None:
 
 
 def test_goto(client: TestClient, robot: Robot, clock: FakeClock) -> None:
-    assert client.post("/goto", content='{"target": [1, 0.5, 4]}').status_code == 200
+    assert client.post("/goto", content='{"target": [1, 0.5], "speed": 0.3}').status_code == 200
     tick(client, robot, clock, 5)
     x, y, _ = robot.position()
     assert (x, y) == pytest.approx((1, 0.5), abs=0.01)
@@ -53,7 +53,9 @@ def test_goto(client: TestClient, robot: Robot, clock: FakeClock) -> None:
 def test_goto_with_the_planner(client: TestClient, robot: Robot, clock: FakeClock) -> None:
     robot.teleport(1, 1, 0)
     assert (
-        client.post("/goto", content='{"target": [7.7, 1.2, 3], "planner": true}').status_code
+        client.post(
+            "/goto", content='{"target": [7.7, 1.2], "speed": 0.5, "planner": true}'
+        ).status_code
         == 200
     )
     tick(client, robot, clock, 30)
@@ -63,26 +65,27 @@ def test_goto_with_the_planner(client: TestClient, robot: Robot, clock: FakeCloc
 
 def test_goto_without_a_route(client: TestClient, robot: Robot) -> None:
     robot.teleport(1, 1, 0)
-    response = client.post("/goto", content='{"target": [5, 1, 3], "planner": true}')
+    response = client.post("/goto", content='{"target": [5, 1], "speed": 0.5, "planner": true}')
     assert response.status_code == 409
     assert "no route from" in response.json()["error"]
 
 
 @pytest.mark.parametrize(
     ("route", "body"),
-    [("/goto", '{"target": [1, 0, 0]}'), ("/follow", '{"path": [[1, 0]], "time": 0}')],
+    [("/goto", '{"target": [1, 0], "speed": 0}'), ("/follow", '{"path": [[1, 0]], "speed": 3}')],
 )
-def test_too_short_times(client: TestClient, route: str, body: str) -> None:
+def test_impossible_speeds(client: TestClient, route: str, body: str) -> None:
     response = client.post(route, content=body)
     assert response.status_code == 422
-    assert "control step" in response.json()["detail"]
+    assert "speed must be above 0" in response.json()["detail"]
 
 
 @pytest.mark.parametrize(
     ("route", "body"),
     [
         ("/goto", "not json"),
-        ("/goto", '{"target": [1, 0]}'),
+        ("/goto", '{"target": [1, 0]}'),  # no speed
+        ("/goto", '{"target": [1, 0, 3], "speed": 0.5}'),  # a time, as in rosie 1
         ("/follow", '{"path": [[1, 0]]}'),
         ("/position", '{"x": "far"}'),
     ],
@@ -95,9 +98,10 @@ def test_malformed_requests(client: TestClient, route: str, body: str) -> None:
 
 def test_follow(client: TestClient, robot: Robot, clock: FakeClock) -> None:
     assert (
-        client.post("/follow", content='{"path": [[1, 0], [1, 1]], "time": 3}').status_code == 200
+        client.post("/follow", content='{"path": [[1, 0], [1, 1]], "speed": 0.35}').status_code
+        == 200
     )
-    tick(client, robot, clock, 8)  # 3 s per segment
+    tick(client, robot, clock, 8)  # about 3 s per metre
     x, y, _ = robot.position()
     assert (x, y) == pytest.approx((1, 1), abs=0.01)
 
@@ -123,7 +127,7 @@ def test_cors(client: TestClient) -> None:
 
 def test_websocket_streams_positions(client: TestClient, robot: Robot, clock: FakeClock) -> None:
     with client.websocket_connect("/websocket") as websocket:
-        client.post("/goto", content='{"target": [1, 0, 2]}')
+        client.post("/goto", content='{"target": [1, 0], "speed": 0.5}')
         tick(client, robot, clock, 0.1)
         message = websocket.receive_json()
     assert message["type"] == "position"

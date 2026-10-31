@@ -21,7 +21,7 @@ class TrajectoryPoint:
 @dataclass(frozen=True, slots=True)
 class TrajectoryRequest:
     key_poses: list[Pose]  # the path goes through them, in order
-    segment_time: float  # s from one key pose to the next
+    speed: float  # m/s along the straight line from one key pose to the next
     sample_time: float  # s between control steps
 
 

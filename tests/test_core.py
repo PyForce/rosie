@@ -34,21 +34,21 @@ def test_robots_are_independent(robot: Robot, simubot_profile: Profile) -> None:
 
 
 def test_goto_reaches_the_target(robot: Robot, run: Run) -> None:
-    robot.goto(1, 0.5, 4)
+    robot.goto(1, 0.5, 0.3)  # 1.1 m: 3.7 s
     run(robot, 5)
     assert distance(robot, 1, 0.5) < 0.01
 
 
 def test_goto_after_teleport(robot: Robot, run: Run) -> None:
     robot.teleport(1, 1, 0)
-    robot.goto(2, 1, 3)
+    robot.goto(2, 1, 0.3)
     run(robot, 5)
     assert distance(robot, 2, 1) < 0.01
 
 
 def test_follow_passes_every_point(robot: Robot, run: Run, clock: FakeClock) -> None:
     path = [(1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]
-    robot.follow(path, 2)
+    robot.follow(path, 0.5)  # 2 s per metre
     closest = dict.fromkeys(path, math.inf)
     for _ in range(int(8 / 0.05)):
         run(robot, 0.05)
@@ -60,16 +60,16 @@ def test_follow_passes_every_point(robot: Robot, run: Run, clock: FakeClock) -> 
 
 
 def test_too_fast_follow_still_arrives(robot: Robot, run: Run) -> None:
-    robot.follow([(1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], 1)
+    robot.follow([(1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], 1.0)  # simubot's top speed
     run(robot, 3)
-    assert distance(robot, 0, 1) > 0.1  # the planned time is too short
+    assert distance(robot, 0, 1) > 0.1  # too fast to keep up on the corners
     run(robot, 5)
     assert distance(robot, 0, 1) < 0.01
 
 
 def test_planner_crosses_rooms(robot: Robot, run: Run) -> None:
     robot.teleport(1, 1, 0)
-    robot.goto_with_planner(7.7, 1.2, 3)
+    robot.goto_with_planner(7.7, 1.2, 0.5)
     run(robot, 1)
     assert distance(robot, 1, 1) > 0.05  # no idle first segment
     run(robot, 30)
@@ -79,15 +79,16 @@ def test_planner_crosses_rooms(robot: Robot, run: Run) -> None:
 def test_planner_refuses_unreachable_targets(robot: Robot) -> None:
     robot.teleport(1, 1, 0)
     with pytest.raises(NoRouteError, match="no route from"):
-        robot.goto_with_planner(5, 1, 3)
+        robot.goto_with_planner(5, 1, 0.5)
 
 
-@pytest.mark.parametrize("t", [0, 0.01])
-def test_rejects_times_shorter_than_a_control_step(robot: Robot, t: float) -> None:
-    with pytest.raises(ValueError, match="control step"):
-        robot.goto(1, 0, t)
-    with pytest.raises(ValueError, match="control step"):
-        robot.follow([(1, 0)], t)
+@pytest.mark.parametrize("speed", [0, -0.5, 1.5])
+def test_rejects_speeds_the_wheels_cant_give(robot: Robot, speed: float) -> None:
+    message = "speed must be above 0 and at most 1 m/s"  # simubot: 20 rad/s x 0.05 m
+    with pytest.raises(ValueError, match=message):
+        robot.goto(1, 0, speed)
+    with pytest.raises(ValueError, match=message):
+        robot.follow([(1, 0)], speed)
 
 
 @pytest.mark.parametrize(
@@ -145,7 +146,7 @@ def test_stop_ends_manual_control(robot: Robot, run: Run) -> None:
 
 
 def test_stop_ends_a_movement(robot: Robot, run: Run) -> None:
-    robot.goto(2, 0, 4)
+    robot.goto(2, 0, 0.5)
     run(robot, 1)
     robot.stop()
     before = robot.position()

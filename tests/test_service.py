@@ -105,7 +105,7 @@ def test_control_loop_stops_the_motors_on_the_way_out(simubot_profile: Profile) 
     robot = build_robot(simubot_profile, DEFAULT_MAP, None, time.monotonic)
 
     async def scenario() -> None:
-        robot.goto(1, 0, 2)
+        robot.goto(1, 0, 0.5)
         async with service.start_control_loop(robot):
             await asyncio.sleep(0.3)
         assert robot.movement is None  # the movement ended with the loop

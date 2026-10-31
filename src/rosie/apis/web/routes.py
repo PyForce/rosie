@@ -80,12 +80,12 @@ async def position(request: Request, robot: RobotDependency) -> Response:
 @router.post("/goto")
 async def goto(request: Request, robot: RobotDependency) -> Response:
     order = GotoOrder.model_validate_json(await request.body())
-    x, y, t = order.target
+    x, y = order.target
     try:
         if order.planner:
-            robot.goto_with_planner(x, y, t)
+            robot.goto_with_planner(x, y, order.speed)
         else:
-            robot.goto(x, y, t)
+            robot.goto(x, y, order.speed)
     except NoRouteError as error:
         return JSONResponse({"error": str(error)}, status_code=409)
     except ValueError as error:
@@ -97,7 +97,7 @@ async def goto(request: Request, robot: RobotDependency) -> Response:
 async def follow(request: Request, robot: RobotDependency) -> Response:
     order = FollowOrder.model_validate_json(await request.body())
     try:
-        robot.follow(order.path, order.time)
+        robot.follow(order.path, order.speed)
     except ValueError as error:
         return JSONResponse({"detail": str(error)}, status_code=422)
     return Response()
