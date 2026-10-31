@@ -8,7 +8,7 @@ import struct
 
 from rosie.errors import SetupError
 from rosie.hardware.buses import open_serial
-from rosie.hardware.drive.models import ArduinoSettings, EncoderReading
+from rosie.hardware.drive.models import ArduinoDriveSettings, EncoderReading
 from rosie.hardware.models import SerialPort
 from rosie.models import Clock, Profile
 from rosie.profile import read_table
@@ -50,7 +50,7 @@ class ArduinoDrive:
     def reset(self) -> None:
         pass
 
-    def read_encoders(self) -> EncoderReading | None:
+    def read(self) -> EncoderReading | None:
         try:
             self.serial_port.write(COMMAND_GETSTATE)
             if self.serial_port.read() != COMMAND_GETSTATE_RESPONSE:
@@ -84,9 +84,13 @@ class ArduinoDrive:
 
 
 def open_drive(profile: Profile, _clock: Clock) -> ArduinoDrive:
-    settings = read_table(ArduinoSettings, profile.drive_settings, f"[drive] of {profile.id}")
-    if profile.gains is None:
-        raise SetupError(f"[drive.gains] of {profile.id}: the arduino drive needs its PID gains")
+    settings = read_table(
+        ArduinoDriveSettings, profile.drive_settings, f"[drive] of {profile.folder_name}"
+    )
+    if profile.drive_gains is None:
+        raise SetupError(
+            f"[drive.gains] of {profile.folder_name}: the arduino drive needs its PID gains"
+        )
     drive = ArduinoDrive(open_serial(settings.port, settings.baudrate))
-    drive.set_constants(profile.gains.kc, profile.gains.ki, profile.gains.kd)
+    drive.set_constants(profile.drive_gains.kc, profile.drive_gains.ki, profile.drive_gains.kd)
     return drive

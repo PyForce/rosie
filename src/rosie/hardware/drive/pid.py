@@ -1,12 +1,12 @@
-from rosie.hardware.drive.models import PIDHistory
+from rosie.hardware.drive.models import PIDState
 from rosie.models import PIDGains
 
-RESTING_PID = PIDHistory(0.0, 0.0, 0.0)
+RESTING_PID = PIDState(0.0, 0.0, 0.0)
 
 
 def regulate_speed(
-    gains: PIDGains, max_power: float, history: PIDHistory, error: float
-) -> tuple[float, PIDHistory]:
+    gains: PIDGains, max_power: float, history: PIDState, error: float
+) -> tuple[float, PIDState]:
     """
     One step of the incremental speed PID: the power for one motor, from -max_power to
     max_power, and what the next step needs to know.
@@ -25,4 +25,4 @@ def regulate_speed(
         )
 
     action = min(max(action, -max_power), max_power)
-    return action, PIDHistory(error_1=error, error_2=history.error_1, action_1=action)
+    return action, PIDState(error_1=error, error_2=history.error_1, action_1=action)

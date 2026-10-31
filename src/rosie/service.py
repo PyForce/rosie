@@ -9,14 +9,14 @@ from rosie.apis.models import Interface
 from rosie.apis.web.server import start_web_api
 from rosie.core import Robot
 from rosie.errors import SetupError
-from rosie.models import Settings
+from rosie.models import StartSettings
 from rosie.profile import load_profile
 from rosie.robot import build_robot
 
 logger = logging.getLogger(__name__)
 
 
-async def run(settings: Settings) -> None:
+async def run(settings: StartSettings) -> None:
     interfaces = choose_interfaces(settings.interfaces)
     robot = build_robot(
         load_profile(settings.profile), settings.map, settings.record, time.monotonic
@@ -48,7 +48,7 @@ def stop_signal() -> asyncio.Event:
 
 @asynccontextmanager
 async def start_interfaces(
-    robot: Robot, settings: Settings, interfaces: list[Interface]
+    robot: Robot, settings: StartSettings, interfaces: list[Interface]
 ) -> AsyncGenerator[None, None]:
     """Start every interface; on the way out of the block, close them, the last one first."""
     async with AsyncExitStack() as stack:

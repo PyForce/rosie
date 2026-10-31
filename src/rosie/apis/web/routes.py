@@ -7,7 +7,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSo
 from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import ValidationError
 
-from rosie.apis.web.models import Follow, Goto, Maps, Metadata, Move, Position, PositionUpdate
+from rosie.apis.web.models import (
+    DriveCommand,
+    FollowOrder,
+    GotoOrder,
+    Maps,
+    Position,
+    PositionUpdate,
+    RobotInfo,
+)
 from rosie.control.models import RobotState
 from rosie.core import Robot
 from rosie.errors import NoRouteError
@@ -32,26 +40,26 @@ def odometry(robot: RobotDependency) -> Position:
 
 
 @router.get("/metadata")
-def metadata(request: Request, robot: RobotDependency) -> Metadata:
+def metadata(request: Request, robot: RobotDependency) -> RobotInfo:
     profile = robot.profile
-    return Metadata(
+    return RobotInfo(
         name=profile.name,
         thumbnail=request.app.url_path_for("thumbnail"),
         vector=request.app.url_path_for("vector"),
         video=profile.video or False,
         size=(profile.body.length, profile.body.width, profile.body.height),
-        profile=profile.id,
+        profile=profile.folder_name,
     )
 
 
 @router.get("/thumbnail")
 def thumbnail(robot: RobotDependency) -> FileResponse:
-    return FileResponse(robot.profile.thumbnail)
+    return FileResponse(robot.profile.picture)
 
 
 @router.get("/vector")
 def vector(robot: RobotDependency) -> FileResponse:
-    return FileResponse(robot.profile.vector)
+    return FileResponse(robot.profile.icon)
 
 
 @router.get("/sensor/{name}")
@@ -71,7 +79,7 @@ async def position(request: Request, robot: RobotDependency) -> Response:
 
 @router.post("/goto")
 async def goto(request: Request, robot: RobotDependency) -> Response:
-    order = Goto.model_validate_json(await request.body())
+    order = GotoOrder.model_validate_json(await request.body())
     x, y, t = order.target
     try:
         if order.planner:
@@ -87,7 +95,7 @@ async def goto(request: Request, robot: RobotDependency) -> Response:
 
 @router.post("/follow")
 async def follow(request: Request, robot: RobotDependency) -> Response:
-    order = Follow.model_validate_json(await request.body())
+    order = FollowOrder.model_validate_json(await request.body())
     try:
         robot.follow(order.path, order.time)
     except ValueError as error:
@@ -126,7 +134,7 @@ def use_map(name: str, robot: RobotDependency) -> Response:
     return Response()
 
 
-class WebSupervisor:
+class WebObserver:
     """Streams the robot's position to WebSocket clients, and takes their commands in manual mode."""
 
     def __init__(self, robot: Robot) -> None:
@@ -185,7 +193,7 @@ class WebSupervisor:
         if not isinstance(message, dict) or message.get("type") != "move" or not self.is_manual:
             return
         try:
-            move = Move.model_validate(message)
+            move = DriveCommand.model_validate(message)
         except ValidationError:
             logger.warning("ignoring malformed move: %s", text)
             return

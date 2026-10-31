@@ -7,9 +7,9 @@ from rosie.models import Clock, Profile
 
 
 def open_drive(profile: Profile, clock: Clock) -> Drive:
-    if profile.drive not in DRIVES:
-        raise SetupError(f"unsupported drive: {profile.drive} (known: {', '.join(DRIVES)})")
-    return DRIVES[profile.drive](profile, clock)
+    if profile.drive_type not in DRIVES:
+        raise SetupError(f"unsupported drive: {profile.drive_type} (known: {', '.join(DRIVES)})")
+    return DRIVES[profile.drive_type](profile, clock)
 
 
 DRIVES: dict[str, DriveFactory] = {

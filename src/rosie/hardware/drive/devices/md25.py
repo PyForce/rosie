@@ -4,7 +4,7 @@ import logging
 
 from rosie.errors import SetupError
 from rosie.hardware.buses import open_i2c
-from rosie.hardware.drive.models import EncoderReading, MD25Settings
+from rosie.hardware.drive.models import EncoderReading, MD25DriveSettings
 from rosie.hardware.drive.pid import RESTING_PID, regulate_speed
 from rosie.hardware.models import I2CBus
 from rosie.models import Clock, PIDGains, Profile
@@ -59,7 +59,7 @@ class MD25Drive:
     def set_powers(self, power_1: float, power_2: float) -> None:
         self.i2c_bus.write_i2c_block_data(self.i2c_bus_address, 0, [int(power_1), int(power_2)])
 
-    def read_encoders(self) -> EncoderReading:
+    def read(self) -> EncoderReading:
         encoder_count_1, encoder_count_2, battery_voltage, current_left, current_right = (
             self._read_state()
         )
@@ -145,7 +145,13 @@ class MD25Drive:
 
 
 def open_drive(profile: Profile, _clock: Clock) -> MD25Drive:
-    settings = read_table(MD25Settings, profile.drive_settings, f"[drive] of {profile.id}")
-    if profile.gains is None:
-        raise SetupError(f"[drive.gains] of {profile.id}: the md25 drive needs its PID gains")
-    return MD25Drive(open_i2c(settings.bus), settings.address, profile.gains, settings.max_power)
+    settings = read_table(
+        MD25DriveSettings, profile.drive_settings, f"[drive] of {profile.folder_name}"
+    )
+    if profile.drive_gains is None:
+        raise SetupError(
+            f"[drive.gains] of {profile.folder_name}: the md25 drive needs its PID gains"
+        )
+    return MD25Drive(
+        open_i2c(settings.bus), settings.address, profile.drive_gains, settings.max_power
+    )

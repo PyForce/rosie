@@ -2,11 +2,15 @@ import math
 
 from rosie.control.models import TrackerOutput
 from rosie.hardware.drive.kinematics import compute_wheel_speeds
-from rosie.models import Pose, Tracking, Velocity, Wheels
+from rosie.models import Pose, TrackingGains, Velocity, Wheels
 
 
 def track_by_io_linearization(
-    tracking: Tracking, wheels: Wheels, reference: Pose, reference_velocity: Velocity, pose: Pose
+    tracking: TrackingGains,
+    wheels: Wheels,
+    reference: Pose,
+    reference_velocity: Velocity,
+    pose: Pose,
 ) -> TrackerOutput:
     """Input-output linearization: tracks a point at distance b ahead of the wheel axis."""
     xd = reference.x

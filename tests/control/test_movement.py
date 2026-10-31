@@ -1,17 +1,17 @@
 import pytest
 
-from rosie.control.models import Planned
+from rosie.control.models import PlannedMovement
 from rosie.control.movement import is_over, planned_step
-from rosie.models import STILL, Control, Pose, Tracking, Velocity, Wheels
-from rosie.planning.models import Reference
+from rosie.models import STILL, ControlSettings, Pose, TrackingGains, Velocity, Wheels
+from rosie.planning.models import TrajectoryPoint
 
 WHEELS = Wheels(radius=0.05, distance=0.3, encoder_steps=360, max_speed=10.0)
-CONTROL = Control(0.05, 0.01, 5.0, Tracking(0.1, 1.0, 1.0))
+CONTROL = ControlSettings(0.05, 0.01, 5.0, TrackingGains(0.1, 1.0, 1.0))
 READING = (0.0, 0.0, 12.0, 0.1, 0.2)  # steps, steps, V, A, A
 
 
-def planned(*poses: Pose) -> Planned:
-    return Planned(tuple(Reference(pose, STILL) for pose in poses), 0, 0.0)
+def planned(*poses: Pose) -> PlannedMovement:
+    return PlannedMovement(tuple(TrajectoryPoint(pose, STILL) for pose in poses), 0, 0.0)
 
 
 def straight_ahead(
@@ -44,7 +44,7 @@ def test_the_last_reference_marks_when_the_trajectory_was_done() -> None:
 
 
 def test_after_the_trajectory_it_drives_onto_the_target() -> None:
-    done = Planned((Reference(Pose(1, 0, 0), STILL),), 1, 0.0)
+    done = PlannedMovement((TrajectoryPoint(Pose(1, 0, 0), STILL),), 1, 0.0)
     _, (left, right), state = planned_step(
         done, Pose(0, 0, 0), (0, 0), READING, 0.05, 1.0, WHEELS, straight_ahead
     )
@@ -61,7 +61,7 @@ def test_after_the_trajectory_it_drives_onto_the_target() -> None:
     ],
 )
 def test_is_over(pose: Pose, now: float, over: bool) -> None:
-    done = Planned((Reference(Pose(1, 0, 0), STILL),), 1, 0.0)
+    done = PlannedMovement((TrajectoryPoint(Pose(1, 0, 0), STILL),), 1, 0.0)
     assert is_over(done, pose, now, CONTROL) is over
 
 

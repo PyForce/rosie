@@ -13,25 +13,25 @@ type DriveFactory = Callable[[Profile, Clock], Drive]
 
 
 @dataclass(frozen=True, slots=True)
-class VirtualSettings:
+class VirtualDriveSettings:
     """A simulated drive: no settings."""
 
 
 @dataclass(frozen=True, slots=True)
-class ArduinoSettings:
+class ArduinoDriveSettings:
     port: str = "/dev/ttyACM0"  # serial port
     baudrate: int = 9600
 
 
 @dataclass(frozen=True, slots=True)
-class MD25Settings:
+class MD25DriveSettings:
     bus: int = 1  # I2C bus number
     address: int = 0x58
     max_power: float = 127.0  # powers go from -max_power to max_power
 
 
 @dataclass(frozen=True, slots=True)
-class PIDHistory:
+class PIDState:
     """One wheel's speed PID: what the incremental form needs from the previous steps."""
 
     error_1: float  # error one step ago
@@ -42,7 +42,7 @@ class PIDHistory:
 class Drive(Protocol):
     """The drive: the motors turning the two wheels at the speeds asked, and their encoders."""
 
-    def read_encoders(self) -> EncoderReading | None:
+    def read(self) -> EncoderReading | None:
         """Encoder steps of both wheels since the last reading, battery voltage, motor currents."""
 
     def set_speeds(

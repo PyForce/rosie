@@ -7,7 +7,7 @@ import typer
 
 from rosie import service
 from rosie.errors import HardwareUnavailableError, SetupError
-from rosie.models import Settings
+from rosie.models import StartSettings
 from rosie.planning.path.maps import DEFAULT_MAP
 
 LOG_FORMAT = "[%(asctime)-15s] %(levelname)s %(message)s"
@@ -81,7 +81,7 @@ def start(
 ) -> None:
     """Start the robot and its interfaces."""
     logging.basicConfig(format=LOG_FORMAT, level=log_level)
-    settings = Settings(
+    settings = StartSettings(
         profile=robot_profile,
         map=map_name,
         interfaces=tuple(name.strip() for name in interfaces.split(",") if name.strip()),

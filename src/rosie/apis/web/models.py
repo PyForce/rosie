@@ -13,17 +13,17 @@ class Position(_Frozen):
     theta: float  # rad
 
 
-class Goto(_Frozen):
+class GotoOrder(_Frozen):
     target: tuple[float, float, float]  # x (m), y (m), time to get there (s)
     planner: bool = False  # go around walls and furniture
 
 
-class Follow(_Frozen):
+class FollowOrder(_Frozen):
     path: list[tuple[float, float]]  # points to drive through (m)
     time: float  # s from one point to the next
 
 
-class Metadata(_Frozen):
+class RobotInfo(_Frozen):
     name: str
     thumbnail: str  # path of the robot's picture
     vector: str  # path of the robot's icon
@@ -36,7 +36,7 @@ class Maps(_Frozen):
     maps: list[str]
 
 
-class Move(_Frozen):
+class DriveCommand(_Frozen):
     """WebSocket, client to rosie: the driving commands under manual control."""
 
     type: Literal["move"]

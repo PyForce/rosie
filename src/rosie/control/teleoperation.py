@@ -1,12 +1,12 @@
 """Teleoperation: driving by hand, from the commands a keyboard or a joystick gives."""
 
-from rosie.control.models import SetPoints
+from rosie.control.models import WheelSpeeds
 
 # wheel speed (rad/s) of a full command
 MANUAL_SPEED = 8
 
 
-def steer(steering: float, throttle: float, spin: float, max_speed: float) -> SetPoints:
+def steer(steering: float, throttle: float, spin: float, max_speed: float) -> WheelSpeeds:
     """
     Racing-game driving, each command in [-1, 1]: the throttle (+1 forward) sets both
     wheels' speed, the steering (+1 right) slows one of them while moving, and the spin

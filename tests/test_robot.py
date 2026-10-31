@@ -34,7 +34,7 @@ def test_records_planned_movements(
     ("change", "message"),
     [
         (lambda p: dataclasses.replace(p, trajectory="spline"), "unsupported trajectory: spline"),
-        (lambda p: dataclasses.replace(p, drive="lego"), "unsupported drive: lego"),
+        (lambda p: dataclasses.replace(p, drive_type="lego"), "unsupported drive: lego"),
     ],
 )
 def test_unknown_profile_choices(
@@ -122,9 +122,9 @@ def test_the_drive_settings_come_from_the_profile(
     monkeypatch.setattr(rosie.hardware.drive.devices.arduino, "open_serial", open_serial)
     arduino = dataclasses.replace(
         simubot_profile,
-        drive="arduino",
+        drive_type="arduino",
         drive_settings={"port": "/dev/ttyUSB1", "baudrate": 115200},
-        gains=PIDGains(kc=1.0, ki=0.5, kd=0.25),
+        drive_gains=PIDGains(kc=1.0, ki=0.5, kd=0.25),
     )
     build_robot(arduino, DEFAULT_MAP, None, clock)
     assert opened == [("/dev/ttyUSB1", 115200)]
@@ -140,7 +140,7 @@ def test_an_unknown_drive_setting(simubot_profile: Profile, clock: FakeClock) ->
 def test_a_drive_with_a_pid_needs_its_gains(
     simubot_profile: Profile, clock: FakeClock, fake_drives: tuple[FakeSerial, FakeI2C], drive: str
 ) -> None:
-    without = dataclasses.replace(simubot_profile, drive=drive)  # simubot has no [drive.gains]
+    without = dataclasses.replace(simubot_profile, drive_type=drive)  # simubot has no [drive.gains]
     with pytest.raises(ValueError, match=rf"\[drive.gains\] of simubot: the {drive} drive needs"):
         build_robot(without, DEFAULT_MAP, None, clock)
 
@@ -148,7 +148,7 @@ def test_a_drive_with_a_pid_needs_its_gains(
 def test_recordings_name_the_drive_gains(
     simubot_profile: Profile, clock: FakeClock, run: Run, tmp_path: Path
 ) -> None:
-    with_gains = dataclasses.replace(simubot_profile, gains=PIDGains(kc=2.0, ki=1.0, kd=0.5))
+    with_gains = dataclasses.replace(simubot_profile, drive_gains=PIDGains(kc=2.0, ki=1.0, kd=0.5))
     robot = build_robot(with_gains, DEFAULT_MAP, tmp_path, clock)
     robot.goto(1, 0, 2)
     run(robot, 4)

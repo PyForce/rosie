@@ -2,21 +2,24 @@ import itertools
 import math
 
 from rosie.models import ORIGIN, STILL, Pose, Velocity
-from rosie.planning.models import Reference, TrajectoryParameters, TrajectoryShape
+from rosie.planning.models import TrajectoryPlanner, TrajectoryPoint, TrajectoryRequest
 
 
-def plan(shape: TrajectoryShape, trajectory: TrajectoryParameters) -> list[Reference]:
+def plan(shape: TrajectoryPlanner, trajectory: TrajectoryRequest) -> list[TrajectoryPoint]:
     """One reference pose and velocity per control step, ending on the last key pose, standing."""
     poses, velocities = shape(trajectory)
     target = trajectory.key_poses[-1]
     heading = poses[-1].theta if poses else target.theta
     return [
-        *(Reference(pose, velocity) for pose, velocity in zip(poses, velocities, strict=True)),
-        Reference(Pose(target.x, target.y, heading), STILL),
+        *(
+            TrajectoryPoint(pose, velocity)
+            for pose, velocity in zip(poses, velocities, strict=True)
+        ),
+        TrajectoryPoint(Pose(target.x, target.y, heading), STILL),
     ]
 
 
-def plan_linear(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
+def plan_linear(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
     """Straight lines from key pose to key pose, turning on the spot at each."""
     segments = len(params.key_poses) - 1
     points_count = int(segments * params.segment_time / params.sample_time)
@@ -68,7 +71,7 @@ def plan_linear(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity
     return poses, velocities
 
 
-def plan_cubic(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
+def plan_cubic(params: TrajectoryRequest) -> tuple[list[Pose], list[Velocity]]:
     """Cubic polynomials through the key poses, which round the corners."""
     points_per_segment = int(params.segment_time / float(params.sample_time))
     segments = len(params.key_poses) - 1

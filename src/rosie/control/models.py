@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from rosie.models import Pose, Velocity
-from rosie.planning.models import Reference
+from rosie.planning.models import TrajectoryPoint
 
 # wheel 1 and 2 speeds to ask for (rad/s)
-type SetPoints = tuple[float, float]
+type WheelSpeeds = tuple[float, float]
 
 # wheel 1 and 2 speed setpoints (rad/s), then the x and y speeds the tracker asked for
 type TrackerOutput = tuple[float, float, float, float]
@@ -14,7 +14,7 @@ type TrackerOutput = tuple[float, float, float, float]
 # reference pose, reference velocity, the robot's pose -> TrackerOutput
 type Tracker = Callable[[Pose, Velocity, Pose], TrackerOutput]
 
-type Movement = Planned | Manual
+type Movement = PlannedMovement | ManualMovement
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,10 +35,10 @@ class RobotState:
 
 
 @dataclass(frozen=True, slots=True)
-class Planned:
+class PlannedMovement:
     """A planned movement: one reference per control step, and the next one to follow."""
 
-    references: tuple[Reference, ...]
+    references: tuple[TrajectoryPoint, ...]
     next_index: int
     finished_at: float  # when the last reference was followed (clock time)
 
@@ -48,7 +48,7 @@ class Planned:
 
 
 @dataclass(frozen=True, slots=True)
-class Manual:
+class ManualMovement:
     """Driving by hand: the commands of a keyboard or a joystick, each in [-1, 1]."""
 
     steering: float  # +1 right
@@ -56,7 +56,7 @@ class Manual:
     spin: float  # +1 clockwise, on the spot
 
 
-class MovementSupervisor(Protocol):
+class MovementObserver(Protocol):
     """Follows each movement: its start, every control step, its end."""
 
     def movement_begin(self, expected_updates: int | None) -> None:

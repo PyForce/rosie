@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from rosie.errors import SetupError
-from rosie.models import Body, Control, PIDGains, Profile, Tracking, Wheels
+from rosie.models import Body, ControlSettings, PIDGains, Profile, TrackingGains, Wheels
 
 BUILTIN_PROFILES = Path(__file__).parent / "builtin" / "profiles"
 
@@ -39,21 +39,21 @@ def _parse(path: Path) -> Profile:
         gains = drive.pop("gains", None)
         control = data["control"]
         return Profile(
-            id=path.parent.resolve().name,
+            folder_name=path.parent.resolve().name,
             directory=path.parent,
             name=data["name"],
             trajectory=data["trajectory"],
             video=data.get("video"),
             body=Body(**data["body"]),
             wheels=Wheels(**data["wheels"]),
-            drive=drive.pop("type"),
+            drive_type=drive.pop("type"),
             drive_settings=drive,
-            gains=None if gains is None else PIDGains(**gains),
-            control=Control(
+            drive_gains=None if gains is None else PIDGains(**gains),
+            control=ControlSettings(
                 sample_time=control["sample_time"],
                 arrival_tolerance=control["arrival_tolerance"],
                 arrival_timeout=control["arrival_timeout"],
-                tracking=Tracking(**control["tracking"]),
+                tracking=TrackingGains(**control["tracking"]),
             ),
             sensors=data.get("sensors", {}),
         )

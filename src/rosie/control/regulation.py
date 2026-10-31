@@ -2,7 +2,7 @@
 
 import math
 
-from rosie.control.models import SetPoints
+from rosie.control.models import WheelSpeeds
 from rosie.hardware.drive.kinematics import compute_wheel_speeds
 from rosie.models import Pose, Wheels
 
@@ -11,7 +11,7 @@ APPROACH_GAIN_DISTANCE = 1.0
 APPROACH_GAIN_ANGLE = 3.0
 
 
-def go_to_point(pose: Pose, target: Pose, wheels: Wheels) -> SetPoints:
+def go_to_point(pose: Pose, target: Pose, wheels: Wheels) -> WheelSpeeds:
     """
     Wheel speeds towards `target` once the planned trajectory is over: a polar
     go-to-point controller, which brings the wheel axis onto the point (a

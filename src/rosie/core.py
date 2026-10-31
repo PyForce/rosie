@@ -2,12 +2,18 @@ import logging
 from collections.abc import Callable, Iterator, Sequence
 from typing import Any
 
-from rosie.control.models import Manual, Movement, MovementSupervisor, Planned, Tracker
+from rosie.control.models import (
+    ManualMovement,
+    Movement,
+    MovementObserver,
+    PlannedMovement,
+    Tracker,
+)
 from rosie.control.movement import MIN_MANUAL_ELAPSED_TIME, is_over, manual_step, planned_step
 from rosie.hardware.drive.models import Drive
 from rosie.localization.odometry import advance, measure_speeds
 from rosie.models import ORIGIN, Clock, Pose, Profile
-from rosie.planning.models import TrajectoryParameters, TrajectoryShape
+from rosie.planning.models import TrajectoryPlanner, TrajectoryRequest
 from rosie.planning.path.planner import Planner
 from rosie.planning.trajectory import plan
 
@@ -25,11 +31,11 @@ class Robot:
         self,
         profile: Profile,
         drive: Drive,
-        shape: TrajectoryShape,
+        shape: TrajectoryPlanner,
         track: Tracker,
         planner: Planner,
         sensors: dict[str, Callable[[], object]],
-        supervisors: list[MovementSupervisor],
+        observers: list[MovementObserver],
         clock: Clock,
     ) -> None:
         self.profile = profile
@@ -39,7 +45,7 @@ class Robot:
         self.planner = planner
         # sensor name -> function reading it (extensions can add theirs)
         self.sensors = sensors
-        self.supervisors = supervisors
+        self.observers = observers
         self.clock = clock
         self.pose = ORIGIN
         self.movement: Movement | None = None
@@ -57,13 +63,13 @@ class Robot:
         elapsed_time = now - self.last_step
         self.last_step = now
         match movement:
-            case Planned() if is_over(movement, self.pose, now, self.profile.control):
+            case PlannedMovement() if is_over(movement, self.pose, now, self.profile.control):
                 self.stop()
                 return
-            case Manual():
+            case ManualMovement():
                 elapsed_time = max(elapsed_time, MIN_MANUAL_ELAPSED_TIME)
 
-        reading = self.drive.read_encoders()
+        reading = self.drive.read()
         if not reading:
             logger.error("no reading from the drive")
             return
@@ -73,23 +79,23 @@ class Robot:
         self.pose = advance(self.pose, wheels, delta_steps_1, delta_steps_2)
 
         match movement:
-            case Planned():
+            case PlannedMovement():
                 self.movement, set_points, state = planned_step(
                     movement, self.pose, speeds, reading, elapsed_time, now, wheels, self.track
                 )
-            case Manual():
+            case ManualMovement():
                 set_points, state = manual_step(
                     movement, self.pose, speeds, reading, elapsed_time, wheels
                 )
         self.drive.set_speeds(*set_points, *speeds)
-        for supervisor in self.supervisors:
-            supervisor.movement_update(state)
+        for observer in self.observers:
+            observer.movement_update(state)
 
     def stop(self) -> None:
         self.movement = None
         self.drive.stop()
-        for supervisor in self.supervisors:
-            supervisor.movement_end()
+        for observer in self.observers:
+            observer.movement_end()
 
     def position(self) -> tuple[float, float, float]:
         return self.pose.x, self.pose.y, self.pose.theta
@@ -118,14 +124,14 @@ class Robot:
     def start_manual(self) -> None:
         """Drive by hand, standing still until the first commands arrive."""
         logger.debug("manual control")
-        for supervisor in self.supervisors:
-            supervisor.movement_begin(None)
-        self._start(Manual(steering=0.0, throttle=0.0, spin=0.0))
+        for observer in self.observers:
+            observer.movement_begin(None)
+        self._start(ManualMovement(steering=0.0, throttle=0.0, spin=0.0))
 
     def move(self, steering: float, throttle: float, spin: float) -> None:
-        """Under manual control, drive with these commands (see Manual)."""
-        if isinstance(self.movement, Manual):
-            self.movement = Manual(steering, throttle, spin)
+        """Under manual control, drive with these commands (see ManualMovement)."""
+        if isinstance(self.movement, ManualMovement):
+            self.movement = ManualMovement(steering, throttle, spin)
 
     def stop_manual(self) -> None:
         logger.debug("planned movements")
@@ -150,10 +156,10 @@ class Robot:
             raise ValueError(f"the time must be at least one control step ({self.sample_time} s)")
 
     def _start_planned(self, key_poses: list[Pose], t: float) -> None:
-        references = plan(self.shape, TrajectoryParameters(key_poses, t, self.sample_time))
-        for supervisor in self.supervisors:
-            supervisor.movement_begin(len(references))
-        self._start(Planned(tuple(references), 0, self.last_step))
+        references = plan(self.shape, TrajectoryRequest(key_poses, t, self.sample_time))
+        for observer in self.observers:
+            observer.movement_begin(len(references))
+        self._start(PlannedMovement(tuple(references), 0, self.last_step))
 
     def _start(self, movement: Movement) -> None:
         self.drive.reset()

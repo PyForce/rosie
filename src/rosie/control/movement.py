@@ -10,11 +10,11 @@ import logging
 import math
 from dataclasses import replace
 
-from rosie.control.models import Manual, Planned, RobotState, SetPoints, Tracker
+from rosie.control.models import ManualMovement, PlannedMovement, RobotState, Tracker, WheelSpeeds
 from rosie.control.regulation import go_to_point
 from rosie.control.teleoperation import steer
 from rosie.hardware.drive.models import EncoderReading
-from rosie.models import STILL, Control, Pose, Wheels
+from rosie.models import STILL, ControlSettings, Pose, Wheels
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 MIN_MANUAL_ELAPSED_TIME = 0.00001
 
 
-def is_over(movement: Planned, pose: Pose, now: float, control: Control) -> bool:
+def is_over(movement: PlannedMovement, pose: Pose, now: float, control: ControlSettings) -> bool:
     """A planned movement ends when its trajectory is done and the robot is there, or too late."""
     if not movement.trajectory_done:
         return False
@@ -42,7 +42,7 @@ def is_over(movement: Planned, pose: Pose, now: float, control: Control) -> bool
 
 
 def planned_step(
-    movement: Planned,
+    movement: PlannedMovement,
     pose: Pose,
     speeds: tuple[float, float],
     reading: EncoderReading,
@@ -50,7 +50,7 @@ def planned_step(
     now: float,
     wheels: Wheels,
     track: Tracker,
-) -> tuple[Planned, SetPoints, RobotState]:
+) -> tuple[PlannedMovement, WheelSpeeds, RobotState]:
     """Follow the next reference; once they are all followed, drive onto the last one."""
     _, _, battery_voltage, current_1, current_2 = reading
     speed_1, speed_2 = speeds
@@ -98,13 +98,13 @@ def planned_step(
 
 
 def manual_step(
-    movement: Manual,
+    movement: ManualMovement,
     pose: Pose,
     speeds: tuple[float, float],
     reading: EncoderReading,
     elapsed_time: float,
     wheels: Wheels,
-) -> tuple[SetPoints, RobotState]:
+) -> tuple[WheelSpeeds, RobotState]:
     """Drive as the commands say."""
     _, _, battery_voltage, current_1, current_2 = reading
     speed_1, speed_2 = speeds

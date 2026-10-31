@@ -21,7 +21,7 @@ alone.
 
 1. Drive a square by hand (Manual Mode) and come back to the start. Where does rosie think the robot is?
 2. The simulated robot has no separate truth: its position *is* its odometry. Add one: a
-   [supervisor](integration.md#extending-rosie) that integrates the wheel speeds of every `RobotState`
+   [observer](integration.md#extending-rosie) that integrates the wheel speeds of every `RobotState`
    with a wheel radius 2 % off, and plot how the two positions drift apart along a path.
 3. On a real robot: order a 1 m straight line, measure where it really stopped, and correct the profile's
    wheel `radius` (or `distance`, with a turn on the spot).
@@ -70,7 +70,7 @@ alone.
 1. Write a client script that drives the robot through a list of waypoints and logs the arrival times.
 2. Add a sensor (a simulated distance sensor that uses the map and the robot's pose)
    and read it at `/sensor/...`.
-3. Write a supervisor that stops the robot when it gets too close to an obstacle.
+3. Write a observer that stops the robot when it gets too close to an obstacle.
 
 ## Testing students' code
 

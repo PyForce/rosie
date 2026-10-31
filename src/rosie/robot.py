@@ -8,14 +8,14 @@ import logging
 from functools import partial
 from pathlib import Path
 
-from rosie.control.models import MovementSupervisor
+from rosie.control.models import MovementObserver
 from rosie.control.tracking import track_by_io_linearization
 from rosie.core import Robot
 from rosie.errors import SetupError
 from rosie.hardware.drive import open_drive
 from rosie.hardware.sensors import open_sensors
 from rosie.models import Clock, Profile
-from rosie.planning.models import TrajectoryShape
+from rosie.planning.models import TrajectoryPlanner
 from rosie.planning.path.maps import BUILTIN_MAPS, list_maps
 from rosie.planning.path.planner import Planner
 from rosie.planning.trajectory import plan_cubic, plan_linear
@@ -31,14 +31,14 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
         raise SetupError(f"unsupported trajectory: {profile.trajectory} (known: {known})")
     drive = open_drive(profile, clock)
     # the robot's own maps first: they win a name over rosie's
-    planner = Planner(list_maps([profile.maps, BUILTIN_MAPS]))
+    planner = Planner(list_maps([profile.maps_folder, BUILTIN_MAPS]))
     planner.use_map(map_name)
-    supervisors: list[MovementSupervisor] = []
+    observers: list[MovementObserver] = []
     if recordings:
-        supervisors.append(
-            MovementRecorder(profile.wheels, profile.control, profile.gains, recordings)
+        observers.append(
+            MovementRecorder(profile.wheels, profile.control, profile.drive_gains, recordings)
         )
-    logger.info("profile: %s", profile.id)
+    logger.info("profile: %s", profile.folder_name)
     return Robot(
         profile,
         drive,
@@ -46,9 +46,9 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
         partial(track_by_io_linearization, profile.control.tracking, profile.wheels),
         planner,
         sensors,
-        supervisors,
+        observers,
         clock,
     )
 
 
-TRAJECTORIES: dict[str, TrajectoryShape] = {"linear": plan_linear, "cubic": plan_cubic}
+TRAJECTORIES: dict[str, TrajectoryPlanner] = {"linear": plan_linear, "cubic": plan_cubic}

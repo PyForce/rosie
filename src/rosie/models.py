@@ -5,7 +5,7 @@ from typing import Any
 
 type Clock = Callable[[], float]  # s, only differences matter
 
-type Row = tuple[float | None, ...]  # a recorded control step, one value per column
+type RecordedRow = tuple[float | None, ...]  # a recorded control step, one value per column
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +38,7 @@ class Wheels:
 
 
 @dataclass(frozen=True, slots=True)
-class Tracking:
+class TrackingGains:
     """Input-output linearization."""
 
     b: float  # m, the tracked point ahead of the wheel axis
@@ -56,45 +56,45 @@ class PIDGains:
 
 
 @dataclass(frozen=True, slots=True)
-class Control:
+class ControlSettings:
     sample_time: float  # s between control steps
     arrival_tolerance: float  # m: a planned movement ends this close to its last point
     arrival_timeout: float  # s it may take, after the planned time, to get that close
-    tracking: Tracking
+    tracking: TrackingGains
 
 
 @dataclass(frozen=True, slots=True)
 class Profile:
     """A robot profile: its folder holds profile.toml, its pictures and its own maps."""
 
-    id: str  # folder name
+    folder_name: str
     directory: Path
     name: str
     trajectory: str  # linear or cubic
     video: str | None  # stream served by another program, ":port/path" on this host
     body: Body
     wheels: Wheels
-    drive: str  # virtual, arduino or md25
+    drive_type: str  # virtual, arduino or md25
     drive_settings: dict[str, Any]  # the rest of the [drive] table, as the profile gives it
-    gains: PIDGains | None  # [drive.gains]; the virtual drive has no PID
-    control: Control
+    drive_gains: PIDGains | None  # [drive.gains]; the virtual drive has no PID
+    control: ControlSettings
     sensors: dict[str, dict[str, Any]]  # sensor name -> its table, as the profile gives it
 
     @property
-    def thumbnail(self) -> Path:
+    def picture(self) -> Path:
         return self.directory / "thumbnail.png"
 
     @property
-    def vector(self) -> Path:
+    def icon(self) -> Path:
         return self.directory / "vector.svg"
 
     @property
-    def maps(self) -> Path:
+    def maps_folder(self) -> Path:
         return self.directory / "maps"
 
 
 @dataclass(frozen=True, slots=True)
-class Settings:
+class StartSettings:
     profile: str  # one of rosie's robot profiles by name, or the folder of yours
     map: str  # the map the planner starts with
     interfaces: tuple[str, ...]  # what gives the robot its orders

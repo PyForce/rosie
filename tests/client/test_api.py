@@ -8,7 +8,7 @@ import pytest
 import uvicorn
 
 from rosie.apis.web.server import create_app
-from rosie.client import Metadata, Position, RosieClient
+from rosie.client import Position, RobotInfo, RosieClient
 from rosie.core import Robot
 from rosie.errors import NoRouteError, RequestError
 from rosie.models import Profile
@@ -60,7 +60,7 @@ def test_odometry_and_teleport(served: tuple[RosieClient, Robot]) -> None:
 
 def test_metadata(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
-    assert client.metadata() == Metadata(
+    assert client.metadata() == RobotInfo(
         "SIMUBOT", "simubot", "/thumbnail", "/vector", None, (0.2, 0.42, 0.0)
     )
 

@@ -10,7 +10,7 @@ from typing import Any
 
 from websockets.sync.client import ClientConnection, connect
 
-from rosie.client.models import Metadata, Position
+from rosie.client.models import Position, RobotInfo
 from rosie.errors import NoRouteError, RequestError
 
 logger = logging.getLogger(__name__)
@@ -49,9 +49,9 @@ class RosieClient:
         data = self._request("GET", "/odometry", None)
         return Position(data["x"], data["y"], data["theta"])
 
-    def metadata(self) -> Metadata:
+    def metadata(self) -> RobotInfo:
         data = self._request("GET", "/metadata", None)
-        return Metadata(
+        return RobotInfo(
             data["name"],
             data["profile"],
             data["thumbnail"],

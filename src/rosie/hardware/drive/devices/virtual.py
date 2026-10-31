@@ -1,7 +1,7 @@
 import math
 from itertools import pairwise
 
-from rosie.hardware.drive.models import EncoderReading, VirtualSettings
+from rosie.hardware.drive.models import EncoderReading, VirtualDriveSettings
 from rosie.models import Clock, Profile
 from rosie.profile import read_table
 
@@ -37,7 +37,7 @@ class VirtualDrive:
     def reset(self) -> None:
         pass
 
-    def read_encoders(self) -> EncoderReading:
+    def read(self) -> EncoderReading:
         self.history.append((self.current_speed_1, self.current_speed_2, self.clock()))
         delta_steps_1, delta_steps_2 = self._integrate()
         self.history = [(self.current_speed_1, self.current_speed_2, self.clock())]
@@ -63,5 +63,5 @@ class VirtualDrive:
 
 
 def open_drive(profile: Profile, clock: Clock) -> VirtualDrive:
-    read_table(VirtualSettings, profile.drive_settings, f"[drive] of {profile.id}")
+    read_table(VirtualDriveSettings, profile.drive_settings, f"[drive] of {profile.folder_name}")
     return VirtualDrive(profile.wheels.encoder_steps, profile.wheels.max_speed, clock)

@@ -8,9 +8,9 @@ from rosie.profile import BUILTIN_PROFILES, load_profile
 @pytest.mark.parametrize("profile_id", ["simubot", "kevin", "ltl", "rovert", "blubot"])
 def test_builtin_profiles_load(profile_id: str) -> None:
     profile = load_profile(profile_id)
-    assert profile.id == profile_id
-    assert profile.thumbnail.is_file()
-    assert profile.vector.is_file()
+    assert profile.folder_name == profile_id
+    assert profile.picture.is_file()
+    assert profile.icon.is_file()
     assert profile.sensors == {}
 
 
@@ -23,8 +23,8 @@ def copy_of_simubot(folder: Path, extra: str = "") -> Path:
 
 def test_your_robot_by_its_folder(tmp_path: Path) -> None:
     profile = load_profile(str(copy_of_simubot(tmp_path / "my-robot")))
-    assert (profile.id, profile.name) == ("my-robot", "MINE")
-    assert profile.maps == tmp_path / "my-robot" / "maps"
+    assert (profile.folder_name, profile.name) == ("my-robot", "MINE")
+    assert profile.maps_folder == tmp_path / "my-robot" / "maps"
 
 
 def test_a_folder_named_like_a_builtin_robot(

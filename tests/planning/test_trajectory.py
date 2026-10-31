@@ -3,22 +3,21 @@ import math
 import pytest
 
 from rosie.models import Pose
-from rosie.planning.models import TrajectoryParameters, TrajectoryShape
+from rosie.planning.models import TrajectoryPlanner, TrajectoryRequest
 from rosie.planning.trajectory import plan, plan_cubic, plan_linear
 
 SAMPLE_TIME = 0.1
 
 
-def poses(shape: TrajectoryShape, points: list[tuple[float, float]]) -> list[Pose]:
+def poses(shape: TrajectoryPlanner, points: list[tuple[float, float]]) -> list[Pose]:
     key_poses = [Pose(0, 0, 0), *(Pose(x, y, 0) for x, y in points)]
     return [
-        reference.pose
-        for reference in plan(shape, TrajectoryParameters(key_poses, 1.0, SAMPLE_TIME))
+        reference.pose for reference in plan(shape, TrajectoryRequest(key_poses, 1.0, SAMPLE_TIME))
     ]
 
 
 @pytest.mark.parametrize("shape", [plan_linear, plan_cubic])
-def test_ends_on_the_last_point(shape: TrajectoryShape) -> None:
+def test_ends_on_the_last_point(shape: TrajectoryPlanner) -> None:
     planned = poses(shape, [(1, 0), (1, 1)])
     assert len(planned) == 2 * 10 + 1
     assert (planned[-1].x, planned[-1].y) == pytest.approx((1, 1))

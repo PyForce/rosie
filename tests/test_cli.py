@@ -7,7 +7,7 @@ import pytest
 from typer.testing import CliRunner
 
 from rosie import cli, service
-from rosie.models import Settings
+from rosie.models import StartSettings
 
 VARIABLES = (
     "ROSIE_ROBOT_PROFILE",
@@ -25,11 +25,11 @@ def clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
 
-def start(monkeypatch: pytest.MonkeyPatch, *args: str) -> list[Settings]:
+def start(monkeypatch: pytest.MonkeyPatch, *args: str) -> list[StartSettings]:
     """Run `rosie start ARGS` with service.run recorded instead of run."""
-    started: list[Settings] = []
+    started: list[StartSettings] = []
 
-    async def record(settings: Settings) -> None:
+    async def record(settings: StartSettings) -> None:
         started.append(settings)
 
     monkeypatch.setattr(service, "run", record)
@@ -40,7 +40,7 @@ def start(monkeypatch: pytest.MonkeyPatch, *args: str) -> list[Settings]:
 
 def test_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     assert start(monkeypatch) == [
-        Settings("simubot", "Gustavo's House", ("web",), "0.0.0.0", 5000, None)  # noqa: S104
+        StartSettings("simubot", "Gustavo's House", ("web",), "0.0.0.0", 5000, None)  # noqa: S104
     ]
 
 
@@ -52,7 +52,7 @@ def test_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ROSIE_PORT", "6000")
     monkeypatch.setenv("ROSIE_RECORD", "~/runs")
     assert start(monkeypatch) == [
-        Settings("kevin", "Garage", ("web", "ros"), "127.0.0.1", 6000, Path.home() / "runs")
+        StartSettings("kevin", "Garage", ("web", "ros"), "127.0.0.1", 6000, Path.home() / "runs")
     ]
 
 

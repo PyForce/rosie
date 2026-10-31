@@ -13,7 +13,7 @@ class Position:
 
 
 @dataclass(frozen=True, slots=True)
-class Metadata:
+class RobotInfo:
     name: str
     profile: str
     thumbnail: str  # path of the robot's picture

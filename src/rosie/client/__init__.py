@@ -11,6 +11,6 @@ A client for rosie's web API, for scripts and notebooks:
 """
 
 from rosie.client.api import RosieClient
-from rosie.client.models import Metadata, Position
+from rosie.client.models import Position, RobotInfo
 
-__all__ = ["Metadata", "Position", "RosieClient"]
+__all__ = ["Position", "RobotInfo", "RosieClient"]

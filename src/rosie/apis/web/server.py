@@ -11,13 +11,13 @@ from pydantic import ValidationError
 
 from rosie.apis.web import routes
 from rosie.core import Robot
-from rosie.models import Settings
+from rosie.models import StartSettings
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def start_web_api(robot: Robot, settings: Settings) -> AsyncGenerator[None, None]:
+async def start_web_api(robot: Robot, settings: StartSettings) -> AsyncGenerator[None, None]:
     """Start the web API; on the way out of the block, uvicorn closes its connections."""
     server = uvicorn.Server(
         uvicorn.Config(
@@ -50,10 +50,10 @@ def create_app(robot: Robot) -> FastAPI:
     app.state.robot = robot
     app.include_router(routes.router)
 
-    supervisor = routes.WebSupervisor(robot)
-    robot.supervisors.append(supervisor)
+    observer = routes.WebObserver(robot)
+    robot.observers.append(observer)
     # bound methods can't use the decorators
-    app.add_api_websocket_route("/websocket", supervisor.websocket)
-    app.add_api_route("/manual", supervisor.manual, methods=["PUT", "POST"])
-    app.add_api_route("/planned", supervisor.planned, methods=["PUT", "POST"])
+    app.add_api_websocket_route("/websocket", observer.websocket)
+    app.add_api_route("/manual", observer.manual, methods=["PUT", "POST"])
+    app.add_api_route("/planned", observer.planned, methods=["PUT", "POST"])
     return app
