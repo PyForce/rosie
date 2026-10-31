@@ -15,8 +15,7 @@ from rosie.errors import SetupError
 from rosie.hardware.drive import open_drive
 from rosie.hardware.sensors import open_sensors
 from rosie.models import Clock, Profile
-from rosie.planning.models import TrajectoryPlanner
-from rosie.planning.trajectory import plan_cubic, plan_linear
+from rosie.planning.trajectory import TRAJECTORY_PLANNERS
 from rosie.recording import MovementRecorder
 from rosie.world.maps import BUILTIN_MAPS, list_maps, load_world
 
@@ -27,9 +26,7 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     sensors = open_sensors(profile)
     if profile.planning.planner not in TRAJECTORY_PLANNERS:
         known = ", ".join(TRAJECTORY_PLANNERS)
-        raise SetupError(
-            f"unsupported trajectory planner: {profile.planning.planner} (known: {known})"
-        )
+        raise SetupError(f"unknown trajectory planner: {profile.planning.planner} (known: {known})")
     drive = open_drive(profile, clock)
     # the robot's own maps first: they win a name over rosie's
     map_files = list_maps([profile.maps_folder, BUILTIN_MAPS])
@@ -44,7 +41,7 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     return Robot(
         profile,
         drive,
-        TRAJECTORY_PLANNERS[profile.planning.planner],
+        profile.planning.planner,
         partial(track_by_io_linearization, profile.control.tracking, profile.wheels),
         map_files,
         load_world(map_files[map_name]),
@@ -52,6 +49,3 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
         observers,
         clock,
     )
-
-
-TRAJECTORY_PLANNERS: dict[str, TrajectoryPlanner] = {"linear": plan_linear, "cubic": plan_cubic}

@@ -1,7 +1,8 @@
 # Navigation
 
-`goto_with_planner(x, y, speed)` (or the planner option in WebRosie, or `goto_with_planner` in the
-[client](client.md)) takes the robot to a point around walls and furniture. rosie finds the route in three
+`follow_with_planner(points, speed)` (the planner option in WebRosie, on by default, or `goto_with_planner`
+and `follow_with_planner` in the [client](client.md)) takes the robot through points around walls and
+furniture, finding a route from each point to the next. rosie finds the route in three
 steps: grow the obstacles by the robot's size, build a *visibility graph*, and search it with A*. Then the
 robot follows the route's corners like any other path.
 
@@ -87,12 +88,16 @@ first time A* reaches the target it has the shortest route through the graph. If
 (inside furniture, outside the floor, in a closed room) the search runs out of vertices and rosie raises
 `NoRouteError`; the web API answers 409, and WebRosie shows the message.
 
+The start is wherever the robot is, which may be closer to a wall or furniture than the clearance (a robot
+that starts at the origin, in the house's corner, is). Then the route first goes straight to the nearest
+point of the free space, and searches from there.
+
 ## Driving the route
 
-`planning/path.py` · `plan_path`, `core.py` · `Robot.goto_with_planner`
+`planning/path.py` · `plan_path`, `core.py` · `Robot.follow_with_planner`
 
-The route is a list of corners, and the robot follows them with the [trajectory planner](motion-control.md)
-of its profile, at the order's speed on every stretch. The linear planner drives the route as found; the cubic one
+The route is a list of corners, and the robot follows them with its [trajectory planner](motion-control.md),
+at the order's speed on every stretch. The linear planner drives the route as found; the cubic one
 rounds its corners, so it can cut a little into the clearance.
 
 ## Try it

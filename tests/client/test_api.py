@@ -85,6 +85,17 @@ def test_planner(served: tuple[RosieClient, Robot]) -> None:
         client.goto_with_planner(5, 1, 0.5)
     client.goto_with_planner(1.5, 1.2, 0.8)
     arrive(client, 1.5, 1.2)
+    client.follow_with_planner([(1.2, 1.5), (1, 1)], 0.8)
+    arrive(client, 1, 1)
+
+
+def test_trajectory_planners(served: tuple[RosieClient, Robot]) -> None:
+    client, robot = served
+    assert client.trajectory_planners() == (["linear", "cubic"], "linear")
+    client.use_trajectory_planner("cubic")
+    assert robot.trajectory_planner == "cubic"
+    with pytest.raises(RequestError, match="404: no trajectory planner spline"):
+        client.use_trajectory_planner("spline")
 
 
 def test_impossible_orders(served: tuple[RosieClient, Robot]) -> None:

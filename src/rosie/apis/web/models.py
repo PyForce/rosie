@@ -22,6 +22,7 @@ class GotoOrder(_Frozen):
 class FollowOrder(_Frozen):
     path: list[tuple[float, float]]  # points to drive through (m)
     speed: float  # m/s
+    planner: bool = False  # go around walls and furniture from point to point
 
 
 class RobotInfo(_Frozen):
@@ -35,6 +36,11 @@ class RobotInfo(_Frozen):
 
 class Maps(_Frozen):
     maps: list[str]
+
+
+class TrajectoryPlanners(_Frozen):
+    planners: list[str]
+    in_use: str
 
 
 class DriveCommand(_Frozen):

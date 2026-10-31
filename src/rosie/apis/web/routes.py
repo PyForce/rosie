@@ -15,10 +15,12 @@ from rosie.apis.web.models import (
     Position,
     PositionUpdate,
     RobotInfo,
+    TrajectoryPlanners,
 )
 from rosie.control.models import Telemetry
 from rosie.core import Robot
 from rosie.errors import NoRouteError
+from rosie.planning.trajectory import TRAJECTORY_PLANNERS
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +85,7 @@ async def goto(request: Request, robot: RobotDependency) -> Response:
     x, y = order.target
     try:
         if order.planner:
-            robot.goto_with_planner(x, y, order.speed)
+            robot.follow_with_planner([(x, y)], order.speed)
         else:
             robot.goto(x, y, order.speed)
     except NoRouteError as error:
@@ -97,7 +99,12 @@ async def goto(request: Request, robot: RobotDependency) -> Response:
 async def follow(request: Request, robot: RobotDependency) -> Response:
     order = FollowOrder.model_validate_json(await request.body())
     try:
-        robot.follow(order.path, order.speed)
+        if order.planner:
+            robot.follow_with_planner(order.path, order.speed)
+        else:
+            robot.follow(order.path, order.speed)
+    except NoRouteError as error:
+        return JSONResponse({"error": str(error)}, status_code=409)
     except ValueError as error:
         return JSONResponse({"detail": str(error)}, status_code=422)
     return Response()
@@ -131,6 +138,20 @@ def use_map(name: str, robot: RobotDependency) -> Response:
     if name not in robot.maps():
         raise HTTPException(status_code=404, detail=f"no map {name}")
     robot.use_map(name)
+    return Response()
+
+
+@router.get("/trajectory-planners")
+def trajectory_planners(robot: RobotDependency) -> TrajectoryPlanners:
+    return TrajectoryPlanners(planners=list(TRAJECTORY_PLANNERS), in_use=robot.trajectory_planner)
+
+
+@router.post("/trajectory-planner/{name}")
+def use_trajectory_planner(name: str, robot: RobotDependency) -> Response:
+    """Plan the next movements with this trajectory planner."""
+    if name not in TRAJECTORY_PLANNERS:
+        raise HTTPException(status_code=404, detail=f"no trajectory planner {name}")
+    robot.use_trajectory_planner(name)
     return Response()
 
 

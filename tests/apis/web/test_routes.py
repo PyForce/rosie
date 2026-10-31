@@ -106,6 +106,29 @@ def test_follow(client: TestClient, robot: Robot, clock: FakeClock) -> None:
     assert (x, y) == pytest.approx((1, 1), abs=0.01)
 
 
+def test_follow_with_the_planner(client: TestClient, robot: Robot, clock: FakeClock) -> None:
+    robot.teleport(1, 1, 0)
+    body = '{"path": [[7.7, 1.2], [1, 1]], "speed": 0.5, "planner": true}'
+    assert client.post("/follow", content=body).status_code == 200
+    tick(client, robot, clock, 60)
+    x, y, _ = robot.position()
+    assert (x, y) == pytest.approx((1, 1), abs=0.01)
+    body = '{"path": [[5, 1]], "speed": 0.5, "planner": true}'
+    response = client.post("/follow", content=body)
+    assert response.status_code == 409
+    assert "no route from" in response.json()["error"]
+
+
+def test_trajectory_planners(client: TestClient, robot: Robot) -> None:
+    assert client.get("/trajectory-planners").json() == {
+        "planners": ["linear", "cubic"],
+        "in_use": "linear",
+    }
+    assert client.post("/trajectory-planner/cubic").status_code == 200
+    assert robot.trajectory_planner == "cubic"
+    assert client.post("/trajectory-planner/spline").status_code == 404
+
+
 def test_maps(client: TestClient) -> None:
     assert client.get("/maps").json() == {"maps": [DEFAULT_MAP]}
     assert client.get("/map").json() == client.get(f"/map/{DEFAULT_MAP}").json()

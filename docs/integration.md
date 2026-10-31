@@ -19,16 +19,18 @@ The interactive documentation of every route is at `/docs` (for example <http://
 | `GET /thumbnail`, `GET /vector` | its picture and its icon |
 | `POST /position` | tell it where it is (teleport): `{"x": 1, "y": 2, "theta": 0}` |
 | `POST /goto` | `{"target": [x, y], "speed": v}`: go to (x, y) at v m/s; add `"planner": true` to go around obstacles |
-| `POST /follow` | `{"path": [[x, y], ...], "speed": v}`: through the points, at v m/s |
+| `POST /follow` | `{"path": [[x, y], ...], "speed": v}`: through the points, at v m/s; `"planner": true` goes around obstacles between them |
 | `GET /maps` | the maps it knows |
 | `GET /map`, `GET /map/{name}` | the map in use, or another one ([GeoJSON](navigation.md#maps)) |
 | `POST /map/{name}` | plan on that map from now on |
+| `GET /trajectory-planners` | `{"planners": ["linear", "cubic"], "in_use": "linear"}` |
+| `POST /trajectory-planner/{name}` | plan the next movements with that [trajectory planner](motion-control.md) |
 | `GET /sensor/{name}` | a sensor's reading, e.g. `/sensor/usound` |
 | `POST /manual`, `POST /planned` | drive by hand, or go back to planned movements |
 | `/websocket` | positions out, driving commands in (below) |
 
 Errors: 422 for a malformed or impossible order (a speed of 0, or faster than the wheels can go), 409 when the planner
-finds no route, 404 for an unknown map or sensor. Any web page may call the API (CORS is open), since
+finds no route, 404 for an unknown map, trajectory planner or sensor. Any web page may call the API (CORS is open), since
 WebRosie may be served from elsewhere.
 
 **WebSocket.** rosie sends every client the robot's position each time it changes:

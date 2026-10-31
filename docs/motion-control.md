@@ -83,7 +83,9 @@ $$
 \theta_d = \operatorname{atan2}(\dot y, \dot x) \qquad \dot\theta_d = \frac{\ddot y \dot x - \ddot x \dot y}{\dot x^2 + \dot y^2}
 $$
 
-Pick one in the [profile](robots.md#profiles): `[planning] planner = "linear"` or `"cubic"`.
+The [profile](robots.md#profiles) picks the one a robot starts with: `[planning] planner = "linear"` or
+`"cubic"`. WebRosie's settings, `POST /trajectory-planner/{name}` or the client's
+`use_trajectory_planner` switch it while rosie runs.
 
 ## Getting there: trajectory tracking
 

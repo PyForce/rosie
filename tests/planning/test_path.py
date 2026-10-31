@@ -41,6 +41,12 @@ def test_a_clearance_bigger_than_the_room() -> None:
         visibility_graph(ROOM, 2.5)
 
 
+def test_a_start_too_close_to_the_walls_first_gets_away_from_them() -> None:
+    graph = visibility_graph(ROOM, 0.2)
+    # the robot in the room's corner: to the nearest free point, then on
+    assert plan_path(graph, (0.0, 0.0), (3.5, 0.5)) == [(0.0, 0.0), (0.2, 0.2), (3.5, 0.5)]
+
+
 def test_a_target_inside_an_obstacle() -> None:
     graph = visibility_graph(ROOM, 0.2)
     with pytest.raises(NoRouteError, match=r"no route from \(0.50, 0.50\) to \(2.00, 2.00\)"):

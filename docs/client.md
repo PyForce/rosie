@@ -20,6 +20,7 @@ print(robot.metadata().name, "at", robot.odometry())
 robot.goto(1, 0.5, 0.3)  # straight to (1 m, 0.5 m) at 0.3 m/s
 robot.goto_with_planner(7.7, 1.2, 0.5)  # around walls and furniture, at 0.5 m/s
 robot.follow([(1, 0), (1, 1)], 0.5)  # through the points, at 0.5 m/s
+robot.follow_with_planner([(7.7, 1.2), (1, 1)], 0.5)  # through them, around walls and furniture
 robot.teleport(0, 0, 0)  # tell the robot where it is
 ```
 
@@ -68,6 +69,13 @@ robot.maps()  # ["Gustavo's House", ...]
 robot.current_map()  # the map the planner uses
 robot.map("Garage")  # another one
 robot.use_map("Garage")  # plan on it from now on
+```
+
+## Trajectory planners
+
+```python
+robot.trajectory_planners()  # (["linear", "cubic"], "linear"): the ones it knows, the one it uses
+robot.use_trajectory_planner("cubic")  # for the next movements
 ```
 
 A map is a GeoJSON `FeatureCollection`, as a dict: see [Maps](navigation.md#maps).

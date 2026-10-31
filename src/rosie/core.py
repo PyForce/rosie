@@ -15,9 +15,9 @@ from rosie.errors import SetupError
 from rosie.hardware.drive.models import Drive
 from rosie.localization.odometry import advance, measure_speeds
 from rosie.models import ORIGIN, Clock, Pose, Profile
-from rosie.planning.models import TrajectoryPlanner, TrajectoryRequest, VisibilityGraph
+from rosie.planning.models import TrajectoryRequest, VisibilityGraph
 from rosie.planning.path import plan_path
-from rosie.planning.trajectory import plan
+from rosie.planning.trajectory import TRAJECTORY_PLANNERS, plan
 from rosie.planning.visibility import visibility_graph
 from rosie.world.maps import load_world, read_map
 from rosie.world.models import World
@@ -36,7 +36,7 @@ class Robot:
         self,
         profile: Profile,
         drive: Drive,
-        trajectory_planner: TrajectoryPlanner,
+        trajectory_planner: str,
         track: Tracker,
         map_files: dict[str, Path],
         world: World,
@@ -46,6 +46,7 @@ class Robot:
     ) -> None:
         self.profile = profile
         self.drive = drive
+        # a name in TRAJECTORY_PLANNERS
         self.trajectory_planner = trajectory_planner
         self.track = track
         # map name -> its file; the world the robot moves in, and its visibility graph once a
@@ -132,22 +133,28 @@ class Robot:
         self._check_speed(speed)
         self._start_planned([Pose(*self.position()), Pose(x, y, 0.0)], speed)
 
-    def goto_with_planner(self, x: float, y: float, speed: float) -> None:
-        """Drive to (x, y) around walls and furniture, at speed (m/s)."""
-        self._check_speed(speed)
-        x0, y0, _ = self.position()
-        body = self.profile.body
-        clearance = self.profile.planning.clearance * max(body.width, body.length)
-        if self.graph is None:
-            self.graph = visibility_graph(self.world, clearance)
-        _start, *corners = plan_path(self.graph, (x0, y0), (x, y))
-        self.follow(corners, speed)
-
     def follow(self, points: Sequence[Sequence[float]], speed: float) -> None:
-        """Drive through the points in order, at speed (m/s)."""
+        """Drive straight through the points in order, at speed (m/s)."""
         self._check_speed(speed)
         key_poses = [Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)]
         self._start_planned(key_poses, speed)
+
+    def follow_with_planner(self, points: Sequence[Sequence[float]], speed: float) -> None:
+        """
+        Drive through the points in order, at speed (m/s), going around walls and furniture
+        from each to the next (NoRouteError if one can't be reached).
+        """
+        self._check_speed(speed)
+        if self.graph is None:
+            body = self.profile.body
+            clearance = self.profile.planning.clearance * max(body.width, body.length)
+            self.graph = visibility_graph(self.world, clearance)
+        x, y, _ = self.position()
+        route = [(x, y)]
+        for point in points:
+            _start, *corners = plan_path(self.graph, route[-1], (point[0], point[1]))
+            route += corners
+        self.follow(route[1:], speed)
 
     def start_manual(self) -> None:
         """Drive by hand, standing still until the first commands arrive."""
@@ -182,6 +189,13 @@ class Robot:
         self.world = load_world(self.map_files[map_name])
         self.graph = None
 
+    def use_trajectory_planner(self, name: str) -> None:
+        """Plan the next movements with this trajectory planner (SetupError if unknown)."""
+        if name not in TRAJECTORY_PLANNERS:
+            known = ", ".join(TRAJECTORY_PLANNERS)
+            raise SetupError(f"unknown trajectory planner: {name} (known: {known})")
+        self.trajectory_planner = name
+
     def _check_speed(self, speed: float) -> None:
         """Above 0, and no faster than the wheels can go."""
         wheels = self.profile.wheels
@@ -191,7 +205,7 @@ class Robot:
 
     def _start_planned(self, key_poses: list[Pose], speed: float) -> None:
         request = TrajectoryRequest(key_poses, speed, self.sample_time)
-        points = plan(self.trajectory_planner, request)
+        points = plan(TRAJECTORY_PLANNERS[self.trajectory_planner], request)
         for observer in self.observers:
             observer.movement_begin(len(points))
         self._start(PlannedMovement(tuple(points), 0, self.last_step))

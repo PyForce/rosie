@@ -38,7 +38,7 @@ def test_records_planned_movements(
             lambda p: dataclasses.replace(
                 p, planning=dataclasses.replace(p.planning, planner="spline")
             ),
-            "unsupported trajectory planner: spline",
+            "unknown trajectory planner: spline",
         ),
         (lambda p: dataclasses.replace(p, drive_type="lego"), "unsupported drive: lego"),
     ],

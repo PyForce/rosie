@@ -81,6 +81,20 @@ class RosieClient:
             "POST", "/follow", {"path": [list(point) for point in points], "speed": speed}
         )
 
+    def follow_with_planner(self, points: Sequence[tuple[float, float]], speed: float) -> None:
+        """Drive through the points in order, around walls and furniture, at speed (m/s)."""
+        path = [list(point) for point in points]
+        self._request("POST", "/follow", {"path": path, "speed": speed, "planner": True})
+
+    def trajectory_planners(self) -> tuple[list[str], str]:
+        """The trajectory planners the robot knows, and the one it uses."""
+        data = self._request("GET", "/trajectory-planners", None)
+        return list(data["planners"]), str(data["in_use"])
+
+    def use_trajectory_planner(self, name: str) -> None:
+        """Plan the next movements with this trajectory planner (linear or cubic)."""
+        self._request("POST", f"/trajectory-planner/{_quote(name)}", None)
+
     def maps(self) -> list[str]:
         maps: list[str] = self._request("GET", "/maps", None)["maps"]
         return maps

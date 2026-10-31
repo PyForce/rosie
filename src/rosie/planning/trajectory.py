@@ -151,3 +151,6 @@ def _headings(key_poses: list[Pose]) -> list[float]:
 def _unit(dx: float, dy: float) -> tuple[float, float]:
     length = math.hypot(dx, dy)
     return (dx / length, dy / length) if length else (0.0, 0.0)
+
+
+TRAJECTORY_PLANNERS: dict[str, TrajectoryPlanner] = {"linear": plan_linear, "cubic": plan_cubic}

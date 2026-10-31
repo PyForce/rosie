@@ -2,10 +2,12 @@ import math
 from collections.abc import Callable
 
 import pytest
+from shapely.geometry import Point
 
 from conftest import FakeClock, distance
+from rosie.control.models import PlannedMovement
 from rosie.core import Robot
-from rosie.errors import NoRouteError
+from rosie.errors import NoRouteError, SetupError
 from rosie.models import Profile
 from rosie.robot import build_robot
 from rosie.world.maps import DEFAULT_MAP
@@ -69,17 +71,36 @@ def test_too_fast_follow_still_arrives(robot: Robot, run: Run) -> None:
 
 def test_planner_crosses_rooms(robot: Robot, run: Run) -> None:
     robot.teleport(1, 1, 0)
-    robot.goto_with_planner(7.7, 1.2, 0.5)
+    robot.follow_with_planner([(7.7, 1.2)], 0.5)
     run(robot, 1)
     assert distance(robot, 1, 1) > 0.05  # no idle first segment
     run(robot, 30)
     assert distance(robot, 7.7, 1.2) < 0.01
 
 
+def test_planner_between_every_two_points(robot: Robot) -> None:
+    robot.teleport(1, 1, 0)
+    robot.follow_with_planner([(7.7, 1.2), (1, 1)], 0.5)  # to the kitchen and back
+    assert isinstance(robot.movement, PlannedMovement)
+    assert robot.graph is not None
+    free_space = robot.graph.free_space.buffer(1e-6)
+    poses = [point.pose for point in robot.movement.points]
+    assert all(free_space.covers(Point(pose.x, pose.y)) for pose in poses)
+    assert (poses[-1].x, poses[-1].y) == (1, 1)
+
+
+def test_switching_trajectory_planner(robot: Robot) -> None:
+    robot.use_trajectory_planner("cubic")
+    assert robot.trajectory_planner == "cubic"
+    with pytest.raises(SetupError, match="unknown trajectory planner: spline"):
+        robot.use_trajectory_planner("spline")
+    assert robot.trajectory_planner == "cubic"
+
+
 def test_planner_refuses_unreachable_targets(robot: Robot) -> None:
     robot.teleport(1, 1, 0)
     with pytest.raises(NoRouteError, match="no route from"):
-        robot.goto_with_planner(5, 1, 0.5)
+        robot.follow_with_planner([(5, 1)], 0.5)
 
 
 @pytest.mark.parametrize("speed", [0, -0.5, 1.5])
