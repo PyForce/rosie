@@ -51,15 +51,15 @@ Inside a `drive()` block the robot is under manual control, like WebRosie's Manu
 import time
 
 with robot.drive() as wheel:
-    wheel.move((0, 1, 0))  # forward
+    wheel.move(steering=0, throttle=1, spin=0)  # forward
     time.sleep(1)
-    wheel.move((0, 0, -1))  # turn left on the spot
+    wheel.move(steering=0, throttle=0, spin=-1)  # turn left on the spot
     time.sleep(0.5)
 # the robot stops, and planned movements work again
 ```
 
-A direction is (steer, throttle, rotation), each in $[-1, 1]$: steer +1 is right, throttle +1 forward,
-rotation +1 clockwise.
+Each command is in $[-1, 1]$: the steering (+1 right, while moving), the throttle (+1 forward) and the spin
+(+1 clockwise, on the spot).
 
 ## Maps
 

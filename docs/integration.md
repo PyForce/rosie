@@ -37,13 +37,14 @@ WebRosie may be served from elsewhere.
 {"type": "position", "data": {"x": 0.5, "y": 0.2, "theta": 0.3}}
 ```
 
-In manual mode, clients send the pressed keys, and the robot moves that way until the next message:
+In manual mode, clients send driving commands, and the robot moves that way until the next message:
 
 ```json
 {"type": "move", "data": [0, 1, 0]}
 ```
 
-`data` is steer (+1 right), throttle (+1 forward) and rotation (+1 clockwise), each in $[-1, 1]$.
+`data` is the steering (+1 right), the throttle (+1 forward) and the spin (+1 clockwise, on the spot), each
+in $[-1, 1]$.
 
 ## WebRosie
 

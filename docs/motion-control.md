@@ -148,11 +148,12 @@ $$
 
 ## Driving by hand
 
-`control/teleoperation.py` · `steer_by_keys`
+`control/teleoperation.py` · `steer`
 
-Under manual control, the keys (or the joystick) give a direction (steer, throttle, rotation), each in
-$[-1, 1]$. Throttle turns both wheels at up to 8 rad/s; steering slows the inner wheel, but only while
-moving, like a car; rotation turns the wheels in opposite directions, turning on the spot. No odometry is
+Under manual control, the keyboard or the joystick (in WebRosie, or the Python client) gives three commands,
+each in $[-1, 1]$: the steering, the throttle and the spin. Throttle turns both wheels at up to 8 rad/s;
+steering slows the inner wheel, but only while moving, like a car; spin turns the wheels in opposite
+directions, turning on the spot. No odometry is
 needed to drive, but it keeps running, so the map still shows where the robot is.
 
 ## Watch it: recordings

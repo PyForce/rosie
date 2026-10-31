@@ -45,9 +45,11 @@ class Planned:
 
 @dataclass(frozen=True, slots=True)
 class Manual:
-    """Driving by hand: the pressed keys, x (steer), y (throttle), rotation, each in [-1, 1]."""
+    """Driving by hand: the commands of a keyboard or a joystick, each in [-1, 1]."""
 
-    keys: tuple[float, float, float]
+    steering: float  # +1 right
+    throttle: float  # +1 forward
+    spin: float  # +1 clockwise, on the spot
 
 
 type Movement = Planned | Manual

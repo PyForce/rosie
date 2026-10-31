@@ -116,17 +116,16 @@ class Robot:
         self._start_planned([Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)], t)
 
     def start_manual(self) -> None:
-        """Drive by hand, standing still until the first keys arrive."""
+        """Drive by hand, standing still until the first commands arrive."""
         logger.debug("manual control")
         for supervisor in self.supervisors:
             supervisor.movement_begin(None)
-        self._start(Manual((0.0, 0.0, 0.0)))
+        self._start(Manual(steering=0.0, throttle=0.0, spin=0.0))
 
-    def move(self, keys: Sequence[float]) -> None:
-        """The pressed keys under manual control: x (steer), y (throttle), rotation."""
+    def move(self, steering: float, throttle: float, spin: float) -> None:
+        """Under manual control, drive with these commands (see Manual)."""
         if isinstance(self.movement, Manual):
-            x, y, rotation = keys
-            self.movement = Manual((x, y, rotation))
+            self.movement = Manual(steering, throttle, spin)
 
     def stop_manual(self) -> None:
         logger.debug("planned movements")

@@ -127,7 +127,7 @@ def use_map(name: str, robot: RobotDependency) -> Response:
 
 
 class WebSupervisor:
-    """Streams the robot's position to WebSocket clients and takes their keys in manual mode."""
+    """Streams the robot's position to WebSocket clients, and takes their commands in manual mode."""
 
     def __init__(self, robot: Robot) -> None:
         self.robot = robot
@@ -189,7 +189,8 @@ class WebSupervisor:
         except ValidationError:
             logger.warning("ignoring malformed move: %s", text)
             return
-        self.robot.move(list(move.data))
+        steering, throttle, spin = move.data
+        self.robot.move(steering, throttle, spin)
 
     def _sent(self, task: asyncio.Task[None]) -> None:
         """Forget a finished send; a client gone meanwhile is not an error."""

@@ -10,7 +10,7 @@ from typing import Any
 
 from websockets.sync.client import ClientConnection, connect
 
-from rosie.client.models import Direction, Metadata, Position
+from rosie.client.models import Metadata, Position
 from rosie.errors import NoRouteError, RequestError
 
 logger = logging.getLogger(__name__)
@@ -24,12 +24,15 @@ class Driver:
     def __init__(self, websocket: ClientConnection) -> None:
         self.websocket = websocket
 
-    def move(self, direction: Direction) -> None:
-        """Keep moving this way until the next move: steer, throttle, rotation in [-1, 1]."""
-        self.websocket.send(json.dumps({"type": "move", "data": list(direction)}))
+    def move(self, steering: float, throttle: float, spin: float) -> None:
+        """
+        Keep moving this way until the next move, each command in [-1, 1]: steering
+        (+1 right), throttle (+1 forward), spin (+1 clockwise, on the spot).
+        """
+        self.websocket.send(json.dumps({"type": "move", "data": [steering, throttle, spin]}))
 
     def stop(self) -> None:
-        self.move((0.0, 0.0, 0.0))
+        self.move(steering=0.0, throttle=0.0, spin=0.0)
 
 
 class RosieClient:
@@ -108,7 +111,7 @@ class RosieClient:
         Drive by hand, as with WebRosie's keys:
 
             with robot.drive() as wheel:
-                wheel.move((0, 1, 0))  # forward
+                wheel.move(steering=0, throttle=1, spin=0)  # forward
                 time.sleep(1)
 
         The robot stops, and planned movements are accepted again, when the block ends.

@@ -1,9 +1,6 @@
 import math
 from dataclasses import dataclass
 
-# steer (+1 right), throttle (+1 forward), rotation (+1 clockwise, like E), each in [-1, 1]
-type Direction = tuple[float, float, float]
-
 
 @dataclass(frozen=True, slots=True)
 class Position:

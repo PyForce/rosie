@@ -22,11 +22,11 @@ runs one **control step**:
 6. Tell the **supervisors** what happened: the web API sends the new position to its clients, the recorder
    writes a row.
 
-Under manual control, steps 3 and 4 are replaced by the pressed keys. `Robot.tick` (in `core.py`) does the
+Under manual control, steps 3 and 4 are replaced by the driving commands (steering, throttle, spin). `Robot.tick` (in `core.py`) does the
 reading and the writing; the step itself is a function in `control/movement.py`, `planned_step` or
 `manual_step`: the movement, the pose and the measured speeds in; the wheel speeds to ask for and the step's
 `RobotState` out. The movement is a value too: `Planned` (the references, and the next one to follow) or
-`Manual` (the pressed keys).
+`Manual` (the steering, throttle and spin).
 
 ## One process, one loop, no threads
 
@@ -105,7 +105,7 @@ src/rosie/
 ├── control/              how to get there
 │   ├── tracking.py       follow a trajectory (input-output linearization)
 │   ├── regulation.py     stop on a point (the go-to-point controller)
-│   ├── teleoperation.py  the pressed keys
+│   ├── teleoperation.py  driving by hand: steering, throttle, spin
 │   ├── movement.py       one control step: which controller, when a movement ends
 │   └── models.py         Planned, Manual, RobotState, MovementSupervisor
 ├── apis/web/             the REST + WebSocket API (FastAPI)

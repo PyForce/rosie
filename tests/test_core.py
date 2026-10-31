@@ -12,6 +12,7 @@ from rosie.robot import build_robot
 
 type Run = Callable[[Robot, float], None]
 
+# what WebRosie sends for each key: steering, throttle, spin
 W, S, A, D, Q, E = (
     [0.0, 1.0, 0.0],
     [0.0, -1.0, 0.0],
@@ -102,14 +103,14 @@ def test_steering_needs_throttle(
     robot: Robot, run: Run, keys: list[list[float]], turn: float
 ) -> None:
     robot.start_manual()
-    robot.move([sum(axis) for axis in zip(*keys, strict=True)])
+    robot.move(*(sum(axis) for axis in zip(*keys, strict=True)))
     run(robot, 1.5)
     assert math.degrees(robot.position()[2]) == pytest.approx(turn, abs=3)
 
 
 def test_w_drives_forward(robot: Robot, run: Run) -> None:
     robot.start_manual()
-    robot.move(W)
+    robot.move(*W)
     run(robot, 1.5)
     x, y, theta = robot.position()
     assert x == pytest.approx(0.58, abs=0.05)
@@ -118,7 +119,7 @@ def test_w_drives_forward(robot: Robot, run: Run) -> None:
 
 def test_steering_alone_does_nothing(robot: Robot, run: Run) -> None:
     robot.start_manual()
-    robot.move(A)
+    robot.move(*A)
     run(robot, 1.5)
     assert robot.position() == (0.0, 0.0, 0.0)
 
@@ -126,7 +127,7 @@ def test_steering_alone_does_nothing(robot: Robot, run: Run) -> None:
 @pytest.mark.parametrize(("key", "sign"), [(Q, 1), (E, -1)], ids=["Q left", "E right"])
 def test_q_and_e_turn_on_the_spot(robot: Robot, run: Run, key: list[float], sign: int) -> None:
     robot.start_manual()
-    robot.move(key)
+    robot.move(*key)
     run(robot, 0.5)
     x, y, theta = robot.position()
     assert (x, y) == pytest.approx((0, 0), abs=1e-9)
@@ -135,7 +136,7 @@ def test_q_and_e_turn_on_the_spot(robot: Robot, run: Run, key: list[float], sign
 
 def test_stop_ends_manual_control(robot: Robot, run: Run) -> None:
     robot.start_manual()
-    robot.move(W)
+    robot.move(*W)
     run(robot, 0.5)
     robot.stop_manual()
     before = robot.position()
@@ -165,7 +166,7 @@ def test_maps(robot: Robot) -> None:
 
 def test_a_manual_session_starts_standing_still(robot: Robot, run: Run) -> None:
     robot.start_manual()
-    robot.move(W)
+    robot.move(*W)
     run(robot, 0.5)
     robot.stop_manual()
     moved = robot.position()
@@ -175,7 +176,7 @@ def test_a_manual_session_starts_standing_still(robot: Robot, run: Run) -> None:
 
 
 def test_keys_outside_manual_control_are_ignored(robot: Robot, run: Run) -> None:
-    robot.move(W)
+    robot.move(*W)
     robot.start_manual()
     run(robot, 0.5)
     assert robot.position() == (0.0, 0.0, 0.0)

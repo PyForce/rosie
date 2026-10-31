@@ -16,8 +16,6 @@ from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.robot import build_robot
 from rosie.service import start_control_loop
 
-FORWARD = (0.0, 1.0, 0.0)
-
 
 @pytest.fixture
 def served(simubot_profile: Profile) -> Iterator[tuple[RosieClient, Robot]]:
@@ -121,7 +119,7 @@ def test_sensors(served: tuple[RosieClient, Robot]) -> None:
 def test_drive_by_hand(served: tuple[RosieClient, Robot]) -> None:
     client, robot = served
     with client.drive() as wheel:
-        wheel.move(FORWARD)
+        wheel.move(steering=0.0, throttle=1.0, spin=0.0)
         time.sleep(0.5)
     stopped = robot.position()
     time.sleep(0.3)

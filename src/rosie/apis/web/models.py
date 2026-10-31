@@ -37,10 +37,10 @@ class Maps(_Frozen):
 
 
 class Move(_Frozen):
-    """WebSocket, client to rosie: the pressed keys under manual control."""
+    """WebSocket, client to rosie: the driving commands under manual control."""
 
     type: Literal["move"]
-    data: tuple[float, float, float]  # steer, throttle, rotation, each in [-1, 1]
+    data: tuple[float, float, float]  # steering, throttle, spin, each in [-1, 1]
 
 
 class PositionUpdate(_Frozen):
