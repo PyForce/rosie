@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # rosie with WebRosie: docker run -p 8080:8080 ghcr.io/pyforce/rosie, then open http://localhost:8080
+# Arguments and ROSIE_* variables go to rosie start, for example your own robot:
+#   docker run -p 8080:8080 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
 #
 # WebRosie comes from its release zip. To build with a local WebRosie instead:
 #   docker build --build-context webrosie=../WebRosie/dist .
@@ -52,18 +54,16 @@ RUN apt-get update && \
     apt-get install --assume-yes --no-install-recommends nginx tini && \
     rm -rf /var/lib/apt/lists/* && \
     # dialout: serial ports (Arduino boards); for I2C add the host's group: --group-add $(getent group i2c | cut -d: -f3)
-    useradd --uid 1000 --create-home --groups dialout rosie && \
-    mkdir /config && chown rosie:rosie /config
+    useradd --uid 1000 --create-home --groups dialout rosie
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=webrosie / /srv/webrosie
 COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/config.ini /etc/rosie/config.ini
 COPY docker/run.sh /usr/local/bin/rosie-container
 ENV PATH="/app/.venv/bin:$PATH"
 
 USER rosie
-WORKDIR /config
+WORKDIR /home/rosie
 EXPOSE 8080
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["rosie-container"]
+# arguments of docker run go after rosie-container, to rosie start
+ENTRYPOINT ["/usr/bin/tini", "--", "rosie-container"]

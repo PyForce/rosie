@@ -1,11 +1,10 @@
-import asyncio
-import configparser
 from collections.abc import Callable
 
 import pytest
 
 import rosie.sensors.usound
 from conftest import FakeI2C
+from rosie.profile import Ultrasound
 from rosie.robot import Robot
 from rosie.sensors.usound import UltrasoundBoard
 
@@ -122,7 +121,7 @@ def test_retries_and_gives_up(
     assert "doesn't answer" in caplog.text
 
 
-def test_plugin_adds_the_sensor(
+def test_attach_adds_the_sensor(
     robot: Robot, bus: FakeI2C, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     opened: list[int] = []
@@ -132,9 +131,7 @@ def test_plugin_adds_the_sensor(
         return bus
 
     monkeypatch.setattr(rosie.sensors.usound, "open_i2c", open_i2c)
-    config = configparser.ConfigParser()
-    config.read_string("[usound]\nbus = 3\naddress = 0x11\n")
-    asyncio.run(rosie.sensors.usound.run(robot, config["usound"]))
+    rosie.sensors.usound.attach(robot, Ultrasound(bus=3, address=0x11))
     assert opened == [3]
     bus.bytes += [100, 0] * 12
     assert robot.sensors["usound"]() == [0.53] * 12

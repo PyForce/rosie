@@ -2,9 +2,10 @@
 
 ## Profiles
 
-A robot is a folder with a `profile.toml`, a `thumbnail.png` (its picture) and a `vector.svg` (its icon on the
-map). rosie's own are in `src/rosie/profiles/`; yours go in a folder named in `config.ini`
-(`[general] profiles = ...`), which is looked at first, so you can also override a built-in robot.
+A robot is a folder with a `profile.toml`, a `thumbnail.png` (its picture), a `vector.svg` (its icon on the
+map) and, if you like, its own floor maps in `maps/` ([Navigation](navigation.md#maps)). rosie's own are in
+`src/rosie/profiles/` and you pick them by name (`rosie start --robot kevin`); yours by the path of the folder
+(`rosie start --robot ./my-robot`). To change a built-in robot, copy its folder.
 
 ```toml
 name = "SIMUBOT"
@@ -71,18 +72,17 @@ If a board isn't there, rosie stops with a message such as *nothing answers on /
 
 ## A real robot with Docker
 
-The same image runs on a Raspberry Pi (arm64) or a PC. Give it the board's device and a folder with your
-`config.ini` (naming your profile) and your profiles:
+The same image runs on a Raspberry Pi (arm64) or a PC. Give it the board's device and your robot's folder:
 
 ```bash
-docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-rosie:/config ghcr.io/pyforce/rosie
+docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
 ```
 
 For I2C boards (MD25, the ultrasound board), pass the bus and the host's `i2c` group:
 
 ```bash
 docker run -p 8080:8080 --device /dev/i2c-1 --group-add $(getent group i2c | cut -d: -f3) \
-    -v ./my-rosie:/config ghcr.io/pyforce/rosie
+    -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
 ```
 
 ## Your own board

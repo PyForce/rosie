@@ -1,19 +1,13 @@
-# Web API and plugins
+# Web API and extensions
 
-rosie's core knows nothing about networks: everything around it is a **plugin**, a section of `config.ini`
-with `active = True`. rosie has two: `web`, the REST + WebSocket API, and `usound`, an ultrasound sensor
-board.
+rosie's core knows nothing about networks: `rosie start` puts the REST + WebSocket API next to it, and the
+sensors the robot's profile names, such as the ultrasound board.
 
 ## The web API
 
 `apis/web/` · FastAPI, served by uvicorn on rosie's own event loop
 
-```ini
-[web]
-active = True
-host = 0.0.0.0
-port = 5000
-```
+It listens on `--host` and `--port` ([Configure it](getting-started.md#configure-it)).
 
 The interactive documentation of every route is at `/docs` (for example <http://localhost:5000/docs>).
 
@@ -64,26 +58,22 @@ to one or more rosies through this API; the Docker image serves it together with
 
 `sensors/usound.py`
 
-Twelve ultrasonic range sensors and an LM35 thermometer behind a microcontroller on the I2C bus:
+Twelve ultrasonic range sensors and an LM35 thermometer behind a microcontroller on the I2C bus. A robot
+that has one says so in its `profile.toml`:
 
-```ini
-[usound]
-active = True
-bus = 1
-address = 0x10
+```toml
+[sensors.usound]
+bus = 1  # the default
+address = 0x10  # the default
 ```
 
 Its distances (cm, corrected for the sensors' error) are at `GET /sensor/usound`.
 
-## Writing a plugin
+## Extending rosie
 
-A plugin is a module with
-
-```python
-async def run(robot: Robot, settings: configparser.SectionProxy) -> None: ...
-```
-
-It runs as a task next to the control loop, with its section of `config.ini` as `settings`. From there it can:
+Your code gets the `Robot`: in a script or a notebook of your own ([simulate faster than real
+time](getting-started.md#simulate-faster-than-real-time)), or in `process.run`, which `rosie start` runs,
+next to the ultrasound board. From there it can:
 
 - **add a sensor**: `robot.sensors["name"] = read`, a function returning the reading; the web API serves it at
   `/sensor/name`;
@@ -91,6 +81,3 @@ It runs as a task next to the control loop, with its section of `config.ini` as 
   `movement_end`) and `robot.supervisor().append(...)`; `movement_update` gets the full `RobotState` of each
   control step. The web API and the recorder are both supervisors;
 - **give orders**: anything `Robot` offers, such as `go_to`, `follow` or `position`.
-
-To switch it on with `[name] active = True`, add it to `PLUGINS` in `process.py`. A plugin that fails is
-logged; the robot keeps running.

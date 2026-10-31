@@ -31,8 +31,9 @@ A map is a JSON file of rooms, in metres, with [GeoJSON](https://geojson.org/) s
 - **items**: furniture, the obstacles.
 - **walls** and **doors**: drawn by WebRosie; the planner uses only the floor and the items.
 
-rosie comes with "Gustavo's House"; put your own maps in a folder and name it in `config.ini`
-(`maps = ...`). `[general] map` picks the map at start, and `POST /map/{name}` switches it while running.
+rosie comes with "Gustavo's House"; your own maps go in the `maps/` folder of your
+[robot's profile](robots.md#profiles), and win a name over rosie's. `rosie start --map` picks the map at
+start, and `POST /map/{name}` switches it while running.
 
 ## Free space
 

@@ -13,7 +13,7 @@ nav = [
   ] },
   { "Use" = [
     { "Robots and hardware" = "robots.md" },
-    { "Web API and plugins" = "integration.md" },
+    { "Web API and extensions" = "integration.md" },
     { "Python client" = "client.md" },
   ] },
   { "📖 Reference" = "reference.md" },

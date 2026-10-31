@@ -1,36 +1,30 @@
-"""The robot's process: the robot, its control loop and its plugins, until a signal."""
+"""The robot's process: the robot, its control loop and its web API, until a signal."""
 
 import asyncio
-import configparser
-import importlib
 import logging
 import signal
 import time
-from pathlib import Path
 
 from rosie import runner
-from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR, list_maps
-from rosie.profile import PROFILES_DIR, load_profile
+from rosie.apis.web.server import serve
+from rosie.models import Settings
+from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.profile import load_profile
 from rosie.robot import Robot
+from rosie.sensors import usound
 
 logger = logging.getLogger(__name__)
 
-# config section -> module with `async def run(robot, settings)`
-PLUGINS = {"web": "rosie.apis.web.server", "usound": "rosie.sensors.usound"}
 
-
-async def run(config: configparser.ConfigParser) -> None:
-    """Run the robot, and every active plugin next to it, until a signal."""
+async def run(settings: Settings) -> None:
+    """Run the robot and its web API until a signal."""
+    profile = load_profile(settings.robot)
+    # the robot's own maps first: they win a name over rosie's
     robot = Robot(
-        load_profile(
-            config.get("general", "profile", fallback="simubot"),
-            _search(config, "profiles", PROFILES_DIR),
-        ),
-        list_maps(_search(config, "maps", MAPS_DIR)),
-        config.get("general", "map", fallback=DEFAULT_MAP),
-        _optional_path(config.get("recording", "directory", fallback=None)),
-        time.monotonic,
+        profile, list_maps([profile.maps, MAPS_DIR]), settings.map, settings.record, time.monotonic
     )
+    if profile.usound:
+        usound.attach(robot, profile.usound)
 
     # a flag, so a signal arriving twice (uvicorn re-raises the ones it handles) is harmless
     stopping = asyncio.Event()
@@ -39,51 +33,14 @@ async def run(config: configparser.ConfigParser) -> None:
         loop.add_signal_handler(signum, stopping.set)
 
     running = asyncio.create_task(runner.run(robot))
-    plugins = [
-        task for section in config.sections() if (task := _start_plugin(robot, config, section))
-    ]
+    web = asyncio.create_task(serve(robot, settings.host, settings.port))
+    logger.info("web API on http://%s:%d", settings.host, settings.port)
 
     await stopping.wait()
     logger.info("stopping...")
     running.cancel()
-    # the motors first, then the plugins
+    # the motors first, then the web API
     robot.stop()
-    for task in plugins:
-        task.cancel()
-    await asyncio.gather(running, *plugins, return_exceptions=True)
+    web.cancel()
+    await asyncio.gather(running, web, return_exceptions=True)
     logger.info("stopped")
-
-
-def _search(config: configparser.ConfigParser, option: str, builtin: Path) -> list[Path]:
-    """The user's folder for `option` (from [general]), if any, then rosie's own."""
-    user = _optional_path(config.get("general", option, fallback=None))
-    return [user, builtin] if user else [builtin]
-
-
-def _optional_path(value: str | None) -> Path | None:
-    return Path(value).expanduser() if value else None
-
-
-def _start_plugin(
-    robot: Robot, config: configparser.ConfigParser, section: str
-) -> asyncio.Task[None] | None:
-    if not config.getboolean(section, "active", fallback=False):
-        return None
-    if section not in PLUGINS:
-        logger.error("unknown section [%s], known: %s", section, ", ".join(PLUGINS))
-        return None
-    try:
-        module = importlib.import_module(PLUGINS[section])
-    except ImportError:
-        logger.exception("plugin %s not loaded", section)
-        return None
-    logger.info("loaded %s", section)
-    task = asyncio.create_task(module.run(robot, config[section]), name=section)
-    task.add_done_callback(_report_plugin_end)
-    return task
-
-
-def _report_plugin_end(task: asyncio.Task[None]) -> None:
-    """Log a plugin that ended with an error (the robot keeps running)."""
-    if not task.cancelled() and (error := task.exception()):
-        logger.error("plugin %s failed", task.get_name(), exc_info=error)

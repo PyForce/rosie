@@ -11,11 +11,8 @@ stop() {
 }
 trap 'stopping=true; stop' TERM INT
 
-# your configuration if you mounted one, else the image's
-config=/config/config.ini
-[ -f "$config" ] || config=/etc/rosie/config.ini
-
-rosie --config "$config" start &
+# your arguments, then the address nginx passes the API to (the last flag wins)
+rosie start "$@" --host 127.0.0.1 --port 5000 &
 rosie=$!
 nginx -e stderr -g "daemon off;" &
 nginx=$!

@@ -156,7 +156,7 @@ needed to drive, but it keeps running, so the map still shows where the robot is
 
 `motion/recording.py`
 
-With a `[recording]` section in `config.ini` (or a folder passed to `Robot`), every planned movement is saved
+With `rosie start --record FOLDER` (or a folder passed to `Robot`), every planned movement is saved
 as a CSV file: the robot's parameters as `#` comment lines, then one row per control step with the pose, the
 reference, the tracker's output, and each wheel's speed, set point and current.
 

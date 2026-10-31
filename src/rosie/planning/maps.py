@@ -13,7 +13,6 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 MAPS_DIR = Path(__file__).parent.parent / "maps"
-DEFAULT_MAP = "Gustavo's House"
 
 type Points = np.ndarray  # n x 2: x, y in m
 

@@ -18,8 +18,8 @@
     rosie start
     ```
 
-    The first start writes a `config.ini` in the current folder: the simulated robot, with its web API on
-    port 5000. Plain `pip install pyforce-rosie`, without `[robot]`, is the [Python client](client.md)
+    The simulated robot, with its web API on <http://localhost:5000>: see [Configure it](#configure-it)
+    for another robot, map or port. Plain `pip install pyforce-rosie`, without `[robot]`, is the [Python client](client.md)
     alone, for computers that only talk to a robot.
 
 === "From the source"
@@ -70,40 +70,30 @@ curl localhost:8080/odometry
 
 ## Configure it
 
-`config.ini` says which robot rosie drives and what runs next to it:
+There is no configuration file. Every option of `rosie start` has a default, which its flag or its
+environment variable overrides; a flag beats its variable. Each option is one `StartupOption` in
+`src/rosie/const.py`, with its flag, variable, default and help:
 
-```ini
-[general]
-loglevel = INFO
-# the robot (see Robots and hardware)
-profile = simubot
-# your own robot profiles and maps, looked at before rosie's own
-# profiles = ~/rosie/profiles
-# maps = ~/rosie/maps
-# the map the planner starts with
-map = Gustavo's House
-# logfile = rosie.log
-
-# the web API (WebRosie, the Python client)
-[web]
-active = True
-# 127.0.0.1: this computer only
-host = 0.0.0.0
-port = 5000
-
-# a CSV file per planned movement
-[recording]
-directory = recordings
-```
-
-Each section other than `[general]` and `[recording]` is a plugin that runs when `active = True`: see
-[Web API and plugins](integration.md).
-
-With Docker, mount a folder with your `config.ini` (and `profiles/`, `maps/` if you have your own) on
-`/config`:
+| Flag | Variable | Default | |
+|---|---|---|---|
+| `--robot` | `ROSIE_ROBOT` | `simubot` | one of rosie's robots by name, or the folder of yours ([Robots and hardware](robots.md)) |
+| `--map` | `ROSIE_MAP` | `Gustavo's House` | the map the planner starts with |
+| `--host` | `ROSIE_HOST` | `0.0.0.0` | where the web API listens: every network, so other machines reach the robot; `127.0.0.1` for this computer only |
+| `--port` | `ROSIE_PORT` | `5000` | the web API's port |
+| `--record` | `ROSIE_RECORD` | none | a folder for a CSV file per planned movement |
+| `--log-level` | `ROSIE_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR` |
 
 ```bash
-docker run -p 8080:8080 -v ./my-rosie:/config ghcr.io/pyforce/rosie
+rosie start --robot ./my-robot --record recordings
+ROSIE_LOG_LEVEL=DEBUG rosie start
+```
+
+With Docker, arguments and variables go to `rosie start` the same way (the image keeps the host and port,
+which its web server needs). Mount your robot's folder and name it:
+
+```bash
+docker run -p 8080:8080 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
+docker run -p 8080:8080 -e ROSIE_LOG_LEVEL=DEBUG ghcr.io/pyforce/rosie
 ```
 
 ## Simulate faster than real time
@@ -114,8 +104,8 @@ always get the same result. This is how rosie's own tests work, and the quickest
 ```python
 from pathlib import Path
 
-from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR, list_maps
-from rosie.profile import PROFILES_DIR, load_profile
+from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.profile import load_profile
 from rosie.robot import Robot
 
 
@@ -130,8 +120,8 @@ class Clock:
 
 
 clock = Clock()
-profile = load_profile("simubot", [PROFILES_DIR])
-robot = Robot(profile, list_maps([MAPS_DIR]), DEFAULT_MAP, Path("recordings"), clock)
+profile = load_profile("simubot")
+robot = Robot(profile, list_maps([MAPS_DIR]), "Gustavo's House", Path("recordings"), clock)
 
 robot.follow([(1, 0), (1, 1), (0, 1)], 2)  # 2 s per side
 for step in range(200):  # 10 s, computed in a blink

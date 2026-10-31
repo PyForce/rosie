@@ -22,7 +22,7 @@ web page that drives it.
 | Route planning (visibility graph, A*) | `planning/` | [Navigation](navigation.md) |
 | Talking to hardware (serial, I2C) | `motion/drivers/` | [Robots and hardware](robots.md) |
 | Robot software architecture | `robot.py`, `process.py`, `runner.py` | [How rosie works](how-rosie-works.md) |
-| Web APIs, WebSockets, clients | `apis/web/`, `client/` | [Web API and plugins](integration.md), [Python client](client.md) |
+| Web APIs, WebSockets, clients | `apis/web/`, `client/` | [Web API and extensions](integration.md), [Python client](client.md) |
 
 ## Try it
 

@@ -11,10 +11,12 @@ import uvicorn
 from rosie import runner
 from rosie.apis.web.server import create_app
 from rosie.client import Metadata, Position, RosieClient
+from rosie.const import MAP
 from rosie.errors import NoRouteError, RequestError
-from rosie.planning.maps import DEFAULT_MAP
 from rosie.profile import Profile
 from rosie.robot import Robot
+
+HOUSE = MAP.default  # rosie's own map
 
 FORWARD = (0.0, 1.0, 0.0)
 
@@ -22,7 +24,7 @@ FORWARD = (0.0, 1.0, 0.0)
 @pytest.fixture
 def served(simubot_profile: Profile, maps: dict[str, Path]) -> Iterator[tuple[RosieClient, Robot]]:
     """A real rosie, web API and control loop, on a free port in a background thread."""
-    robot = Robot(simubot_profile, maps, DEFAULT_MAP, None, time.monotonic)
+    robot = Robot(simubot_profile, maps, HOUSE, None, time.monotonic)
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         port = probe.getsockname()[1]
@@ -100,10 +102,10 @@ def test_impossible_orders(served: tuple[RosieClient, Robot]) -> None:
 
 def test_maps(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
-    assert client.maps() == [DEFAULT_MAP]
-    assert client.map(DEFAULT_MAP) == client.current_map()
+    assert client.maps() == [HOUSE]
+    assert client.map(HOUSE) == client.current_map()
     assert set(client.current_map()["rooms"]) == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
-    client.use_map(DEFAULT_MAP)
+    client.use_map(HOUSE)
     with pytest.raises(RequestError, match="404: no map Nowhere") as refused:
         client.use_map("Nowhere")
     assert refused.value.status == 404

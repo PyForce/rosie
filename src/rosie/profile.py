@@ -1,7 +1,8 @@
 """
 Robot profiles: a folder per robot with profile.toml, a picture
-(thumbnail.png) and an icon (vector.svg). rosie looks in the user's
-profiles folder first, then in its own.
+(thumbnail.png), an icon (vector.svg) and, if you like, the robot's own
+floor maps (maps/*.json). rosie's own robots are picked by name, yours by
+the path of their folder.
 """
 
 import tomllib
@@ -42,6 +43,12 @@ class SpeedControl:
 
 
 @dataclass(frozen=True, slots=True)
+class Ultrasound:
+    bus: int = 1  # I2C bus number
+    address: int = 0x10
+
+
+@dataclass(frozen=True, slots=True)
 class Profile:
     id: str  # folder name
     directory: Path
@@ -56,6 +63,7 @@ class Profile:
     arrival_timeout: float  # s it may take, after the planned time, to get that close
     tracking: Tracking
     speed: SpeedControl
+    usound: Ultrasound | None  # the ultrasound board, if the robot has one
 
     @property
     def thumbnail(self) -> Path:
@@ -65,22 +73,29 @@ class Profile:
     def vector(self) -> Path:
         return self.directory / "vector.svg"
 
-
-def load_profile(profile_id: str, search: list[Path]) -> Profile:
-    """The profile `profile_id` from the first folder of `search` that has it."""
-    for folder in search:
-        path = folder / profile_id / "profile.toml"
-        if path.is_file():
-            return _parse(profile_id, path)
-    raise ValueError(f"unknown profile {profile_id} (looked in {', '.join(map(str, search))})")
+    @property
+    def maps(self) -> Path:
+        return self.directory / "maps"
 
 
-def _parse(profile_id: str, path: Path) -> Profile:
+def load_profile(robot: str) -> Profile:
+    """One of rosie's robots by name (simubot), or yours by its folder (./my-robot)."""
+    builtin = PROFILES_DIR / robot
+    folder = builtin if "/" not in robot and builtin.is_dir() else Path(robot).expanduser()
+    path = folder / "profile.toml"
+    if not path.is_file():
+        known = ", ".join(sorted(path.parent.name for path in PROFILES_DIR.glob("*/profile.toml")))
+        raise ValueError(f"unknown robot {robot}: no {path} (rosie's own: {known})")
+    return _parse(path)
+
+
+def _parse(path: Path) -> Profile:
     data = tomllib.loads(path.read_text())
     try:
         control = data["control"]
+        usound = data.get("sensors", {}).get("usound")
         return Profile(
-            id=profile_id,
+            id=path.parent.resolve().name,
             directory=path.parent,
             name=data["name"],
             board=data["board"],
@@ -93,6 +108,7 @@ def _parse(profile_id: str, path: Path) -> Profile:
             arrival_timeout=control["arrival_timeout"],
             tracking=Tracking(**control["tracking"]),
             speed=SpeedControl(**control["speed"]),
+            usound=None if usound is None else Ultrasound(**usound),
         )
     except (KeyError, TypeError) as error:
         raise ValueError(f"{path}: missing or unknown setting ({error})") from error

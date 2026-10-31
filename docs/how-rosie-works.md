@@ -32,8 +32,8 @@ event loop:
 
 - `runner.run(robot)` calls `robot.tick()` every `sample_time` seconds. A late step doesn't make the next
   ones rush to catch up.
-- Every active **plugin** (the web API, sensors) is a task on the same loop: `async def run(robot, settings)`.
-- A stop signal (Ctrl+C, `docker stop`) stops the control loop first, then the motors, then the plugins.
+- The web API is a task on the same loop.
+- A stop signal (Ctrl+C, `docker stop`) stops the control loop first, then the motors, then the web API.
 
 So the robot code never needs locks: when a web request asks for the position, no control step is half done.
 The robot core itself (`robot.py` and below) has no asyncio and no threads at all; it's plain Python you can
@@ -67,10 +67,11 @@ The simulated motor board uses the same clock to integrate the wheel speeds.
 ```text
 src/rosie/
 ├── __main__.py        the `rosie` command
-├── process.py         rosie start: the robot, its control loop and its plugins
+├── const.py           the options of rosie start
+├── models.py          StartupOption, Settings
+├── process.py         rosie start: the robot, its control loop and its web API
 ├── runner.py          the control loop's timing
 ├── robot.py           Robot: the parts put together, and what interfaces can ask of it
-├── config.py          config.ini
 ├── profile.py         robot profiles (TOML)
 ├── errors.py
 ├── motion/
@@ -85,7 +86,7 @@ src/rosie/
 │   └── drivers/       simulated, Arduino, MD25 boards; serial and I2C
 ├── planning/          maps, visibility graph, A*, route planner
 ├── apis/web/          the REST + WebSocket API (FastAPI)
-├── sensors/usound.py  the ultrasound board plugin
+├── sensors/usound.py  the ultrasound board
 ├── client/            the Python client
 ├── profiles/          built-in robots
 └── maps/              built-in maps

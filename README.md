@@ -72,7 +72,7 @@ robot.goto(1, 0.5, 4)  # to (1 m, 0.5 m) in 4 s
 | Wheel speed control | an incremental PID |
 | Route planning | free space, a visibility graph, A* |
 | Hardware | serial and I2C motor boards, an ultrasound sensor board |
-| Integration | a REST + WebSocket API, a web interface, a Python client, plugins |
+| Integration | a REST + WebSocket API, a web interface, a Python client |
 
 The simulated robot runs on a clock you control, so a script can simulate a 10-second movement in
 milliseconds, the same every time. Every planned movement can be recorded to CSV, one row per control step,
@@ -85,7 +85,7 @@ ready for pandas.
 - [Motion control](docs/motion-control.md) and [Navigation](docs/navigation.md): the algorithms, with their
   equations.
 - [Teaching with rosie](docs/teaching.md): lab ideas.
-- [Robots and hardware](docs/robots.md), [Web API and plugins](docs/integration.md),
+- [Robots and hardware](docs/robots.md), [Web API and extensions](docs/integration.md),
   [Python client](docs/client.md).
 
 ## Development

@@ -7,11 +7,13 @@ import pytest
 
 import rosie.robot
 from conftest import FakeClock, FakeI2C, FakeSerial, distance
+from rosie.const import MAP
 from rosie.errors import NoRouteError
 from rosie.motion.supervisors import SupervisorContainer
-from rosie.planning.maps import DEFAULT_MAP
-from rosie.profile import PROFILES_DIR, Profile, load_profile
+from rosie.profile import Profile, load_profile
 from rosie.robot import Robot, movement_controller, robot_parameters
+
+HOUSE = MAP.default  # rosie's own map
 
 type Run = Callable[[Robot, float], None]
 
@@ -32,7 +34,7 @@ def test_starts_at_the_origin(robot: Robot) -> None:
 def test_robots_are_independent(
     robot: Robot, simubot_profile: Profile, maps: dict[str, Path]
 ) -> None:
-    other = Robot(simubot_profile, maps, DEFAULT_MAP, None, FakeClock())
+    other = Robot(simubot_profile, maps, HOUSE, None, FakeClock())
     other.teleport(1.0, 2.0, 0.5)
     assert robot.position() == (0.0, 0.0, 0.0)
 
@@ -158,9 +160,9 @@ def test_stop_ends_a_movement(robot: Robot, run: Run) -> None:
 
 
 def test_maps(robot: Robot) -> None:
-    assert list(robot.maps()) == [DEFAULT_MAP]
-    assert robot.map_name == DEFAULT_MAP
-    house = robot.get_map(DEFAULT_MAP)
+    assert list(robot.maps()) == [HOUSE]
+    assert robot.map_name == HOUSE
+    house = robot.get_map(HOUSE)
     assert house is not None
     assert set(house["rooms"]) == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
     assert robot.get_map("Nowhere") is None
@@ -171,7 +173,7 @@ def test_maps(robot: Robot) -> None:
 def test_records_planned_movements(
     simubot_profile: Profile, maps: dict[str, Path], clock: FakeClock, run: Run, tmp_path: Path
 ) -> None:
-    robot = Robot(simubot_profile, maps, DEFAULT_MAP, tmp_path / "recordings", clock)
+    robot = Robot(simubot_profile, maps, HOUSE, tmp_path / "recordings", clock)
     robot.go_to(1, 0.5, 2)
     run(robot, 4)
     (recording,) = (tmp_path / "recordings").iterdir()
@@ -220,7 +222,7 @@ def test_arduino_robot(
     fake_boards: tuple[FakeSerial, FakeI2C], maps: dict[str, Path], clock: FakeClock, run: Run
 ) -> None:
     serial, _ = fake_boards
-    robot = Robot(load_profile("kevin", [PROFILES_DIR]), maps, DEFAULT_MAP, None, clock)
+    robot = Robot(load_profile("kevin"), maps, HOUSE, None, clock)
     assert serial.written[0][0] == 0xA6  # the board's PID constants
     robot.go_to(1, 0, 2)
     run(robot, 0.5)
@@ -233,7 +235,7 @@ def test_md25_robot(
     fake_boards: tuple[FakeSerial, FakeI2C], maps: dict[str, Path], clock: FakeClock, run: Run
 ) -> None:
     _, bus = fake_boards
-    robot = Robot(load_profile("rovert", [PROFILES_DIR]), maps, DEFAULT_MAP, None, clock)
+    robot = Robot(load_profile("rovert"), maps, HOUSE, None, clock)
     robot.go_to(1, 0, 2)
     run(robot, 0.5)
     assert bus.blocks_written[-1][0] > 0  # rosie's PID pushes the wheels that don't move
@@ -246,8 +248,8 @@ def test_gives_up_on_a_robot_that_never_arrives(
     run: Run,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    profile = load_profile("kevin", [PROFILES_DIR])
-    robot = Robot(profile, maps, DEFAULT_MAP, None, clock)  # its wheels never turn
+    profile = load_profile("kevin")
+    robot = Robot(profile, maps, HOUSE, None, clock)  # its wheels never turn
     robot.go_to(1, 0, 1)
     run(robot, 1 + profile.arrival_timeout + 0.5)
     assert "stopping 1.000 m short of (1.00, 0.00)" in caplog.text
@@ -257,7 +259,7 @@ def test_cubic_robot(
     simubot_profile: Profile, maps: dict[str, Path], clock: FakeClock, run: Run
 ) -> None:
     robot = Robot(
-        dataclasses.replace(simubot_profile, interpolation="cubic"), maps, DEFAULT_MAP, None, clock
+        dataclasses.replace(simubot_profile, interpolation="cubic"), maps, HOUSE, None, clock
     )
     robot.follow([(1.0, 0.0), (1.0, 1.0)], 3)
     run(robot, 8)

@@ -4,9 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR, list_maps
-from rosie.profile import PROFILES_DIR, Profile, load_profile
+from rosie.const import MAP
+from rosie.planning.maps import MAPS_DIR, list_maps
+from rosie.profile import Profile, load_profile
 from rosie.robot import Robot
+
+HOUSE = MAP.default  # rosie's own map
 
 SAMPLE_TIME = 0.05
 
@@ -82,7 +85,7 @@ def clock() -> FakeClock:
 
 @pytest.fixture
 def simubot_profile() -> Profile:
-    return load_profile("simubot", [PROFILES_DIR])
+    return load_profile("simubot")
 
 
 @pytest.fixture
@@ -92,7 +95,7 @@ def maps() -> dict[str, Path]:
 
 @pytest.fixture
 def robot(simubot_profile: Profile, maps: dict[str, Path], clock: FakeClock) -> Robot:
-    return Robot(simubot_profile, maps, DEFAULT_MAP, None, clock)
+    return Robot(simubot_profile, maps, HOUSE, None, clock)
 
 
 @pytest.fixture

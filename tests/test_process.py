@@ -1,5 +1,4 @@
 import asyncio
-import configparser
 import os
 import signal
 import socket
@@ -8,6 +7,13 @@ from pathlib import Path
 import pytest
 
 from rosie import process
+from rosie.const import MAP
+from rosie.errors import HardwareUnavailableError
+from rosie.models import Settings
+from rosie.planning.maps import MAPS_DIR
+from rosie.profile import PROFILES_DIR
+
+HOUSE = MAP.default  # rosie's own map
 
 
 def free_port() -> int:
@@ -15,12 +21,6 @@ def free_port() -> int:
         probe.bind(("127.0.0.1", 0))
         port: int = probe.getsockname()[1]
         return port
-
-
-def config(text: str) -> configparser.ConfigParser:
-    parsed = configparser.ConfigParser(interpolation=None)
-    parsed.read_string(text)
-    return parsed
 
 
 async def get(port: int, path: str) -> str:
@@ -31,44 +31,47 @@ async def get(port: int, path: str) -> str:
     return response
 
 
-def test_runs_its_plugins_until_a_signal(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+def settings(robot: str, port: int) -> Settings:
+    return Settings(robot, HOUSE, "127.0.0.1", port, None)
+
+
+def test_runs_the_robot_and_its_web_api_until_a_signal(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     caplog.set_level("INFO")
     port = free_port()
-    settings = config(f"""
-[general]
-profile = simubot
-# empty user folders: rosie's own profiles and maps still load
-profiles = {tmp_path}
-maps = {tmp_path}
-[web]
-active = True
-host = 127.0.0.1
-port = {port}
-[usound]
-active = True
-[sonar]
-active = True
-[recording]
-active = False
-""")
+    # your robot, with a map of its own next to rosie's
+    robot = tmp_path / "my-robot"
+    (robot / "maps").mkdir(parents=True)
+    (robot / "profile.toml").write_text((PROFILES_DIR / "simubot" / "profile.toml").read_text())
+    house = (MAPS_DIR / "house.json").read_text()
+    (robot / "maps" / "garage.json").write_text(house.replace(HOUSE, "Garage"))
 
-    async def scenario() -> str:
-        running = asyncio.create_task(process.run(settings))
+    async def scenario() -> tuple[str, str]:
+        running = asyncio.create_task(process.run(settings(str(robot), port)))
         for _ in range(50):
             await asyncio.sleep(0.1)
             try:
-                response = await get(port, "/odometry")
+                odometry = await get(port, "/odometry")
                 break
             except OSError:
                 continue
+        maps = await get(port, "/maps")
         os.kill(os.getpid(), signal.SIGTERM)
         await asyncio.wait_for(running, 5)
-        return response
+        return odometry, maps
 
-    response = asyncio.run(scenario())
-    assert response.startswith("HTTP/1.1 200")
-    assert '"x":0.0' in response
-    assert "loaded web" in caplog.text
-    assert "unknown section [sonar], known: web, usound" in caplog.text
-    assert "plugin usound failed" in caplog.text  # no smbus2 here
+    odometry, maps = asyncio.run(scenario())
+    assert odometry.startswith("HTTP/1.1 200")
+    assert '"x":0.0' in odometry
+    assert '"Garage"' in maps and HOUSE in maps
+    assert f"web API on http://127.0.0.1:{port}" in caplog.text
     assert caplog.messages[-2:] == ["stopping...", "stopped"]
+
+
+def test_a_robot_with_an_ultrasound_board_needs_it(tmp_path: Path) -> None:
+    (tmp_path / "profile.toml").write_text(
+        (PROFILES_DIR / "simubot" / "profile.toml").read_text() + "\n[sensors.usound]\n"
+    )
+    with pytest.raises(HardwareUnavailableError):  # no smbus2 here
+        asyncio.run(process.run(settings(str(tmp_path), free_port())))

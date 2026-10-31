@@ -1,5 +1,4 @@
 import asyncio
-import configparser
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -11,15 +10,10 @@ from rosie.apis.web import routes
 from rosie.robot import Robot
 
 
-async def run(robot: Robot, settings: configparser.SectionProxy) -> None:
-    host = settings.get("host", fallback="127.0.0.1")
-    port = settings.getint("port", fallback=5000)
-    debug = settings.getboolean("debug", fallback=False)
-
+async def serve(robot: Robot, host: str, port: int) -> None:
+    """The web API on host:port, until cancelled."""
     server = uvicorn.Server(
-        uvicorn.Config(
-            create_app(robot), host=host, port=port, log_level="debug" if debug else "warning"
-        )
+        uvicorn.Config(create_app(robot), host=host, port=port, log_level="warning")
     )
     serving = asyncio.ensure_future(server.serve())
     try:

@@ -2,36 +2,53 @@ from pathlib import Path
 
 import pytest
 
-from rosie.profile import PROFILES_DIR, load_profile
+from rosie.profile import PROFILES_DIR, Ultrasound, load_profile
 
 
 @pytest.mark.parametrize("profile_id", ["simubot", "kevin", "ltl", "rovert", "blubot"])
 def test_builtin_profiles_load(profile_id: str) -> None:
-    profile = load_profile(profile_id, [PROFILES_DIR])
+    profile = load_profile(profile_id)
     assert profile.id == profile_id
     assert profile.thumbnail.is_file()
     assert profile.vector.is_file()
+    assert profile.usound is None
 
 
-def test_a_user_folder_comes_first(tmp_path: Path) -> None:
-    mine = tmp_path / "simubot"
-    mine.mkdir()
-    (mine / "profile.toml").write_text(
-        (PROFILES_DIR / "simubot" / "profile.toml")
-        .read_text()
-        .replace('name = "SIMUBOT"', 'name = "MINE"')
-    )
-    assert load_profile("simubot", [tmp_path, PROFILES_DIR]).name == "MINE"
-    assert load_profile("kevin", [tmp_path, PROFILES_DIR]).directory == PROFILES_DIR / "kevin"
+def copy_of_simubot(folder: Path, extra: str = "") -> Path:
+    folder.mkdir()
+    text = (PROFILES_DIR / "simubot" / "profile.toml").read_text()
+    (folder / "profile.toml").write_text(text.replace('name = "SIMUBOT"', 'name = "MINE"') + extra)
+    return folder
 
 
-def test_unknown_profile(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="unknown profile nobot"):
-        load_profile("nobot", [tmp_path, PROFILES_DIR])
+def test_your_robot_by_its_folder(tmp_path: Path) -> None:
+    profile = load_profile(str(copy_of_simubot(tmp_path / "my-robot")))
+    assert (profile.id, profile.name) == ("my-robot", "MINE")
+    assert profile.maps == tmp_path / "my-robot" / "maps"
+
+
+def test_a_folder_named_like_a_builtin_robot(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    copy_of_simubot(tmp_path / "simubot")
+    monkeypatch.chdir(tmp_path)
+    assert load_profile("simubot").name == "SIMUBOT"  # a name is rosie's own
+    assert load_profile("./simubot").name == "MINE"  # a path is yours
+
+
+def test_ultrasound_board(tmp_path: Path) -> None:
+    folder = copy_of_simubot(tmp_path / "sonarbot", "\n[sensors.usound]\naddress = 0x11\n")
+    assert load_profile(str(folder)).usound == Ultrasound(bus=1, address=0x11)
+
+
+def test_unknown_robot(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match=r"unknown robot nobot: .*rosie's own: blubot, kevin"):
+        load_profile("nobot")
+    with pytest.raises(ValueError, match="unknown robot"):
+        load_profile(str(tmp_path))
 
 
 def test_incomplete_profile(tmp_path: Path) -> None:
-    (tmp_path / "halfbot").mkdir()
-    (tmp_path / "halfbot" / "profile.toml").write_text('name = "HALF"\nboard = "virtual"\n')
+    (tmp_path / "profile.toml").write_text('name = "HALF"\nboard = "virtual"\n')
     with pytest.raises(ValueError, match="missing or unknown setting"):
-        load_profile("halfbot", [tmp_path])
+        load_profile(str(tmp_path))

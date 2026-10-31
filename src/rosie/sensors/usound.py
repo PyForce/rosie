@@ -7,12 +7,12 @@ global enable (bit 0), the LM35 (bit 1) and sensors 1 to 5 (bits 2 to 6);
 status register 2 is marked by bit 7 and holds sensors 6 to 12 (bits 0 to 6).
 """
 
-import configparser
 import logging
 import time
 from collections.abc import Callable
 
 from rosie.motion.drivers.buses import I2CBus, open_i2c
+from rosie.profile import Ultrasound
 from rosie.robot import Robot
 
 logger = logging.getLogger(__name__)
@@ -44,11 +44,9 @@ SECOND_REGISTER = 0x80
 CORRECTIONS = ((10, 0.1), (20, 0.06), (30, 0.03), (40, 0.04), (float("inf"), 0.02))
 
 
-async def run(robot: Robot, settings: configparser.SectionProxy) -> None:
-    board = UltrasoundBoard(
-        open_i2c(settings.getint("bus", fallback=1)),
-        int(settings.get("address", fallback=str(DEFAULT_ADDRESS)), 0),
-    )
+def attach(robot: Robot, settings: Ultrasound) -> None:
+    """Open the board and serve its readings as the robot's `usound` sensor."""
+    board = UltrasoundBoard(open_i2c(settings.bus), settings.address)
     robot.sensors["usound"] = board.read_all
 
 
