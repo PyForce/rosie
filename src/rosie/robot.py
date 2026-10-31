@@ -1,6 +1,6 @@
 """
 A robot built from its profile: its drive, trajectory planner and tracker, the
-route planner with the robot's own maps and rosie's, and the sensors the
+maps (the robot's own and rosie's) and the world it starts in, and the sensors the
 profile names.
 """
 
@@ -16,10 +16,9 @@ from rosie.hardware.drive import open_drive
 from rosie.hardware.sensors import open_sensors
 from rosie.models import Clock, Profile
 from rosie.planning.models import TrajectoryPlanner
-from rosie.planning.path.maps import BUILTIN_MAPS, list_maps
-from rosie.planning.path.planner import Planner
 from rosie.planning.trajectory import plan_cubic, plan_linear
 from rosie.recording import MovementRecorder
+from rosie.world.maps import BUILTIN_MAPS, list_maps, load_world
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +32,9 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
         )
     drive = open_drive(profile, clock)
     # the robot's own maps first: they win a name over rosie's
-    planner = Planner(list_maps([profile.maps_folder, BUILTIN_MAPS]))
-    planner.use_map(map_name)
+    map_files = list_maps([profile.maps_folder, BUILTIN_MAPS])
+    if map_name not in map_files:
+        raise SetupError(f"unknown map: {map_name}")
     observers: list[MovementObserver] = []
     if recordings:
         observers.append(
@@ -46,7 +46,8 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
         drive,
         TRAJECTORY_PLANNERS[profile.planning.planner],
         partial(track_by_io_linearization, profile.control.tracking, profile.wheels),
-        planner,
+        map_files,
+        load_world(map_files[map_name]),
         sensors,
         observers,
         clock,

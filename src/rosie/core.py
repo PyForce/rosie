@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Callable, Iterator, Sequence
+from pathlib import Path
 from typing import Any
 
 from rosie.control.models import (
@@ -10,12 +11,16 @@ from rosie.control.models import (
     Tracker,
 )
 from rosie.control.movement import MIN_MANUAL_ELAPSED_TIME, is_over, manual_step, planned_step
+from rosie.errors import SetupError
 from rosie.hardware.drive.models import Drive
 from rosie.localization.odometry import advance, measure_speeds
 from rosie.models import ORIGIN, Clock, Pose, Profile
-from rosie.planning.models import TrajectoryPlanner, TrajectoryRequest
-from rosie.planning.path.planner import Planner
+from rosie.planning.models import TrajectoryPlanner, TrajectoryRequest, VisibilityGraph
+from rosie.planning.path import plan_path
 from rosie.planning.trajectory import plan
+from rosie.planning.visibility import visibility_graph
+from rosie.world.maps import load_world, read_map
+from rosie.world.models import World
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +38,8 @@ class Robot:
         drive: Drive,
         trajectory_planner: TrajectoryPlanner,
         track: Tracker,
-        planner: Planner,
+        map_files: dict[str, Path],
+        world: World,
         sensors: dict[str, Callable[[], object]],
         observers: list[MovementObserver],
         clock: Clock,
@@ -42,7 +48,11 @@ class Robot:
         self.drive = drive
         self.trajectory_planner = trajectory_planner
         self.track = track
-        self.planner = planner
+        # map name -> its file; the world the robot moves in, and its visibility graph once a
+        # route needs it
+        self.map_files = map_files
+        self.world = world
+        self.graph: VisibilityGraph | None = None
         # sensor name -> function reading it (extensions can add theirs)
         self.sensors = sensors
         self.observers = observers
@@ -128,7 +138,9 @@ class Robot:
         x0, y0, _ = self.position()
         body = self.profile.body
         clearance = self.profile.planning.clearance * max(body.width, body.length)
-        _start, *corners = self.planner.route((x0, y0), (x, y), clearance)
+        if self.graph is None:
+            self.graph = visibility_graph(self.world, clearance)
+        _start, *corners = plan_path(self.graph, (x0, y0), (x, y))
         self.follow(corners, t)
 
     def follow(self, points: Sequence[Sequence[float]], t: float) -> None:
@@ -153,18 +165,21 @@ class Robot:
         self.stop()
 
     def maps(self) -> Iterator[str]:
-        return iter(self.planner.maps)
+        return iter(self.map_files)
 
     def get_map(self, map_name: str) -> dict[str, Any] | None:
-        return self.planner.get_map(map_name)
+        return read_map(self.map_files[map_name]) if map_name in self.map_files else None
 
     @property
-    def map_name(self) -> str | None:
-        return self.planner.map_name
+    def map_name(self) -> str:
+        return self.world.name
 
     def use_map(self, map_name: str) -> None:
-        """Plan routes on this map from now on (ValueError if there's no such map)."""
-        self.planner.use_map(map_name)
+        """Plan routes on this map from now on (SetupError if there's no such map)."""
+        if map_name not in self.map_files:
+            raise SetupError(f"unknown map: {map_name}")
+        self.world = load_world(self.map_files[map_name])
+        self.graph = None
 
     def _check_duration(self, t: float) -> None:
         if t < self.sample_time:

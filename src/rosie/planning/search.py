@@ -4,7 +4,7 @@ from itertools import count
 import numpy as np
 
 from rosie.errors import NoRouteError
-from rosie.planning.path.models import Points
+from rosie.world.models import Points
 
 
 def astar_path(

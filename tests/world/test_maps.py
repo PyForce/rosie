@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from rosie.planning.path.maps import BUILTIN_MAPS, DEFAULT_MAP, list_maps, load_map
+from rosie.world.maps import BUILTIN_MAPS, DEFAULT_MAP, list_maps, load_world
 
 SQUARE = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
 
@@ -32,4 +32,4 @@ def test_user_maps_join_and_override_the_builtin_ones(tmp_path: Path) -> None:
 def test_rooms_must_form_one_floor(tmp_path: Path) -> None:
     path = write_map(tmp_path, "Islands", {"A": room(0), "B": room(5)})
     with pytest.raises(ValueError, match="don't form one connected floor"):
-        load_map(path)
+        load_world(path)

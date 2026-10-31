@@ -7,8 +7,8 @@ from conftest import FakeClock, distance
 from rosie.core import Robot
 from rosie.errors import NoRouteError
 from rosie.models import Profile
-from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.robot import build_robot
+from rosie.world.maps import DEFAULT_MAP
 
 type Run = Callable[[Robot, float], None]
 

@@ -57,7 +57,7 @@ alone.
 
 ## Lab 5: navigation
 
-*Read:* [Navigation](navigation.md), `planning/path/`.
+*Read:* [Navigation](navigation.md), `planning/path.py`, `world/maps.py`.
 
 1. Draw a map of your lab room as a JSON file and drive the robot across it with the planner.
 2. Plot the visibility graph on top of the map, for two clearances.

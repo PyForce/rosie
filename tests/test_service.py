@@ -12,9 +12,9 @@ import pytest
 from rosie import service
 from rosie.errors import HardwareUnavailableError
 from rosie.models import Profile, StartSettings
-from rosie.planning.path.maps import BUILTIN_MAPS, DEFAULT_MAP
 from rosie.profile import BUILTIN_PROFILES
 from rosie.robot import build_robot
+from rosie.world.maps import BUILTIN_MAPS, DEFAULT_MAP
 
 
 def free_port() -> int:

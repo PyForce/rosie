@@ -62,7 +62,7 @@ drive from a test, a notebook or your own loop.
 | Odometry | a function | `advance`: second-order Runge-Kutta |
 | Trajectory tracker | a function, `Tracker` | `track_by_io_linearization`: input-output linearization |
 | Drive | a class with the `Drive` methods | simulated, Arduino, MD25 (`[drive]` in the profile) |
-| Route planner | `Planner` | visibility graph + A* |
+| Path planner | a function, `plan_path` | visibility graph + A* |
 | Observers | a class with the `MovementObserver` methods | web API, CSV recorder |
 
 The math is plain functions on frozen dataclasses, one equation each, so replacing a part means writing one
@@ -102,7 +102,10 @@ src/rosie/
 │   └── odometry.py       encoder steps → wheel speeds and pose
 ├── planning/             where it should be
 │   ├── trajectory.py     key poses → one reference per control step (linear, cubic)
-│   └── path/             around walls and furniture: maps, visibility graph, A*, the planner
+│   ├── path.py           path planning: the corners to drive through (plan_path)
+│   ├── visibility.py     the free space and its visibility graph
+│   └── search.py         A*
+├── world/                the environment the robot moves in: maps (maps.py), World (models.py)
 ├── control/              how to get there
 │   ├── tracking.py       follow a trajectory (input-output linearization)
 │   ├── regulation.py     stop on a point (the go-to-point controller)

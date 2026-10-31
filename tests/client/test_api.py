@@ -12,9 +12,9 @@ from rosie.client import Position, RobotInfo, RosieClient
 from rosie.core import Robot
 from rosie.errors import NoRouteError, RequestError
 from rosie.models import Profile
-from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.robot import build_robot
 from rosie.service import start_control_loop
+from rosie.world.maps import DEFAULT_MAP
 
 
 @pytest.fixture

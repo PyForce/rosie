@@ -9,9 +9,9 @@ import rosie.hardware.drive.devices.md25
 from conftest import FakeClock, FakeI2C, FakeSerial, distance
 from rosie.core import Robot
 from rosie.models import PIDGains, Profile
-from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.profile import load_profile
 from rosie.robot import build_robot
+from rosie.world.maps import DEFAULT_MAP
 
 type Run = Callable[[Robot, float], None]
 

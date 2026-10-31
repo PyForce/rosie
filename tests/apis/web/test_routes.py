@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from conftest import FakeClock
 from rosie.apis.web.server import create_app
 from rosie.core import Robot
-from rosie.planning.path.maps import DEFAULT_MAP
+from rosie.world.maps import DEFAULT_MAP
 
 
 @pytest.fixture

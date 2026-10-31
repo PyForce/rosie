@@ -9,10 +9,11 @@ from itertools import chain
 import numpy as np
 from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
 
-from rosie.planning.path.models import Map, Points, VisibilityGraph
+from rosie.planning.models import VisibilityGraph
+from rosie.world.models import Points, World
 
 
-def visibility_graph(world: Map, clearance: float) -> VisibilityGraph:
+def visibility_graph(world: World, clearance: float) -> VisibilityGraph:
     border = _offset(world.border, clearance, "left", "right")
     holes = [
         _offset(obstacle, clearance, "right", "left")

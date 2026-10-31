@@ -12,9 +12,9 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from rosie.errors import SetupError
-from rosie.planning.path.models import Map, Points
+from rosie.world.models import Points, World
 
-BUILTIN_MAPS = Path(__file__).parents[2] / "builtin" / "maps"
+BUILTIN_MAPS = Path(__file__).parents[1] / "builtin" / "maps"
 DEFAULT_MAP = "Gustavo's House"
 
 
@@ -31,7 +31,7 @@ def read_map(path: Path) -> dict[str, Any]:
     return data
 
 
-def load_map(path: Path) -> Map:
+def load_world(path: Path) -> World:
     data = read_map(path)
     rooms = data["rooms"].values()
     union = unary_union([Polygon(_room_border(room)) for room in rooms])
@@ -43,7 +43,7 @@ def load_map(path: Path) -> Map:
         for item in room["items"].values()
         if item["geometry"]["coordinates"]
     ]
-    return Map(data["name"], np.array(union.exterior.coords)[:-1], obstacles)
+    return World(data["name"], np.array(union.exterior.coords)[:-1], obstacles)
 
 
 def _room_border(room: dict[str, Any]) -> Points:

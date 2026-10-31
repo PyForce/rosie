@@ -7,7 +7,7 @@ robot follows the route's corners like any other path.
 
 ## Maps
 
-`planning/path/maps.py` · `src/rosie/builtin/maps/house.json`
+`world/maps.py` · `src/rosie/builtin/maps/house.json`
 
 A map is a JSON file of rooms, in metres, with [GeoJSON](https://geojson.org/) shapes:
 
@@ -37,7 +37,7 @@ start, and `POST /map/{name}` switches it while running.
 
 ## Free space
 
-`planning/path/visibility.py` · `visibility_graph`
+`planning/visibility.py` · `visibility_graph`
 
 The robot isn't a point. Instead of checking its whole body against every obstacle, rosie shrinks the problem:
 the floor's outline moves inwards and every obstacle grows outwards by a *clearance*, and then the robot can
@@ -56,7 +56,7 @@ they can see. The graph itself is built once per map (and clearance) and reused.
 
 ## A*
 
-`planning/path/graph.py` · `astar_path`
+`planning/search.py` · `astar_path`
 
 A* explores the graph from the start, always expanding the vertex with the smallest *distance so far plus
 straight-line distance to the target*. The straight line never overestimates the remaining distance, so the
@@ -66,7 +66,7 @@ first time A* reaches the target it has the shortest route through the graph. If
 
 ## Driving the route
 
-`core.py` · `Robot.goto_with_planner`
+`planning/path.py` · `plan_path`, `core.py` · `Robot.goto_with_planner`
 
 The route is a list of corners, and the robot follows them with the [trajectory planner](motion-control.md)
 of its profile, `t` seconds per straight stretch. The linear planner drives the route as found; the cubic one
@@ -75,7 +75,7 @@ rounds its corners, so it can cut a little into the clearance.
 ## Try it
 
 - Draw a map of your classroom and drive the simulated robot across it.
-- Print the graph: `visibility_graph(load_map(path), 0.1)` gives the vertices and the adjacency matrix; plot
+- Print the graph: `visibility_graph(load_world(path), 0.1)` gives the vertices and the adjacency matrix; plot
   them with matplotlib on top of the map.
 - Change the clearance and watch routes appear and disappear through narrow doors.
 - Replace A* with Dijkstra (A* with a zero heuristic) and count how many vertices each one explores.

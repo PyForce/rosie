@@ -19,7 +19,7 @@ web page that drives it.
 | Trajectory tracking (input-output linearization) | `control/tracking.py` | [Motion control](motion-control.md#getting-there-trajectory-tracking) |
 | Reaching a point (polar go-to-point) | `control/regulation.py` | [Motion control](motion-control.md#arriving-the-go-to-point-controller) |
 | Wheel speed control (PID) | `hardware/drive/pid.py` | [Motion control](motion-control.md#turning-the-wheels-speed-control) |
-| Route planning (visibility graph, A*) | `planning/path/` | [Navigation](navigation.md) |
+| Route planning (visibility graph, A*) | `planning/path.py`, `world/` | [Navigation](navigation.md) |
 | Talking to hardware (serial, I2C) | `hardware/` | [Robots and hardware](robots.md) |
 | Robot software architecture | `core.py`, `robot.py`, `service.py` | [How rosie works](how-rosie-works.md) |
 | Web APIs, WebSockets, clients | `apis/web/`, `client/` | [Web API and extensions](integration.md), [Python client](client.md) |
