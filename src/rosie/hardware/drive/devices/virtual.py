@@ -1,7 +1,7 @@
 import math
 from itertools import pairwise
 
-from rosie.hardware.drive.models import EncoderReading, VirtualDriveSettings
+from rosie.hardware.drive.models import DriveReading, VirtualDriveSettings
 from rosie.models import Clock, Profile
 from rosie.profile import read_table
 
@@ -37,11 +37,13 @@ class VirtualDrive:
     def reset(self) -> None:
         pass
 
-    def read(self) -> EncoderReading:
+    def read(self) -> DriveReading:
         self.history.append((self.current_speed_1, self.current_speed_2, self.clock()))
         delta_steps_1, delta_steps_2 = self._integrate()
         self.history = [(self.current_speed_1, self.current_speed_2, self.clock())]
-        return delta_steps_1, delta_steps_2, BATTERY_VOLTAGE, MOTOR_CURRENT, MOTOR_CURRENT
+        return DriveReading(
+            delta_steps_1, delta_steps_2, BATTERY_VOLTAGE, MOTOR_CURRENT, MOTOR_CURRENT
+        )
 
     def _clamp(self, speed: float) -> float:
         if speed >= self.max_speed:

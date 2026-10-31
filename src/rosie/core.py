@@ -74,9 +74,8 @@ class Robot:
             logger.error("no reading from the drive")
             return
         wheels = self.profile.wheels
-        delta_steps_1, delta_steps_2, *_ = reading
-        speeds = measure_speeds(wheels, delta_steps_1, delta_steps_2, elapsed_time)
-        self.pose = advance(self.pose, wheels, delta_steps_1, delta_steps_2)
+        speeds = measure_speeds(wheels, reading.steps_1, reading.steps_2, elapsed_time)
+        self.pose = advance(self.pose, wheels, reading.steps_1, reading.steps_2)
 
         match movement:
             case PlannedMovement():

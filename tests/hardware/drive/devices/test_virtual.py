@@ -12,10 +12,12 @@ def test_counts_what_the_wheels_turned(clock: FakeClock) -> None:
     clock.now += 1
     driver.set_speeds(0, 2 * math.pi, 0, 0)
     clock.now += 0.5
-    steps_1, steps_2, *_ = driver.read()
+    reading = driver.read()
+    steps_1, steps_2 = reading.steps_1, reading.steps_2
     assert (steps_1, steps_2) == pytest.approx((500, 0))
     clock.now += 1
-    assert driver.read()[:2] == pytest.approx((0, 1000))
+    reading = driver.read()
+    assert (reading.steps_1, reading.steps_2) == pytest.approx((0, 1000))
 
 
 def test_clamps_to_the_maximum_speed(clock: FakeClock) -> None:

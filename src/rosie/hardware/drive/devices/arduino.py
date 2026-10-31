@@ -8,7 +8,7 @@ import struct
 
 from rosie.errors import SetupError
 from rosie.hardware.buses import open_serial
-from rosie.hardware.drive.models import ArduinoDriveSettings, EncoderReading
+from rosie.hardware.drive.models import ArduinoDriveSettings, DriveReading
 from rosie.hardware.models import SerialPort
 from rosie.models import Clock, Profile
 from rosie.profile import read_table
@@ -50,7 +50,7 @@ class ArduinoDrive:
     def reset(self) -> None:
         pass
 
-    def read(self) -> EncoderReading | None:
+    def read(self) -> DriveReading | None:
         try:
             self.serial_port.write(COMMAND_GETSTATE)
             if self.serial_port.read() != COMMAND_GETSTATE_RESPONSE:
@@ -60,14 +60,14 @@ class ArduinoDrive:
             (battery_charge,) = struct.unpack("B", self.serial_port.read())
         except (OSError, struct.error):
             logger.exception("reading encoders")
-            return 0, 0, 0, 0, 0
+            return DriveReading(0, 0, 0, 0, 0)
         delta_pulses_1 = pulses_1 - self.pulses_1
         delta_pulses_2 = pulses_2 - self.pulses_2
         self.pulses_1 = pulses_1
         self.pulses_2 = pulses_2
         self.battery_status = battery_charge
         # the shield counts the wheels the other way round
-        return delta_pulses_2, delta_pulses_1, self.battery_status, 0, 0
+        return DriveReading(delta_pulses_2, delta_pulses_1, self.battery_status, 0, 0)
 
     def set_constants(self, kc: float, ki: float, kd: float) -> None:
         package = struct.pack("<Bfff", COMMAND_SETPIDPARAM, kc, ki, kd)

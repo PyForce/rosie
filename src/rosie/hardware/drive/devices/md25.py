@@ -4,7 +4,7 @@ import logging
 
 from rosie.errors import SetupError
 from rosie.hardware.buses import open_i2c
-from rosie.hardware.drive.models import EncoderReading, MD25DriveSettings
+from rosie.hardware.drive.models import DriveReading, MD25DriveSettings
 from rosie.hardware.drive.pid import RESTING_PID, regulate_speed
 from rosie.hardware.models import I2CBus
 from rosie.models import Clock, PIDGains, Profile
@@ -59,7 +59,7 @@ class MD25Drive:
     def set_powers(self, power_1: float, power_2: float) -> None:
         self.i2c_bus.write_i2c_block_data(self.i2c_bus_address, 0, [int(power_1), int(power_2)])
 
-    def read(self) -> EncoderReading:
+    def read(self) -> DriveReading:
         encoder_count_1, encoder_count_2, battery_voltage, current_left, current_right = (
             self._read_state()
         )
@@ -104,7 +104,7 @@ class MD25Drive:
         self.prev_delta_encoder_count_1 = delta_encoder_count_1
         self.prev_delta_encoder_count_2 = delta_encoder_count_2
 
-        return (
+        return DriveReading(
             delta_encoder_count_1,
             delta_encoder_count_2,
             battery_voltage,

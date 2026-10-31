@@ -2,6 +2,7 @@ import pytest
 
 from conftest import FakeI2C
 from rosie.hardware.drive.devices.md25 import MD25Drive
+from rosie.hardware.drive.models import DriveReading
 from rosie.models import PIDGains
 
 ADDRESS = 0x58
@@ -48,24 +49,24 @@ def test_powers(driver: MD25Drive, bus: FakeI2C) -> None:
 
 def test_reads_deltas_battery_and_currents(driver: MD25Drive, bus: FakeI2C) -> None:
     bus.blocks += [block(50, -30), block(120, -100)]
-    assert driver.read() == (50, -30, 12.0, 0.5, 0.7)
-    assert driver.read() == (70, -70, 12.0, 0.5, 0.7)
+    assert driver.read() == DriveReading(50, -30, 12.0, 0.5, 0.7)
+    assert driver.read() == DriveReading(70, -70, 12.0, 0.5, 0.7)
 
 
 def test_a_jump_is_a_glitch(driver: MD25Drive, bus: FakeI2C) -> None:
     bus.blocks += [block(50, 50), block(5000, 100), block(40, 2000)]
     driver.read()
     bus.calls.clear()
-    assert driver.read()[:2] == (50, 50)  # wheel 1 jumped
+    assert steps(driver.read()) == (50, 50)  # wheel 1 jumped
     assert ("write_byte_data", ADDRESS, 16, 32) in bus.calls
     # counting starts again from 0
-    assert driver.read()[:2] == (40, 50)  # wheel 2 jumped
+    assert steps(driver.read()) == (40, 50)  # wheel 2 jumped
 
 
 def test_resets_before_overflowing(driver: MD25Drive, bus: FakeI2C) -> None:
     driver.prev_encoder_count_1 = 2_000_000_000
     bus.blocks += [block(2_000_000_100, 0)]
-    assert driver.read()[:2] == (100, 0)
+    assert steps(driver.read()) == (100, 0)
     assert driver.prev_encoder_count_1 == 0
     assert bus.calls[-1] == ("write_byte_data", ADDRESS, 16, 32)
 
@@ -83,3 +84,7 @@ def test_rosie_controls_the_speeds(driver: MD25Drive, bus: FakeI2C) -> None:
     assert bus.calls[-1] == ("write_block", ADDRESS, 0, [20, 20])
     driver.stop()
     assert bus.calls[-1] == ("write_block", ADDRESS, 0, [0, 0])
+
+
+def steps(reading: DriveReading) -> tuple[float, float]:
+    return reading.steps_1, reading.steps_2

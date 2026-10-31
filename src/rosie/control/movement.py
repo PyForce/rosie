@@ -13,7 +13,7 @@ from dataclasses import replace
 from rosie.control.models import ManualMovement, PlannedMovement, RobotState, Tracker, WheelSpeeds
 from rosie.control.regulation import go_to_point
 from rosie.control.teleoperation import steer
-from rosie.hardware.drive.models import EncoderReading
+from rosie.hardware.drive.models import DriveReading
 from rosie.models import STILL, ControlSettings, Pose, Wheels
 
 logger = logging.getLogger(__name__)
@@ -45,14 +45,13 @@ def planned_step(
     movement: PlannedMovement,
     pose: Pose,
     speeds: tuple[float, float],
-    reading: EncoderReading,
+    reading: DriveReading,
     elapsed_time: float,
     now: float,
     wheels: Wheels,
     track: Tracker,
 ) -> tuple[PlannedMovement, WheelSpeeds, RobotState]:
     """Follow the next reference; once they are all followed, drive onto the last one."""
-    _, _, battery_voltage, current_1, current_2 = reading
     speed_1, speed_2 = speeds
     if movement.trajectory_done:
         target = movement.references[-1].pose
@@ -65,11 +64,11 @@ def planned_step(
             tracker_y=None,
             wheel_1_speed=speed_1,
             wheel_1_setpoint=set_point_1,
-            wheel_1_current=current_1,
+            wheel_1_current=reading.current_1,
             wheel_2_speed=speed_2,
             wheel_2_setpoint=set_point_2,
-            wheel_2_current=current_2,
-            battery_voltage=battery_voltage,
+            wheel_2_current=reading.current_2,
+            battery_voltage=reading.battery_voltage,
             elapsed_time=elapsed_time,
         )
         return movement, (set_point_1, set_point_2), state
@@ -78,20 +77,21 @@ def planned_step(
     following = replace(movement, next_index=movement.next_index + 1)
     if following.trajectory_done:
         following = replace(following, finished_at=now)
-    set_point_1, set_point_2, u1, u2 = track(reference.pose, reference.velocity, pose)
+    output = track(reference.pose, reference.velocity, pose)
+    set_point_1, set_point_2 = output.wheel_speeds
     state = RobotState(
         pose=pose,
         reference_pose=reference.pose,
         reference_velocity=reference.velocity,
-        tracker_x=u1,
-        tracker_y=u2,
+        tracker_x=output.x,
+        tracker_y=output.y,
         wheel_1_speed=speed_1,
         wheel_1_setpoint=set_point_1,
-        wheel_1_current=current_1,
+        wheel_1_current=reading.current_1,
         wheel_2_speed=speed_2,
         wheel_2_setpoint=set_point_2,
-        wheel_2_current=current_2,
-        battery_voltage=battery_voltage,
+        wheel_2_current=reading.current_2,
+        battery_voltage=reading.battery_voltage,
         elapsed_time=elapsed_time,
     )
     return following, (set_point_1, set_point_2), state
@@ -101,12 +101,11 @@ def manual_step(
     movement: ManualMovement,
     pose: Pose,
     speeds: tuple[float, float],
-    reading: EncoderReading,
+    reading: DriveReading,
     elapsed_time: float,
     wheels: Wheels,
 ) -> tuple[WheelSpeeds, RobotState]:
     """Drive as the commands say."""
-    _, _, battery_voltage, current_1, current_2 = reading
     speed_1, speed_2 = speeds
     set_point_1, set_point_2 = steer(
         movement.steering, movement.throttle, movement.spin, wheels.max_speed
@@ -119,11 +118,11 @@ def manual_step(
         tracker_y=None,
         wheel_1_speed=speed_1,
         wheel_1_setpoint=set_point_1,
-        wheel_1_current=current_1,
+        wheel_1_current=reading.current_1,
         wheel_2_speed=speed_2,
         wheel_2_setpoint=set_point_2,
-        wheel_2_current=current_2,
-        battery_voltage=battery_voltage,
+        wheel_2_current=reading.current_2,
+        battery_voltage=reading.battery_voltage,
         elapsed_time=elapsed_time,
     )
     return (set_point_1, set_point_2), state

@@ -8,13 +8,18 @@ from rosie.planning.models import TrajectoryPoint
 # wheel 1 and 2 speeds to ask for (rad/s)
 type WheelSpeeds = tuple[float, float]
 
-# wheel 1 and 2 speed setpoints (rad/s), then the x and y speeds the tracker asked for
-type TrackerOutput = tuple[float, float, float, float]
 
 # reference pose, reference velocity, the robot's pose -> TrackerOutput
 type Tracker = Callable[[Pose, Velocity, Pose], TrackerOutput]
 
 type Movement = PlannedMovement | ManualMovement
+
+
+@dataclass(frozen=True, slots=True)
+class TrackerOutput:
+    wheel_speeds: WheelSpeeds  # rad/s, to ask the drive for
+    x: float  # two numbers for the recording: what the tracker asked for along x and y
+    y: float
 
 
 @dataclass(frozen=True, slots=True)

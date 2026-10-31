@@ -1,23 +1,22 @@
 import pytest
 
-from rosie.control.models import PlannedMovement
+from rosie.control.models import PlannedMovement, TrackerOutput
 from rosie.control.movement import is_over, planned_step
+from rosie.hardware.drive.models import DriveReading
 from rosie.models import STILL, ControlSettings, Pose, TrackingGains, Velocity, Wheels
 from rosie.planning.models import TrajectoryPoint
 
 WHEELS = Wheels(radius=0.05, distance=0.3, encoder_steps=360, max_speed=10.0)
 CONTROL = ControlSettings(0.05, 0.01, 5.0, TrackingGains(0.1, 1.0, 1.0))
-READING = (0.0, 0.0, 12.0, 0.1, 0.2)  # steps, steps, V, A, A
+READING = DriveReading(steps_1=0.0, steps_2=0.0, battery_voltage=12.0, current_1=0.1, current_2=0.2)
 
 
 def planned(*poses: Pose) -> PlannedMovement:
     return PlannedMovement(tuple(TrajectoryPoint(pose, STILL) for pose in poses), 0, 0.0)
 
 
-def straight_ahead(
-    reference: Pose, velocity: Velocity, pose: Pose
-) -> tuple[float, float, float, float]:
-    return 1.0, 1.0, reference.x - pose.x, velocity.x
+def straight_ahead(reference: Pose, velocity: Velocity, pose: Pose) -> TrackerOutput:
+    return TrackerOutput((1.0, 1.0), reference.x - pose.x, velocity.x)
 
 
 def test_a_planned_step_follows_the_next_reference() -> None:

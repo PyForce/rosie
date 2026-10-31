@@ -4,12 +4,19 @@ from typing import Protocol
 
 from rosie.models import Clock, Profile
 
-# encoder steps of wheel 1 and 2 since the previous reading, battery voltage (V),
-# current of motor 1 and 2 (A)
-type EncoderReading = tuple[float, float, float, float, float]
-
 # a drive's type -> opening the drive a profile describes
 type DriveFactory = Callable[[Profile, Clock], Drive]
+
+
+@dataclass(frozen=True, slots=True)
+class DriveReading:
+    """What a drive measured since its previous reading."""
+
+    steps_1: float  # encoder steps of wheel 1
+    steps_2: float
+    battery_voltage: float  # V
+    current_1: float  # A, motor 1
+    current_2: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,7 +49,7 @@ class PIDState:
 class Drive(Protocol):
     """The drive: the motors turning the two wheels at the speeds asked, and their encoders."""
 
-    def read(self) -> EncoderReading | None:
+    def read(self) -> DriveReading | None:
         """Encoder steps of both wheels since the last reading, battery voltage, motor currents."""
 
     def set_speeds(

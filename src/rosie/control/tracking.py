@@ -36,5 +36,4 @@ def track_by_io_linearization(
     v = math.cos(pose.theta) * u1 + u2 * math.sin(pose.theta)
     omega = u1 * (-math.sin(pose.theta) / tracking.b) + u2 * math.cos(pose.theta) / tracking.b
 
-    set_point_1, set_point_2 = compute_wheel_speeds(v, omega, wheels)
-    return set_point_1, set_point_2, u1, u2
+    return TrackerOutput(compute_wheel_speeds(v, omega, wheels), u1, u2)

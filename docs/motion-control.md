@@ -210,7 +210,7 @@ def kanayama(
     v_ref = math.hypot(reference_velocity.x, reference_velocity.y)
     v = v_ref * math.cos(etheta) + kx * ex
     omega = reference_velocity.theta + v_ref * (ky * ey + ktheta * math.sin(etheta))
-    return (*compute_wheel_speeds(v, omega, wheels), v, omega)
+    return TrackerOutput(compute_wheel_speeds(v, omega, wheels), v, omega)
 ```
 
 Give it to a robot, here the simulated one from
