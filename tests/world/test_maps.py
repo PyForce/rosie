@@ -55,3 +55,27 @@ def test_not_a_rosie_map(tmp_path: Path) -> None:
     path.write_text(json.dumps({"name": "Old", "rooms": {}}))
     with pytest.raises(ValueError, match=r"old\.geojson: not a rosie map"):
         load_world(path)
+
+
+def test_a_wall_must_be_a_line(tmp_path: Path) -> None:
+    wall = {**room("Wall", 0), "properties": {"kind": "wall"}}  # a polygon
+    with pytest.raises(
+        ValueError, match="a wall is a LineString or MultiLineString, not a Polygon"
+    ):
+        load_world(write_map(tmp_path, "Thick walls", [room("A", 0), wall]))
+
+
+def test_several_obstacles_in_one_feature(tmp_path: Path) -> None:
+    chairs: dict[str, object] = {
+        "type": "Feature",
+        "properties": {"kind": "obstacle", "name": "chairs"},
+        "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+                [[[0.1, 0.1], [0.2, 0.1], [0.2, 0.2], [0.1, 0.1]]],
+                [[[0.6, 0.6], [0.7, 0.6], [0.7, 0.7], [0.6, 0.6]]],
+            ],
+        },
+    }
+    world = load_world(write_map(tmp_path, "Chairs", [room("A", 0), chairs]))
+    assert len(world.obstacles) == 2

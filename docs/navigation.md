@@ -9,8 +9,8 @@ robot follows the route's corners like any other path.
 
 `world/maps.py` · `src/rosie/builtin/maps/house.geojson`
 
-A map is a [GeoJSON](https://geojson.org/) `FeatureCollection` in metres, with a `name`, and one feature per
-room, wall, door and obstacle, told apart by their `kind` property:
+A map is a `.geojson` file: a [GeoJSON](https://geojson.org/) `FeatureCollection` in metres, with a `name`
+(how rosie lists it), and one feature per room, wall, door and obstacle, told apart by their `kind` property:
 
 ```json
 {
@@ -29,13 +29,26 @@ room, wall, door and obstacle, told apart by their `kind` property:
 }
 ```
 
-- **room**: a floor. All the rooms together must make one connected floor.
-- **wall**: lines the robot can't cross; the gaps between them are the doors.
-- **door**: where WebRosie draws a door (the planner only needs the gap in the walls).
-- **obstacle**: furniture.
+| `kind` | Geometry | Is |
+|---|---|---|
+| `room` | `Polygon` or `MultiPolygon` | a floor. All the rooms together must make one connected floor |
+| `wall` | `LineString` or `MultiLineString` | lines the robot can't cross; the gaps between them are the doors |
+| `door` | `LineString` or `MultiLineString` | where WebRosie draws a door (the planner only needs the gap in the walls) |
+| `obstacle` | `Polygon` or `MultiPolygon` | furniture; a `MultiPolygon` is several pieces |
+
+Only `kind` is required in `properties`; `name` (of a room or an obstacle) and `room` (the one a wall, door or
+obstacle belongs to) are labels for you and for WebRosie. A feature of an unknown kind, or with a geometry its
+kind doesn't take, stops rosie with a message naming the file.
 
 Any GeoJSON tool can draw or edit a map: [geojson.io](https://geojson.io) in a browser, or QGIS. Their
 coordinates are longitude and latitude, but rosie reads them as metres on the floor, so keep them small.
+
+A map from rosie 1 (a `.json` file with `rooms`, each with `borders`, `walls`, `doors` and `items`) converts
+with `scripts/convert_map.py`, which needs only Python:
+
+```bash
+python scripts/convert_map.py my-house.json my-house.geojson
+```
 
 rosie comes with "Gustavo's House"; your own maps go in the `maps/` folder of your
 [robot's profile](robots.md#profiles), and win a name over rosie's. `rosie start --map` picks the map at

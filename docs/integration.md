@@ -21,7 +21,7 @@ The interactive documentation of every route is at `/docs` (for example <http://
 | `POST /goto` | `{"target": [x, y], "speed": v}`: go to (x, y) at v m/s; add `"planner": true` to go around obstacles |
 | `POST /follow` | `{"path": [[x, y], ...], "speed": v}`: through the points, at v m/s |
 | `GET /maps` | the maps it knows |
-| `GET /map`, `GET /map/{name}` | the map in use, or another one (JSON) |
+| `GET /map`, `GET /map/{name}` | the map in use, or another one ([GeoJSON](navigation.md#maps)) |
 | `POST /map/{name}` | plan on that map from now on |
 | `GET /sensor/{name}` | a sensor's reading, e.g. `/sensor/usound` |
 | `POST /manual`, `POST /planned` | drive by hand, or go back to planned movements |

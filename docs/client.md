@@ -65,10 +65,12 @@ Each command is in $[-1, 1]$: the steering (+1 right, while moving), the throttl
 
 ```python
 robot.maps()  # ["Gustavo's House", ...]
-robot.current_map()  # the map the planner uses, as JSON
+robot.current_map()  # the map the planner uses
 robot.map("Garage")  # another one
 robot.use_map("Garage")  # plan on it from now on
 ```
+
+A map is a GeoJSON `FeatureCollection`, as a dict: see [Maps](navigation.md#maps).
 
 ## History
 

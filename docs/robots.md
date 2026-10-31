@@ -66,7 +66,8 @@ A profile from rosie 1 (with `board = "..."` and `interpolation = "..."` at the 
 `[wheels]` says `separation` and `encoder_resolution` (were `distance` and `encoder_steps`); `video` becomes
 `[camera] stream`; `[control.tracking]` keeps `b` as `lookahead`, with `k1` and `k2` in its `gains`; and
 `arrival_tolerance` and `arrival_timeout` become `[control.regulation]`'s `tolerance` and `timeout`. When
-rosie reads one, it names the first setting it misses.
+rosie reads one, it names the first setting it misses. Its maps convert with `scripts/convert_map.py`
+([Maps](navigation.md#maps)).
 
 ## Built-in robots
 
