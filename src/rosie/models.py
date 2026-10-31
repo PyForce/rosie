@@ -9,6 +9,11 @@ if TYPE_CHECKING:
 
 type Clock = Callable[[], float]  # s, only differences matter
 
+type Row = tuple[float | None, ...]  # a recorded control step, one value per column
+
+# an interface serves the robot while inside its context
+type Interface = Callable[[Robot, Settings], AbstractAsyncContextManager[None]]
+
 
 @dataclass(frozen=True, slots=True)
 class Pose:
@@ -24,8 +29,11 @@ class Velocity:
     theta: float  # rad/s
 
 
-ORIGIN = Pose(0.0, 0.0, 0.0)
-STILL = Velocity(0.0, 0.0, 0.0)
+@dataclass(frozen=True, slots=True)
+class Body:
+    length: float  # m, front to back
+    width: float  # m
+    height: float  # m
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,26 +70,6 @@ class Control:
     tracking: Tracking
 
 
-type Row = tuple[float | None, ...]  # a recorded control step, one value per column
-
-
-@dataclass(frozen=True, slots=True)
-class Settings:
-    profile: str  # one of rosie's robot profiles by name, or the folder of yours
-    map: str  # the map the planner starts with
-    interfaces: tuple[str, ...]  # what gives the robot its orders
-    host: str  # where the web API listens
-    port: int
-    record: Path | None  # folder for a CSV of every planned movement
-
-
-@dataclass(frozen=True, slots=True)
-class Body:
-    length: float  # m, front to back
-    width: float  # m
-    height: float  # m
-
-
 @dataclass(frozen=True, slots=True)
 class Profile:
     """A robot profile: its folder holds profile.toml, its pictures and its own maps."""
@@ -112,6 +100,16 @@ class Profile:
         return self.directory / "maps"
 
 
+@dataclass(frozen=True, slots=True)
+class Settings:
+    profile: str  # one of rosie's robot profiles by name, or the folder of yours
+    map: str  # the map the planner starts with
+    interfaces: tuple[str, ...]  # what gives the robot its orders
+    host: str  # where the web API listens
+    port: int
+    record: Path | None  # folder for a CSV of every planned movement
+
+
 class SerialPort(Protocol):
     def write(self, data: bytes, /) -> int | None: ...
 
@@ -130,5 +128,6 @@ class I2CBus(Protocol):
     def read_i2c_block_data(self, address: int, register: int, length: int, /) -> list[int]: ...
 
 
-# an interface serves the robot while inside its context
-type Interface = Callable[[Robot, Settings], AbstractAsyncContextManager[None]]
+ORIGIN = Pose(0.0, 0.0, 0.0)
+
+STILL = Velocity(0.0, 0.0, 0.0)

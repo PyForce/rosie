@@ -7,10 +7,14 @@ from rosie.planning.models import Reference
 
 # wheel 1 and 2 speeds to ask for (rad/s)
 type SetPoints = tuple[float, float]
+
 # wheel 1 and 2 speed setpoints (rad/s), then the x and y speeds the tracker asked for
 type TrackerOutput = tuple[float, float, float, float]
+
 # reference pose, reference velocity, the robot's pose -> TrackerOutput
 type Tracker = Callable[[Pose, Velocity, Pose], TrackerOutput]
+
+type Movement = Planned | Manual
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,9 +54,6 @@ class Manual:
     steering: float  # +1 right
     throttle: float  # +1 forward
     spin: float  # +1 clockwise, on the spot
-
-
-type Movement = Planned | Manual
 
 
 class MovementSupervisor(Protocol):

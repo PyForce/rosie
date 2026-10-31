@@ -8,24 +8,6 @@ from rosie.models import Clock, Profile
 # current of motor 1 and 2 (A)
 type EncoderReading = tuple[float, float, float, float, float]
 
-
-class Drive(Protocol):
-    """The drive: the motors turning the two wheels at the speeds asked, and their encoders."""
-
-    def read_encoders(self) -> EncoderReading | None:
-        """Encoder steps of both wheels since the last reading, battery voltage, motor currents."""
-
-    def set_speeds(
-        self, speed_1: float, speed_2: float, measured_1: float, measured_2: float
-    ) -> None:
-        """Wheel speeds to reach (rad/s), and the ones just measured."""
-
-    def stop(self) -> None: ...
-
-    def reset(self) -> None:
-        """Forget the previous movement, before a new one starts."""
-
-
 # a drive's type -> opening the drive a profile describes
 type DriveFactory = Callable[[Profile, Clock], Drive]
 
@@ -55,3 +37,20 @@ class PIDHistory:
     error_1: float  # error one step ago
     error_2: float  # error two steps ago
     action_1: float  # control action one step ago
+
+
+class Drive(Protocol):
+    """The drive: the motors turning the two wheels at the speeds asked, and their encoders."""
+
+    def read_encoders(self) -> EncoderReading | None:
+        """Encoder steps of both wheels since the last reading, battery voltage, motor currents."""
+
+    def set_speeds(
+        self, speed_1: float, speed_2: float, measured_1: float, measured_2: float
+    ) -> None:
+        """Wheel speeds to reach (rad/s), and the ones just measured."""
+
+    def stop(self) -> None: ...
+
+    def reset(self) -> None:
+        """Forget the previous movement, before a new one starts."""
