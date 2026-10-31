@@ -10,6 +10,8 @@ them with feedback controllers, and lets you drive by hand.
 That is what rosie is for: learning and teaching how a mobile robot works, from the control equations to the
 web page that drives it.
 
+![WebRosie, rosie's web page, with a robot in the built-in house](images/webrosie.png)
+
 ## What's inside
 
 | You want to learn about | rosie's code | Read |

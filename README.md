@@ -35,6 +35,8 @@ them with feedback controllers, and lets you drive by hand from a browser or fro
 It's made for learning and teaching robotics, from the control equations to the web page that drives the
 robot.
 
+![WebRosie, rosie's web page, with a robot in the built-in house](docs/images/webrosie.png)
+
 ## Quick start
 
 rosie runs next to the robot, or next to a simulated one, and takes orders over a web API. There are
