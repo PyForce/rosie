@@ -4,7 +4,7 @@ from rosie.models import PIDGains
 RESTING_PID = PIDHistory(0.0, 0.0, 0.0)
 
 
-def pid(
+def regulate_speed(
     gains: PIDGains, max_power: float, history: PIDHistory, error: float
 ) -> tuple[float, PIDHistory]:
     """

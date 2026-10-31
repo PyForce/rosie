@@ -9,7 +9,7 @@ from functools import partial
 from pathlib import Path
 
 from rosie.control.models import MovementSupervisor
-from rosie.control.tracking import io_linearization
+from rosie.control.tracking import track_by_io_linearization
 from rosie.core import Robot
 from rosie.errors import SetupError
 from rosie.hardware.drive import open_drive
@@ -18,7 +18,7 @@ from rosie.models import Clock, Profile
 from rosie.planning.models import TrajectoryShape
 from rosie.planning.path.maps import BUILTIN_MAPS, list_maps
 from rosie.planning.path.planner import Planner
-from rosie.planning.trajectory import cubic, linear
+from rosie.planning.trajectory import plan_cubic, plan_linear
 from rosie.recording import MovementRecorder
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
         profile,
         drive,
         TRAJECTORIES[profile.trajectory],
-        partial(io_linearization, profile.control.tracking, profile.wheels),
+        partial(track_by_io_linearization, profile.control.tracking, profile.wheels),
         planner,
         sensors,
         supervisors,
@@ -51,4 +51,4 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     )
 
 
-TRAJECTORIES: dict[str, TrajectoryShape] = {"linear": linear, "cubic": cubic}
+TRAJECTORIES: dict[str, TrajectoryShape] = {"linear": plan_linear, "cubic": plan_cubic}

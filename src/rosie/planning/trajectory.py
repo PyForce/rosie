@@ -16,7 +16,7 @@ def plan(shape: TrajectoryShape, trajectory: TrajectoryParameters) -> list[Refer
     ]
 
 
-def linear(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
+def plan_linear(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
     """Straight lines from key pose to key pose, turning on the spot at each."""
     segments = len(params.key_poses) - 1
     points_count = int(segments * params.segment_time / params.sample_time)
@@ -68,7 +68,7 @@ def linear(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
     return poses, velocities
 
 
-def cubic(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
+def plan_cubic(params: TrajectoryParameters) -> tuple[list[Pose], list[Velocity]]:
     """Cubic polynomials through the key poses, which round the corners."""
     points_per_segment = int(params.segment_time / float(params.sample_time))
     segments = len(params.key_poses) - 1

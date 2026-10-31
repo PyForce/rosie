@@ -4,7 +4,7 @@ import pytest
 
 from rosie.models import Pose
 from rosie.planning.models import TrajectoryParameters, TrajectoryShape
-from rosie.planning.trajectory import cubic, linear, plan
+from rosie.planning.trajectory import plan, plan_cubic, plan_linear
 
 SAMPLE_TIME = 0.1
 
@@ -17,7 +17,7 @@ def poses(shape: TrajectoryShape, points: list[tuple[float, float]]) -> list[Pos
     ]
 
 
-@pytest.mark.parametrize("shape", [linear, cubic])
+@pytest.mark.parametrize("shape", [plan_linear, plan_cubic])
 def test_ends_on_the_last_point(shape: TrajectoryShape) -> None:
     planned = poses(shape, [(1, 0), (1, 1)])
     assert len(planned) == 2 * 10 + 1
@@ -25,7 +25,7 @@ def test_ends_on_the_last_point(shape: TrajectoryShape) -> None:
 
 
 def test_cubic_passes_the_points_and_curves() -> None:
-    planned = poses(cubic, [(1, 0), (1, 1)])
+    planned = poses(plan_cubic, [(1, 0), (1, 1)])
     assert (planned[10].x, planned[10].y) == pytest.approx((1, 0))
     # a smooth corner: the curve swings out before it and crosses it at 45 degrees
     assert min(pose.y for pose in planned[:10]) < -0.05
@@ -33,5 +33,5 @@ def test_cubic_passes_the_points_and_curves() -> None:
 
 
 def test_cubic_keeps_still_on_repeated_points() -> None:
-    planned = poses(cubic, [(0, 0)])
+    planned = poses(plan_cubic, [(0, 0)])
     assert all((pose.x, pose.y) == pytest.approx((0, 0)) for pose in planned)

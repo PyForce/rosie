@@ -58,9 +58,9 @@ drive from a test, a notebook or your own loop.
 
 | Part | Shape | rosie's |
 |---|---|---|
-| Trajectory | a function, `TrajectoryShape` | `linear`, `cubic` (`trajectory` in the profile) |
+| Trajectory | a function, `TrajectoryShape` | `plan_linear`, `plan_cubic` (`trajectory` in the profile) |
 | Odometry | a function | `advance`: second-order Runge-Kutta |
-| Trajectory tracker | a function, `Tracker` | `io_linearization`: input-output linearization |
+| Trajectory tracker | a function, `Tracker` | `track_by_io_linearization`: input-output linearization |
 | Drive | a class with the `Drive` methods | simulated, Arduino, MD25 (`[drive]` in the profile) |
 | Route planner | `Planner` | visibility graph + A* |
 | Supervisors | a class with the `MovementSupervisor` methods | web API, CSV recorder |

@@ -57,11 +57,11 @@ A movement is a list of key points (the robot's position, then the targets) and 
 planner turns it into one reference per control step: a pose $(x_d, y_d, \theta_d)$ and a velocity
 $(\dot x_d, \dot y_d, \dot\theta_d)$.
 
-**Linear** (`linear`): straight lines at constant speed, heading along the line. Simple,
+**Linear** (`plan_linear`): straight lines at constant speed, heading along the line. Simple,
 but the heading jumps at every corner, which the robot can't do: watch it overshoot corners in a
 [recording](#watch-it-recordings).
 
-**Cubic** (`cubic`): each stretch is a cubic polynomial in $s \in [0, 1]$:
+**Cubic** (`plan_cubic`): each stretch is a cubic polynomial in $s \in [0, 1]$:
 
 $$
 x(s) = s^3 x_f - (s-1)^3 x_i + \alpha_x s^2 (s-1) + \beta_x s (s-1)^2
@@ -85,7 +85,7 @@ Pick one in the [profile](robots.md#profiles): `trajectory = "linear"` or `"cubi
 
 ## Getting there: trajectory tracking
 
-`control/tracking.py` · `io_linearization`
+`control/tracking.py` · `track_by_io_linearization`
 
 The tracker compares where the robot is with where it should be, every step, and asks for wheel speeds. A
 differential drive can't be told "move to the left", so rosie doesn't control the middle of the axle but a
@@ -131,7 +131,7 @@ after the planned time, with a warning in the log.
 
 ## Turning the wheels: speed control
 
-`hardware/drive/pid.py` · `pid`
+`hardware/drive/pid.py` · `regulate_speed`
 
 Wheel speeds are what the tracker asks for; motors take power. Something has to close that loop:
 
@@ -148,7 +148,7 @@ $$
 
 ## Driving by hand
 
-`control/teleoperation.py` · `from_keys`
+`control/teleoperation.py` · `steer_by_keys`
 
 Under manual control, the keys (or the joystick) give a direction (steer, throttle, rotation), each in
 $[-1, 1]$. Throttle turns both wheels at up to 8 rad/s; steering slows the inner wheel, but only while

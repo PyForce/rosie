@@ -6,7 +6,7 @@ from rosie.control.models import SetPoints
 MANUAL_SPEED = 8
 
 
-def from_keys(keys: tuple[float, float, float], max_speed: float) -> SetPoints:
+def steer_by_keys(keys: tuple[float, float, float], max_speed: float) -> SetPoints:
     """
     Racing-game driving from the pressed keys (each in [-1, 1]): y is the throttle,
     x steers while moving, z turns on the spot.

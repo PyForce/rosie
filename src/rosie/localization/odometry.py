@@ -24,7 +24,7 @@ def advance(pose: Pose, wheels: Wheels, delta_steps_1: float, delta_steps_2: flo
     return Pose(pose.x + ds * math.cos(heading), pose.y + ds * math.sin(heading), pose.theta + dz)
 
 
-def measured_speeds(
+def measure_speeds(
     wheels: Wheels, delta_steps_1: float, delta_steps_2: float, elapsed_time: float
 ) -> tuple[float, float]:
     """Both wheels' speeds (rad/s) from the encoder steps they turned in `elapsed_time`."""

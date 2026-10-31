@@ -5,7 +5,7 @@ from typing import Any
 from rosie.control.models import Manual, Movement, MovementSupervisor, Planned, Tracker
 from rosie.control.movement import MIN_MANUAL_ELAPSED_TIME, is_over, manual_step, planned_step
 from rosie.hardware.drive.models import Drive
-from rosie.localization.odometry import advance, measured_speeds
+from rosie.localization.odometry import advance, measure_speeds
 from rosie.models import ORIGIN, Clock, Pose, Profile
 from rosie.planning.models import TrajectoryParameters, TrajectoryShape
 from rosie.planning.path.planner import Planner
@@ -69,7 +69,7 @@ class Robot:
             return
         wheels = self.profile.wheels
         delta_steps_1, delta_steps_2, *_ = reading
-        speeds = measured_speeds(wheels, delta_steps_1, delta_steps_2, elapsed_time)
+        speeds = measure_speeds(wheels, delta_steps_1, delta_steps_2, elapsed_time)
         self.pose = advance(self.pose, wheels, delta_steps_1, delta_steps_2)
 
         match movement:

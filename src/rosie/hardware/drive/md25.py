@@ -5,7 +5,7 @@ import logging
 from rosie.errors import SetupError
 from rosie.hardware.buses import open_i2c
 from rosie.hardware.drive.models import EncoderReading, MD25Settings
-from rosie.hardware.drive.pid import RESTING_PID, pid
+from rosie.hardware.drive.pid import RESTING_PID, regulate_speed
 from rosie.models import Clock, I2CBus, PIDGains, Profile
 from rosie.profile import read_table
 
@@ -44,8 +44,12 @@ class MD25Drive:
     def set_speeds(
         self, speed_1: float, speed_2: float, measured_1: float, measured_2: float
     ) -> None:
-        power_1, self.pid_1 = pid(self.gains, self.max_power, self.pid_1, speed_1 - measured_1)
-        power_2, self.pid_2 = pid(self.gains, self.max_power, self.pid_2, speed_2 - measured_2)
+        power_1, self.pid_1 = regulate_speed(
+            self.gains, self.max_power, self.pid_1, speed_1 - measured_1
+        )
+        power_2, self.pid_2 = regulate_speed(
+            self.gains, self.max_power, self.pid_2, speed_2 - measured_2
+        )
         self.set_powers(power_1, power_2)
 
     def stop(self) -> None:

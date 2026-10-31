@@ -12,7 +12,7 @@ from dataclasses import replace
 
 from rosie.control.models import Manual, Planned, RobotState, SetPoints, Tracker
 from rosie.control.regulation import go_to_point
-from rosie.control.teleoperation import from_keys
+from rosie.control.teleoperation import steer_by_keys
 from rosie.hardware.drive.models import EncoderReading
 from rosie.models import STILL, Control, Pose, Wheels
 
@@ -108,7 +108,7 @@ def manual_step(
     """Drive as the pressed keys say."""
     _, _, battery_voltage, current_1, current_2 = reading
     speed_1, speed_2 = speeds
-    set_point_1, set_point_2 = from_keys(movement.keys, wheels.max_speed)
+    set_point_1, set_point_2 = steer_by_keys(movement.keys, wheels.max_speed)
     state = RobotState(
         pose=pose,
         reference_pose=None,
