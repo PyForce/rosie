@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from rosie.profile import PROFILES_DIR, Ultrasound, load_profile
+from rosie.profile import PROFILES_DIR, load_profile
 
 
 @pytest.mark.parametrize("profile_id", ["simubot", "kevin", "ltl", "rovert", "blubot"])
@@ -11,7 +11,7 @@ def test_builtin_profiles_load(profile_id: str) -> None:
     assert profile.id == profile_id
     assert profile.thumbnail.is_file()
     assert profile.vector.is_file()
-    assert profile.usound is None
+    assert profile.sensors == {}
 
 
 def copy_of_simubot(folder: Path, extra: str = "") -> Path:
@@ -36,9 +36,9 @@ def test_a_folder_named_like_a_builtin_robot(
     assert load_profile("./simubot").name == "MINE"  # a path is yours
 
 
-def test_ultrasound_board(tmp_path: Path) -> None:
+def test_sensors(tmp_path: Path) -> None:
     folder = copy_of_simubot(tmp_path / "sonarbot", "\n[sensors.usound]\naddress = 0x11\n")
-    assert load_profile(str(folder)).usound == Ultrasound(bus=1, address=0x11)
+    assert load_profile(str(folder)).sensors == {"usound": {"address": 0x11}}
 
 
 def test_unknown_robot(tmp_path: Path) -> None:

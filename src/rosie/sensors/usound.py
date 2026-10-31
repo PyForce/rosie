@@ -10,10 +10,10 @@ status register 2 is marked by bit 7 and holds sensors 6 to 12 (bits 0 to 6).
 import logging
 import time
 from collections.abc import Callable
+from typing import Any
 
 from rosie.motion.drivers.buses import I2CBus, open_i2c
-from rosie.profile import Ultrasound
-from rosie.robot import Robot
+from rosie.sensors.models import UltrasoundSettings
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +44,13 @@ SECOND_REGISTER = 0x80
 CORRECTIONS = ((10, 0.1), (20, 0.06), (30, 0.03), (40, 0.04), (float("inf"), 0.02))
 
 
-def attach(robot: Robot, settings: Ultrasound) -> None:
-    """Open the board and serve its readings as the robot's `usound` sensor."""
-    board = UltrasoundBoard(open_i2c(settings.bus), settings.address)
-    robot.sensors["usound"] = board.read_all
+def open_sensor(table: dict[str, Any]) -> Callable[[], list[float | None]]:
+    """The board that `[sensors.usound]` in a profile describes, as a sensor reading."""
+    try:
+        settings = UltrasoundSettings(**table)
+    except TypeError as error:
+        raise ValueError(f"[sensors.usound]: unknown setting ({error})") from error
+    return UltrasoundBoard(open_i2c(settings.bus), settings.address).read_all
 
 
 class UltrasoundBoard:

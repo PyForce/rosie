@@ -78,6 +78,7 @@ environment variable overrides; a flag beats its variable. Each option is one `S
 |---|---|---|---|
 | `--robot` | `ROSIE_ROBOT` | `simubot` | one of rosie's robots by name, or the folder of yours ([Robots and hardware](robots.md)) |
 | `--map` | `ROSIE_MAP` | `Gustavo's House` | the map the planner starts with |
+| `--interfaces` | `ROSIE_INTERFACES` | `web` | what gives the robot its orders, comma-separated; empty: the robot alone |
 | `--host` | `ROSIE_HOST` | `0.0.0.0` | where the web API listens: every network, so other machines reach the robot; `127.0.0.1` for this computer only |
 | `--port` | `ROSIE_PORT` | `5000` | the web API's port |
 | `--record` | `ROSIE_RECORD` | none | a folder for a CSV file per planned movement |

@@ -201,6 +201,12 @@ def test_unknown_profile_choices(
         movement_controller(profile, robot_parameters(profile), SupervisorContainer(), clock)
 
 
+def test_unknown_sensor(simubot_profile: Profile, maps: dict[str, Path], clock: FakeClock) -> None:
+    profile = dataclasses.replace(simubot_profile, sensors={"sonar": {}})
+    with pytest.raises(ValueError, match=r"unsupported sensor: sonar \(known: usound\)"):
+        Robot(profile, maps, HOUSE, None, clock)
+
+
 class StuckArduino(FakeSerial):
     """Answers every state request: the wheels haven't turned, battery full."""
 

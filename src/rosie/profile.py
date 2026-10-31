@@ -8,6 +8,7 @@ the path of their folder.
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 PROFILES_DIR = Path(__file__).parent / "profiles"
 
@@ -43,12 +44,6 @@ class SpeedControl:
 
 
 @dataclass(frozen=True, slots=True)
-class Ultrasound:
-    bus: int = 1  # I2C bus number
-    address: int = 0x10
-
-
-@dataclass(frozen=True, slots=True)
 class Profile:
     id: str  # folder name
     directory: Path
@@ -63,7 +58,7 @@ class Profile:
     arrival_timeout: float  # s it may take, after the planned time, to get that close
     tracking: Tracking
     speed: SpeedControl
-    usound: Ultrasound | None  # the ultrasound board, if the robot has one
+    sensors: dict[str, dict[str, Any]]  # sensor name -> its settings, as the profile gives them
 
     @property
     def thumbnail(self) -> Path:
@@ -93,7 +88,6 @@ def _parse(path: Path) -> Profile:
     data = tomllib.loads(path.read_text())
     try:
         control = data["control"]
-        usound = data.get("sensors", {}).get("usound")
         return Profile(
             id=path.parent.resolve().name,
             directory=path.parent,
@@ -108,7 +102,7 @@ def _parse(path: Path) -> Profile:
             arrival_timeout=control["arrival_timeout"],
             tracking=Tracking(**control["tracking"]),
             speed=SpeedControl(**control["speed"]),
-            usound=None if usound is None else Ultrasound(**usound),
+            sensors=data.get("sensors", {}),
         )
     except (KeyError, TypeError) as error:
         raise ValueError(f"{path}: missing or unknown setting ({error})") from error

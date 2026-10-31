@@ -1,4 +1,7 @@
 import asyncio
+import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -7,22 +10,27 @@ from fastapi.responses import Response
 from pydantic import ValidationError
 
 from rosie.apis.web import routes
+from rosie.models import Settings
 from rosie.robot import Robot
 
+logger = logging.getLogger(__name__)
 
-async def serve(robot: Robot, host: str, port: int) -> None:
-    """The web API on host:port, until cancelled."""
+
+@asynccontextmanager
+async def start_web_api(robot: Robot, settings: Settings) -> AsyncGenerator[None, None]:
+    """Start the web API; on the way out of the block, uvicorn closes its connections."""
     server = uvicorn.Server(
-        uvicorn.Config(create_app(robot), host=host, port=port, log_level="warning")
+        uvicorn.Config(
+            create_app(robot), host=settings.host, port=settings.port, log_level="warning"
+        )
     )
-    serving = asyncio.ensure_future(server.serve())
+    serving = asyncio.create_task(server.serve())
+    logger.info("web API on http://%s:%d", settings.host, settings.port)
     try:
-        await asyncio.shield(serving)
-    except asyncio.CancelledError:
-        # rosie is stopping: let uvicorn close the connections first
+        yield
+    finally:
         server.should_exit = True
         await serving
-        raise
 
 
 def create_app(robot: Robot) -> FastAPI:

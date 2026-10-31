@@ -20,6 +20,7 @@ class StartupOption:
 class Settings:
     robot: str  # one of rosie's robots by name, or the folder of yours
     map: str  # the map the planner starts with
+    interfaces: tuple[str, ...]  # what gives the robot its orders
     host: str  # where the web API listens
     port: int
     record: Path | None  # folder for a CSV of every planned movement

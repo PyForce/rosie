@@ -54,4 +54,13 @@ LOG_LEVEL = StartupOption(
     type=str.upper,
     choices=("DEBUG", "INFO", "WARNING", "ERROR"),
 )
-OPTIONS = (ROBOT, MAP, HOST, PORT, RECORD, LOG_LEVEL)
+INTERFACES = StartupOption(
+    name="interfaces",
+    flag="--interfaces",
+    env="ROSIE_INTERFACES",
+    default="web",
+    help="what gives the robot its orders, comma-separated (web); empty: the robot alone",
+    type=str,
+    choices=None,
+)
+OPTIONS = (ROBOT, MAP, INTERFACES, HOST, PORT, RECORD, LOG_LEVEL)

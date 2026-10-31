@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import os
 import signal
 import socket
@@ -6,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from rosie import process
+from rosie import service
 from rosie.const import MAP
 from rosie.errors import HardwareUnavailableError
 from rosie.models import Settings
@@ -32,7 +33,7 @@ async def get(port: int, path: str) -> str:
 
 
 def settings(robot: str, port: int) -> Settings:
-    return Settings(robot, HOUSE, "127.0.0.1", port, None)
+    return Settings(robot, HOUSE, ("web",), "127.0.0.1", port, None)
 
 
 def test_runs_the_robot_and_its_web_api_until_a_signal(
@@ -48,7 +49,7 @@ def test_runs_the_robot_and_its_web_api_until_a_signal(
     (robot / "maps" / "garage.json").write_text(house.replace(HOUSE, "Garage"))
 
     async def scenario() -> tuple[str, str]:
-        running = asyncio.create_task(process.run(settings(str(robot), port)))
+        running = asyncio.create_task(service.run(settings(str(robot), port)))
         for _ in range(50):
             await asyncio.sleep(0.1)
             try:
@@ -73,5 +74,28 @@ def test_a_robot_with_an_ultrasound_board_needs_it(tmp_path: Path) -> None:
     (tmp_path / "profile.toml").write_text(
         (PROFILES_DIR / "simubot" / "profile.toml").read_text() + "\n[sensors.usound]\n"
     )
-    with pytest.raises(HardwareUnavailableError):  # no smbus2 here
-        asyncio.run(process.run(settings(str(tmp_path), free_port())))
+    with pytest.raises(HardwareUnavailableError):  # no I2C bus here
+        asyncio.run(service.run(settings(str(tmp_path), free_port())))
+
+
+def test_the_robot_alone(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level("INFO")
+    alone = dataclasses.replace(settings("simubot", free_port()), interfaces=())
+
+    async def scenario() -> None:
+        running = asyncio.create_task(service.run(alone))
+        await asyncio.sleep(0.3)
+        os.kill(os.getpid(), signal.SIGTERM)
+        await asyncio.wait_for(running, 5)
+
+    asyncio.run(scenario())
+    assert "web API" not in caplog.text
+    assert caplog.messages[-2:] == ["stopping...", "stopped"]
+
+
+def test_an_unknown_interface_starts_nothing(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level("INFO")
+    ros = dataclasses.replace(settings("simubot", free_port()), interfaces=("web", "ros"))
+    with pytest.raises(ValueError, match=r"unsupported interfaces: web, ros \(known: web\)"):
+        asyncio.run(service.run(ros))
+    assert "profile:" not in caplog.text  # not even the robot

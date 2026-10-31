@@ -32,7 +32,7 @@ def main() -> None:
 
     try:
         # the robot needs the `robot` extra; the client alone doesn't
-        process = importlib.import_module("rosie.process")
+        service = importlib.import_module("rosie.service")
     except ModuleNotFoundError as error:
         msg = "rosie start needs the robot: pip install 'pyforce-rosie[robot]'"
         f"(missing {error.name})\n"
@@ -42,11 +42,12 @@ def main() -> None:
     settings = Settings(
         robot=args.robot,
         map=args.map,
+        interfaces=tuple(name.strip() for name in args.interfaces.split(",") if name.strip()),
         host=args.host,
         port=args.port,
         record=Path(args.record).expanduser() if args.record else None,
     )
-    asyncio.run(process.run(settings))
+    asyncio.run(service.run(settings))
 
 
 if __name__ == "__main__":

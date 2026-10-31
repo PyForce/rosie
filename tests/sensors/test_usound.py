@@ -4,8 +4,6 @@ import pytest
 
 import rosie.sensors.usound
 from conftest import FakeI2C
-from rosie.profile import Ultrasound
-from rosie.robot import Robot
 from rosie.sensors.usound import UltrasoundBoard
 
 ADDRESS = 0x10
@@ -121,9 +119,7 @@ def test_retries_and_gives_up(
     assert "doesn't answer" in caplog.text
 
 
-def test_attach_adds_the_sensor(
-    robot: Robot, bus: FakeI2C, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_open_sensor(bus: FakeI2C, monkeypatch: pytest.MonkeyPatch) -> None:
     opened: list[int] = []
 
     def open_i2c(number: int) -> FakeI2C:
@@ -131,8 +127,13 @@ def test_attach_adds_the_sensor(
         return bus
 
     monkeypatch.setattr(rosie.sensors.usound, "open_i2c", open_i2c)
-    rosie.sensors.usound.attach(robot, Ultrasound(bus=3, address=0x11))
+    read = rosie.sensors.usound.open_sensor({"bus": 3, "address": 0x11})
     assert opened == [3]
     bus.bytes += [100, 0] * 12
-    assert robot.sensors["usound"]() == [0.53] * 12
+    assert read() == [0.53] * 12
     assert bus.calls[0][1] == 0x11
+
+
+def test_open_sensor_with_an_unknown_setting() -> None:
+    with pytest.raises(ValueError, match=r"\[sensors.usound\]: unknown setting"):
+        rosie.sensors.usound.open_sensor({"buss": 3})

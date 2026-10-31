@@ -1,7 +1,8 @@
 # Web API and extensions
 
-rosie's core knows nothing about networks: `rosie start` puts the REST + WebSocket API next to it, and the
-sensors the robot's profile names, such as the ultrasound board.
+rosie's core knows nothing about networks: `rosie start` puts its **interfaces** next to it, the ones
+`--interfaces` names (`web` by default, the REST + WebSocket API). The robot itself opens the sensors its
+profile names, such as the ultrasound board.
 
 ## The web API
 
@@ -71,12 +72,12 @@ Its distances (cm, corrected for the sensors' error) are at `GET /sensor/usound`
 
 ## Extending rosie
 
-Your code gets the `Robot`: in a script or a notebook of your own ([simulate faster than real
-time](getting-started.md#simulate-faster-than-real-time)), or in `process.run`, which `rosie start` runs,
-next to the ultrasound board. From there it can:
+Your code gets the `Robot`, in a script or a notebook of your own ([simulate faster than real
+time](getting-started.md#simulate-faster-than-real-time)). From there it can:
 
 - **add a sensor**: `robot.sensors["name"] = read`, a function returning the reading; the web API serves it at
-  `/sensor/name`;
+  `/sensor/name`. For a sensor that profiles can name, write a function from its profile table to that
+  reading function (like `open_sensor` in `sensors/usound.py`) and add it to `SENSORS` in `robot.py`;
 - **follow every movement**: subclass `MovementSupervisor` (`movement_begin`, `movement_update`,
   `movement_end`) and `robot.supervisor().append(...)`; `movement_update` gets the full `RobotState` of each
   control step. The web API and the recorder are both supervisors;

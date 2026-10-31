@@ -30,10 +30,20 @@ Under manual control, steps 3 and 4 are replaced by the pressed keys. That's all
 `rosie start` runs one Python process with one [asyncio](https://docs.python.org/3/library/asyncio.html)
 event loop:
 
-- `runner.run(robot)` calls `robot.tick()` every `sample_time` seconds. A late step doesn't make the next
-  ones rush to catch up.
-- The web API is a task on the same loop.
-- A stop signal (Ctrl+C, `docker stop`) stops the control loop first, then the motors, then the web API.
+- The control loop (`runner.py`) calls `robot.tick()` every `sample_time` seconds. A late step doesn't make
+  the next ones rush to catch up.
+- Each interface (the web API, by default) is a task on the same loop.
+- A stop signal (Ctrl+C, `docker stop`) stops the control loop first, then the motors, then the interfaces.
+
+That's all of `service.py`:
+
+```python
+async with start_interfaces(robot, settings, interfaces), start_control_loop(robot):
+    await stop.wait()
+```
+
+A new interface is a function from the robot and the settings to an async context manager that serves it
+while inside, added to `INTERFACES` in `service.py`.
 
 So the robot code never needs locks: when a web request asks for the position, no control step is half done.
 The robot core itself (`robot.py` and below) has no asyncio and no threads at all; it's plain Python you can
@@ -69,7 +79,7 @@ src/rosie/
 ├── __main__.py        the `rosie` command
 ├── const.py           the options of rosie start
 ├── models.py          StartupOption, Settings
-├── process.py         rosie start: the robot, its control loop and its web API
+├── service.py         rosie start: the robot, its control loop and its interfaces
 ├── runner.py          the control loop's timing
 ├── robot.py           Robot: the parts put together, and what interfaces can ask of it
 ├── profile.py         robot profiles (TOML)
@@ -86,7 +96,7 @@ src/rosie/
 │   └── drivers/       simulated, Arduino, MD25 boards; serial and I2C
 ├── planning/          maps, visibility graph, A*, route planner
 ├── apis/web/          the REST + WebSocket API (FastAPI)
-├── sensors/usound.py  the ultrasound board
+├── sensors/          the ultrasound board, and its settings (models.py)
 ├── client/            the Python client
 ├── profiles/          built-in robots
 └── maps/              built-in maps

@@ -26,6 +26,7 @@ from rosie.motion.trajectories import (
 )
 from rosie.planning.planner import Planner
 from rosie.profile import Profile
+from rosie.sensors import usound
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ MD25_ADDRESS = 0x58
 
 type Clock = Callable[[], float]
 type MotorHandlerFactory = Callable[[Profile, RobotParameters, Clock], MotorHandler]
+# a sensor's settings (its table in the profile) -> the function reading it
+type SensorFactory = Callable[[dict[str, Any]], Callable[[], object]]
 
 
 class Robot:
@@ -53,8 +56,11 @@ class Robot:
         self.profile = profile
         self.parameters = robot_parameters(profile)
         self.supervisors = SupervisorContainer()
-        # sensor name -> function reading it (plugins add theirs)
-        self.sensors: dict[str, Callable[[], object]] = {}
+        # sensor name -> function reading it (extensions can add theirs)
+        self.sensors: dict[str, Callable[[], object]] = {
+            name: _choose(SENSORS, "sensor", name)(settings)
+            for name, settings in profile.sensors.items()
+        }
         self.motion = movement_controller(profile, self.parameters, self.supervisors, clock)
         self.planner = Planner(maps)
         self.planner.use_map(map_name)
@@ -216,3 +222,4 @@ MOTOR_HANDLERS: dict[str, MotorHandlerFactory] = {
     "arduino": _arduino_motors,
     "md25": _md25_motors,
 }
+SENSORS: dict[str, SensorFactory] = {"usound": usound.open_sensor}

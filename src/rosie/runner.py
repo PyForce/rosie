@@ -1,4 +1,6 @@
 import asyncio
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import Protocol
 
 
@@ -7,6 +9,22 @@ class Tickable(Protocol):
     def sample_time(self) -> float: ...
 
     def tick(self) -> None: ...
+
+
+class Stoppable(Tickable, Protocol):
+    def stop(self) -> None: ...
+
+
+@asynccontextmanager
+async def start_control_loop(robot: Stoppable) -> AsyncGenerator[None, None]:
+    """Start the control loop; on the way out of the block, end it and stop the motors."""
+    ticking = asyncio.create_task(run(robot))
+    try:
+        yield
+    finally:
+        ticking.cancel()
+        robot.stop()
+        await asyncio.gather(ticking, return_exceptions=True)
 
 
 async def run(robot: Tickable) -> None:
