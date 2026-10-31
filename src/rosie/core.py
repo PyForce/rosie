@@ -2,56 +2,121 @@ import logging
 from collections.abc import Callable, Iterator, Sequence
 from typing import Any
 
+from rosie.boards.models import Board
 from rosie.models import Profile
-from rosie.motion.controller import MotionController
-from rosie.motion.models import Pose, TrajectoryParameters
-from rosie.motion.supervisors import Supervisors
+from rosie.motion.control import (
+    MIN_MANUAL_ELAPSED_TIME,
+    encoder_speeds,
+    is_over,
+    manual_step,
+    planned_step,
+)
+from rosie.motion.models import (
+    ORIGIN,
+    Clock,
+    Manual,
+    Movement,
+    MovementSupervisor,
+    Planned,
+    Pose,
+    Tracker,
+    TrajectoryParameters,
+    TrajectoryShape,
+)
+from rosie.motion.odometry import advance
+from rosie.motion.trajectories import plan
 from rosie.planning.planner import Planner
 
 logger = logging.getLogger(__name__)
 
 
 class Robot:
-    """The robot core: everything rosie's interfaces can ask of the robot."""
+    """
+    The robot core: everything rosie's interfaces can ask of the robot, and its
+    state. Each tick reads the board, runs one control step (motion/control.py)
+    and writes the board.
+    """
 
     def __init__(
         self,
         profile: Profile,
-        motion: MotionController,
+        board: Board,
+        shape: TrajectoryShape,
+        track: Tracker,
         planner: Planner,
         sensors: dict[str, Callable[[], object]],
-        supervisors: Supervisors,
+        supervisors: list[MovementSupervisor],
+        clock: Clock,
     ) -> None:
         self.profile = profile
-        self.motion = motion
+        self.board = board
+        self.shape = shape
+        self.track = track
         self.planner = planner
         # sensor name -> function reading it (extensions can add theirs)
         self.sensors = sensors
         self.supervisors = supervisors
+        self.clock = clock
+        self.pose = ORIGIN
+        self.movement: Movement | None = None
+        self.last_step = clock()
 
     @property
     def sample_time(self) -> float:
-        return self.motion.sample_time
+        return self.profile.control.sample_time
 
     def tick(self) -> None:
-        self.motion.tick()
+        movement = self.movement
+        if movement is None:
+            return
+        now = self.clock()
+        elapsed_time = now - self.last_step
+        self.last_step = now
+        match movement:
+            case Planned() if is_over(movement, self.pose, now, self.profile.control):
+                self.stop()
+                return
+            case Manual():
+                elapsed_time = max(elapsed_time, MIN_MANUAL_ELAPSED_TIME)
+
+        reading = self.board.read_encoders()
+        if not reading:
+            logger.error("no reading from the motor board")
+            return
+        wheels = self.profile.wheels
+        delta_steps_1, delta_steps_2, *_ = reading
+        speeds = encoder_speeds(wheels, delta_steps_1, delta_steps_2, elapsed_time)
+        self.pose = advance(self.pose, wheels, delta_steps_1, delta_steps_2)
+
+        match movement:
+            case Planned():
+                self.movement, set_points, state = planned_step(
+                    movement, self.pose, speeds, reading, elapsed_time, now, wheels, self.track
+                )
+            case Manual():
+                set_points, state = manual_step(
+                    movement, self.pose, speeds, reading, elapsed_time, wheels
+                )
+        self.board.set_speeds(*set_points, *speeds)
+        for supervisor in self.supervisors:
+            supervisor.movement_update(state)
 
     def stop(self) -> None:
-        self.motion.finish()
+        self.movement = None
+        self.board.stop()
+        for supervisor in self.supervisors:
+            supervisor.movement_end()
 
     def position(self) -> tuple[float, float, float]:
-        pose = self.motion.pose
-        return pose.x, pose.y, pose.theta
+        return self.pose.x, self.pose.y, self.pose.theta
 
     def teleport(self, x: float, y: float, theta: float) -> None:
-        self.motion.pose = Pose(x, y, theta)
+        self.pose = Pose(x, y, theta)
 
     def goto(self, x: float, y: float, t: float) -> None:
         """Drive to (x, y) in t seconds."""
         self._check_duration(t)
-        self.motion.start_planned(
-            TrajectoryParameters([Pose(*self.position()), Pose(x, y, 0.0)], t, self.sample_time)
-        )
+        self._start_planned([Pose(*self.position()), Pose(x, y, 0.0)], t)
 
     def goto_with_planner(self, x: float, y: float, t: float) -> None:
         """Drive to (x, y) around walls and furniture, t seconds per straight stretch."""
@@ -64,19 +129,24 @@ class Robot:
     def follow(self, points: Sequence[Sequence[float]], t: float) -> None:
         """Drive through the points in order, t seconds from one to the next."""
         self._check_duration(t)
-        poses = [Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)]
-        self.motion.start_planned(TrajectoryParameters(poses, t, self.sample_time))
+        self._start_planned([Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)], t)
 
     def start_manual(self) -> None:
+        """Drive by hand, standing still until the first keys arrive."""
         logger.debug("manual control")
-        self.motion.start_manual()
+        for supervisor in self.supervisors:
+            supervisor.movement_begin(None)
+        self._start(Manual((0.0, 0.0, 0.0)))
 
-    def move(self, direction: list[float]) -> None:
-        self.motion.direction = direction
+    def move(self, keys: Sequence[float]) -> None:
+        """The pressed keys under manual control: x (steer), y (throttle), rotation."""
+        if isinstance(self.movement, Manual):
+            x, y, rotation = keys
+            self.movement = Manual((x, y, rotation))
 
     def stop_manual(self) -> None:
         logger.debug("planned movements")
-        self.motion.finish()
+        self.stop()
 
     def maps(self) -> Iterator[str]:
         return iter(self.planner.maps)
@@ -95,3 +165,14 @@ class Robot:
     def _check_duration(self, t: float) -> None:
         if t < self.sample_time:
             raise ValueError(f"the time must be at least one control step ({self.sample_time} s)")
+
+    def _start_planned(self, key_poses: list[Pose], t: float) -> None:
+        references = plan(self.shape, TrajectoryParameters(key_poses, t, self.sample_time))
+        for supervisor in self.supervisors:
+            supervisor.movement_begin(len(references))
+        self._start(Planned(tuple(references), 0, self.last_step))
+
+    def _start(self, movement: Movement) -> None:
+        self.board.reset()
+        self.last_step = self.clock()
+        self.movement = movement

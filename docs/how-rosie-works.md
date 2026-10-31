@@ -22,8 +22,11 @@ runs one **control step**:
 6. Tell the **supervisors** what happened: the web API sends the new position to its clients, the recorder
    writes a row.
 
-Under manual control, steps 3 and 4 are replaced by the pressed keys. That's all of
-`MotionController.planned_step` in `motion/controller.py`, about 60 lines.
+Under manual control, steps 3 and 4 are replaced by the pressed keys. `Robot.tick` (in `core.py`) does the
+reading and the writing; the step itself is a function in `motion/control.py`, `planned_step` or
+`manual_step`: the movement, the pose and the measured speeds in; the wheel speeds to ask for and the step's
+`RobotState` out. The movement is a value too: `Planned` (the references, and the next one to follow) or
+`Manual` (the pressed keys).
 
 ## One process, one loop, no threads
 
@@ -82,19 +85,18 @@ src/rosie/
 ├── models.py          Settings, Profile, and the types the modules share
 ├── service.py         rosie start: the robot, its control loop and its interfaces
 ├── ticker.py          the control loop's timing
-├── core.py            Robot: what interfaces can ask of the robot
+├── core.py            Robot: its state, its tick, and what interfaces can ask of it
 ├── robot.py           build_robot: a Robot from its profile (boards, sensors, maps)
 ├── profile.py         reading a profile.toml
 ├── buses.py           opening serial ports and I2C buses, for boards and sensors
 ├── errors.py
 ├── motion/
-│   ├── models.py      Pose, Velocity, Wheels, Control, RobotState
-│   ├── controller.py  the control step; manual driving; the go-to-point controller
+│   ├── models.py      Pose, Wheels, Control, Planned, Manual, RobotState, MovementSupervisor
+│   ├── control.py     the control step; manual driving; the go-to-point controller
 │   ├── odometry.py
 │   ├── trajectories.py
 │   ├── tracking.py
 │   ├── pid.py         the speed PID
-│   ├── supervisors.py
 │   └── recording.py   the CSV recorder
 ├── boards/            simulated, Arduino, MD25 motor boards, and their settings (models.py)
 ├── planning/          maps, visibility graph, A*, route planner

@@ -161,3 +161,21 @@ def test_maps(robot: Robot) -> None:
     assert robot.get_map("Nowhere") is None
     with pytest.raises(ValueError, match="unknown map"):
         robot.use_map("Nowhere")
+
+
+def test_a_manual_session_starts_standing_still(robot: Robot, run: Run) -> None:
+    robot.start_manual()
+    robot.move(W)
+    run(robot, 0.5)
+    robot.stop_manual()
+    moved = robot.position()
+    robot.start_manual()  # no keys yet: the previous session's W is gone
+    run(robot, 0.5)
+    assert robot.position() == moved
+
+
+def test_keys_outside_manual_control_are_ignored(robot: Robot, run: Run) -> None:
+    robot.move(W)
+    robot.start_manual()
+    run(robot, 0.5)
+    assert robot.position() == (0.0, 0.0, 0.0)

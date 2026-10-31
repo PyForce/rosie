@@ -9,10 +9,9 @@ import rosie.boards.md25
 from conftest import FakeClock, FakeI2C, FakeSerial, distance
 from rosie.core import Robot
 from rosie.models import Profile
-from rosie.motion.supervisors import Supervisors
 from rosie.planning.maps import DEFAULT_MAP
 from rosie.profile import load_profile
-from rosie.robot import build_robot, motion_controller
+from rosie.robot import build_robot
 
 type Run = Callable[[Robot, float], None]
 
@@ -43,7 +42,7 @@ def test_unknown_profile_choices(
 ) -> None:
     profile = change(simubot_profile)
     with pytest.raises(ValueError, match=message):
-        motion_controller(profile, Supervisors(), clock)
+        build_robot(profile, DEFAULT_MAP, None, clock)
 
 
 def test_unknown_sensor(simubot_profile: Profile, clock: FakeClock) -> None:

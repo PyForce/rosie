@@ -11,7 +11,6 @@ from rosie.apis.web.models import Follow, Goto, Maps, Metadata, Move, Position, 
 from rosie.core import Robot
 from rosie.errors import NoRouteError
 from rosie.motion.models import RobotState
-from rosie.motion.supervisors import MovementSupervisor
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +126,7 @@ def use_map(name: str, robot: RobotDependency) -> Response:
     return Response()
 
 
-class WebSupervisor(MovementSupervisor):
+class WebSupervisor:
     """Streams the robot's position to WebSocket clients and takes their keys in manual mode."""
 
     def __init__(self, robot: Robot) -> None:

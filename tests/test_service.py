@@ -107,7 +107,7 @@ def test_control_loop_stops_the_motors_on_the_way_out(simubot_profile: Profile) 
         robot.goto(1, 0, 2)
         async with service.start_control_loop(robot):
             await asyncio.sleep(0.3)
-        assert not robot.motion.running  # the movement ended with the loop
+        assert robot.movement is None  # the movement ended with the loop
         moved = robot.position()
         await asyncio.sleep(0.1)
         assert robot.position() == moved  # no tick after the loop ended

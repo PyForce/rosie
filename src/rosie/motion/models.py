@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 type Clock = Callable[[], float]  # s, only differences matter
 
@@ -78,6 +79,8 @@ class Control:
 
 # key poses -> a pose and a velocity per control step (linear, cubic)
 type TrajectoryShape = Callable[[TrajectoryParameters], tuple[list[Pose], list[Velocity]]]
+# wheel 1 and 2 speeds to ask for (rad/s)
+type SetPoints = tuple[float, float]
 # wheel 1 and 2 speed setpoints (rad/s), then the x and y speeds the tracker asked for
 type TrackerOutput = tuple[float, float, float, float]
 # reference pose, reference velocity, the robot's pose -> TrackerOutput
@@ -114,3 +117,37 @@ RESTING = RobotState(ORIGIN, ORIGIN, STILL, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0
 
 
 type Row = tuple[float | None, ...]  # a recorded control step, one value per column
+
+
+@dataclass(frozen=True, slots=True)
+class Planned:
+    """A planned movement: one reference per control step, and the next one to follow."""
+
+    references: tuple[Reference, ...]
+    next_index: int
+    finished_at: float  # when the last reference was followed (clock time)
+
+    @property
+    def trajectory_done(self) -> bool:
+        return self.next_index >= len(self.references)
+
+
+@dataclass(frozen=True, slots=True)
+class Manual:
+    """Driving by hand: the pressed keys, x (steer), y (throttle), rotation, each in [-1, 1]."""
+
+    keys: tuple[float, float, float]
+
+
+type Movement = Planned | Manual
+
+
+class MovementSupervisor(Protocol):
+    """Follows each movement: its start, every control step, its end."""
+
+    def movement_begin(self, expected_updates: int | None) -> None:
+        """`expected_updates`: control steps of a planned movement, None under manual control."""
+
+    def movement_update(self, robot_state: RobotState) -> None: ...
+
+    def movement_end(self) -> None: ...

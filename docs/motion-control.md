@@ -113,7 +113,7 @@ and $k_2$. This is *input-output linearization*. Its gains are in the profile's 
 
 ## Arriving: the go-to-point controller
 
-`motion/controller.py` · `approach_speeds`
+`motion/control.py` · `approach_speeds`
 
 The tracker steers point $B$, not the robot's centre, and it can't hold a two-wheeled robot still on a
 point. So when the trajectory is over, a second controller takes the robot the rest of the way. With $\rho$
@@ -146,7 +146,7 @@ $$
 
 ## Driving by hand
 
-`motion/controller.py` · `manual_speeds`
+`motion/control.py` · `manual_speeds`
 
 Under manual control, the keys (or the joystick) give a direction (steer, throttle, rotation), each in
 $[-1, 1]$. Throttle turns both wheels at up to 8 rad/s; steering slows the inner wheel, but only while
@@ -215,7 +215,7 @@ Give it to a robot, here the simulated one from
 ```python
 from functools import partial
 
-robot.motion.track = partial(kanayama, robot.profile.wheels, 2.0, 10.0, 4.0)
+robot.track = partial(kanayama, robot.profile.wheels, 2.0, 10.0, 4.0)
 ```
 
 Then compare the two trackers' recordings on the same path.
