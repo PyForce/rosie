@@ -1,11 +1,11 @@
 # rosie
 
-**Mobile robots, in Python you can read.**
+**Learn mobile robotics by reading the robot.**
 
-rosie drives differential-drive robots: two motorised wheels, like most robots in a robotics course. It
-estimates where the robot is from its wheel encoders, plans trajectories, tracks them with a feedback
-controller, finds routes around walls and furniture, and lets you drive by hand. Each of those is a short,
-plain Python module you can open, change and test against a simulated robot, then run on a real one.
+rosie is a complete robot stack (localization, planning, control, drives) for two-wheeled robots, written as
+short Python modules you can read, change and run on a simulated robot or a real one. It estimates where the
+robot is from its wheel encoders, plans routes around walls and furniture and trajectories along them, tracks
+them with feedback controllers, and lets you drive by hand.
 
 That is what rosie is for: learning and teaching how a mobile robot works, from the control equations to the
 web page that drives it.
