@@ -40,11 +40,11 @@ class Robot:
         self.motion.finish()
 
     def position(self) -> tuple[float, float, float]:
-        pose = self.motion.odometry_localizer.pose
+        pose = self.motion.pose
         return pose.x, pose.y, pose.theta
 
     def teleport(self, x: float, y: float, theta: float) -> None:
-        self.motion.odometry_localizer.pose = Pose(x, y, theta)
+        self.motion.pose = Pose(x, y, theta)
 
     def goto(self, x: float, y: float, t: float) -> None:
         """Drive to (x, y) in t seconds."""

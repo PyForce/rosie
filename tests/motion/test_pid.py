@@ -1,7 +1,7 @@
 import pytest
 
 from rosie.motion.models import SpeedControl
-from rosie.motion.pid import PIDSpeedController
+from rosie.motion.pid import RESTING_PID, pid
 
 
 @pytest.mark.parametrize(
@@ -14,13 +14,16 @@ from rosie.motion.pid import PIDSpeedController
     ],
 )
 def test_pid(ki: float, kd: float, actions: list[float]) -> None:
-    pid = PIDSpeedController(SpeedControl(kc=10, ki=ki, kd=kd), 100)
-    errors = [2, 1, 0.5]
-    assert [pid.regulate(error, 0, 0, 0)[0] for error in errors] == pytest.approx(actions)
+    gains = SpeedControl(kc=10, ki=ki, kd=kd)
+    history = RESTING_PID
+    powers = []
+    for error in [2, 1, 0.5]:
+        power, history = pid(gains, 100, history, error)
+        powers.append(power)
+    assert powers == pytest.approx(actions)
 
 
-def test_pid_saturates_and_resets() -> None:
-    pid = PIDSpeedController(SpeedControl(kc=10, ki=0.5, kd=0), 30)
-    assert pid.regulate(10, -10, 0, 0) == (30, -30)
-    pid.reset()
-    assert pid.regulate(1, 0, 0, 0) == (10, 0)
+def test_pid_saturates() -> None:
+    gains = SpeedControl(kc=10, ki=0.5, kd=0)
+    assert pid(gains, 30, RESTING_PID, 10)[0] == 30
+    assert pid(gains, 30, RESTING_PID, -10)[0] == -30

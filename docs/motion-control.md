@@ -26,7 +26,7 @@ The robot can't move sideways: it's *nonholonomic*, which is what makes controll
 
 ## Where is the robot? Odometry
 
-`motion/odometry.py` · `RungeKutta2Localizer`
+`motion/odometry.py` · `advance`
 
 Each step, the encoders say how many steps each wheel turned ($n$ steps per turn). As angles:
 $\Delta\varphi_i = 2\pi\,\Delta\text{steps}_i / n$. The robot advanced and turned
@@ -55,11 +55,11 @@ A movement is a list of key points (the robot's position, then the targets) and 
 planner turns it into one reference per control step: a pose $(x_d, y_d, \theta_d)$ and a velocity
 $(\dot x_d, \dot y_d, \dot\theta_d)$.
 
-**Linear** (`LinearTrajectoryPlanner`): straight lines at constant speed, heading along the line. Simple,
+**Linear** (`linear_trajectory`): straight lines at constant speed, heading along the line. Simple,
 but the heading jumps at every corner, which the robot can't do: watch it overshoot corners in a
 [recording](#watch-it-recordings).
 
-**Cubic** (`CubicTrajectoryPlanner`): each stretch is a cubic polynomial in $s \in [0, 1]$:
+**Cubic** (`cubic_trajectory`): each stretch is a cubic polynomial in $s \in [0, 1]$:
 
 $$
 x(s) = s^3 x_f - (s-1)^3 x_i + \alpha_x s^2 (s-1) + \beta_x s (s-1)^2
@@ -83,7 +83,7 @@ Pick one in the [profile](robots.md#profiles): `trajectory = "linear"` or `"cubi
 
 ## Getting there: trajectory tracking
 
-`motion/tracking.py` · `IOLinearizationTracker`
+`motion/tracking.py` · `io_linearization`
 
 The tracker compares where the robot is with where it should be, every step, and asks for wheel speeds. A
 differential drive can't be told "move to the left", so rosie doesn't control the middle of the axle but a
@@ -113,7 +113,7 @@ and $k_2$. This is *input-output linearization*. Its gains are in the profile's 
 
 ## Arriving: the go-to-point controller
 
-`motion/controller.py` · `MotionController._approach_speeds`
+`motion/controller.py` · `approach_speeds`
 
 The tracker steers point $B$, not the robot's centre, and it can't hold a two-wheeled robot still on a
 point. So when the trajectory is over, a second controller takes the robot the rest of the way. With $\rho$
@@ -129,7 +129,7 @@ after the planned time, with a warning in the log.
 
 ## Turning the wheels: speed control
 
-`motion/pid.py` · `PIDSpeedController`
+`motion/pid.py` · `pid`
 
 Wheel speeds are what the tracker asks for; motors take power. Something has to close that loop:
 
@@ -146,7 +146,7 @@ $$
 
 ## Driving by hand
 
-`motion/controller.py` · `MotionController._wheel_speeds`
+`motion/controller.py` · `manual_speeds`
 
 Under manual control, the keys (or the joystick) give a direction (steer, throttle, rotation), each in
 $[-1, 1]$. Throttle turns both wheels at up to 8 rad/s; steering slows the inner wheel, but only while
@@ -176,44 +176,46 @@ Plot `x, y` against `ref_x, ref_y`, change a gain in the profile, and run it aga
 
 ## Write your own tracker
 
-A tracker is a class with a `track` method: the reference pose and velocity, and the robot's pose, in; the
-two wheel speeds (and two numbers of your choice for the recording) out. This one is the classic controller
-by Kanayama et al. (1990), which works with the errors in the robot's own frame:
+A tracker is a function: the reference pose and velocity, and the robot's pose, in; the two wheel speeds (and
+two numbers of your choice for the recording) out. Its own settings come first, so `functools.partial` can
+fix them. This one is the classic controller by Kanayama et al. (1990), which works with the errors in the
+robot's own frame:
 
 ```python
 import math
 
 from rosie.motion.models import Pose, TrackerOutput, Velocity, Wheels
-from rosie.motion.tracking import TrajectoryTracker
 
 
-class KanayamaTracker(TrajectoryTracker):
-    def __init__(self, wheels: Wheels, kx: float, ky: float, ktheta: float) -> None:
-        self.wheels = wheels
-        self.kx, self.ky, self.ktheta = kx, ky, ktheta
-
-    def reset(self) -> None:
-        pass
-
-    def track(self, reference: Pose, reference_velocity: Velocity, pose: Pose) -> TrackerOutput:
-        dx, dy = reference.x - pose.x, reference.y - pose.y
-        ex = math.cos(pose.theta) * dx + math.sin(pose.theta) * dy
-        ey = -math.sin(pose.theta) * dx + math.cos(pose.theta) * dy
-        etheta = math.atan2(
-            math.sin(reference.theta - pose.theta), math.cos(reference.theta - pose.theta)
-        )
-        v_ref = math.hypot(reference_velocity.x, reference_velocity.y)
-        v = v_ref * math.cos(etheta) + self.kx * ex
-        omega = reference_velocity.theta + v_ref * (self.ky * ey + self.ktheta * math.sin(etheta))
-        r, half_axis = self.wheels.radius, self.wheels.distance / 2
-        return (v - omega * half_axis) / r, (v + omega * half_axis) / r, v, omega
+def kanayama(
+    wheels: Wheels,
+    kx: float,
+    ky: float,
+    ktheta: float,
+    reference: Pose,
+    reference_velocity: Velocity,
+    pose: Pose,
+) -> TrackerOutput:
+    dx, dy = reference.x - pose.x, reference.y - pose.y
+    ex = math.cos(pose.theta) * dx + math.sin(pose.theta) * dy
+    ey = -math.sin(pose.theta) * dx + math.cos(pose.theta) * dy
+    etheta = math.atan2(
+        math.sin(reference.theta - pose.theta), math.cos(reference.theta - pose.theta)
+    )
+    v_ref = math.hypot(reference_velocity.x, reference_velocity.y)
+    v = v_ref * math.cos(etheta) + kx * ex
+    omega = reference_velocity.theta + v_ref * (ky * ey + ktheta * math.sin(etheta))
+    r, half_axis = wheels.radius, wheels.distance / 2
+    return (v - omega * half_axis) / r, (v + omega * half_axis) / r, v, omega
 ```
 
 Give it to a robot, here the simulated one from
 [Getting started](getting-started.md#simulate-faster-than-real-time):
 
 ```python
-robot.motion.trajectory_tracker = KanayamaTracker(robot.profile.wheels, 2.0, 10.0, 4.0)
+from functools import partial
+
+robot.motion.track = partial(kanayama, robot.profile.wheels, 2.0, 10.0, 4.0)
 ```
 
 Then compare the two trackers' recordings on the same path.

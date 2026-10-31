@@ -53,17 +53,18 @@ drive from a test, a notebook or your own loop.
 
 `build_robot` (in `robot.py`) puts a `Robot` together from the parts a [profile](robots.md#profiles) names:
 
-| Part | Interface | rosie's implementations |
+| Part | Shape | rosie's |
 |---|---|---|
-| Trajectory planner | `TrajectoryPlanner` | linear, cubic (`trajectory` in the profile) |
-| Odometry | `OdometryLocalizer` | second-order Runge-Kutta |
-| Trajectory tracker | `TrajectoryTracker` | input-output linearization |
-| Motor board | `Board` | simulated, Arduino board, MD25 board (`[board]` in the profile) |
+| Trajectory | a function, `TrajectoryShape` | `linear_trajectory`, `cubic_trajectory` (`trajectory` in the profile) |
+| Odometry | a function | `advance`: second-order Runge-Kutta |
+| Trajectory tracker | a function, `Tracker` | `io_linearization`: input-output linearization |
+| Motor board | a class with the `Board` methods | simulated, Arduino board, MD25 board (`[board]` in the profile) |
 | Route planner | `Planner` | visibility graph + A* |
-| Supervisors | `MovementSupervisor` | web API, CSV recorder |
+| Supervisors | a class with the `MovementSupervisor` methods | web API, CSV recorder |
 
-Each interface is a small abstract class, so replacing a part means writing one class: see
-[writing your own tracker](motion-control.md#write-your-own-tracker).
+The math is plain functions on frozen dataclasses, one equation each, so replacing a part means writing one
+function: see [writing your own tracker](motion-control.md#write-your-own-tracker). Classes are left where
+there is real state: the boards (their hardware), the supervisors, and the robot itself.
 
 ## Time is a parameter
 

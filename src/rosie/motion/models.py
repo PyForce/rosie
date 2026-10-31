@@ -27,6 +27,14 @@ type EncoderReading = tuple[float, float, float, float, float]
 
 
 @dataclass(frozen=True, slots=True)
+class Reference:
+    """Where the robot should be at one control step, and how fast it should be moving."""
+
+    pose: Pose
+    velocity: Velocity
+
+
+@dataclass(frozen=True, slots=True)
 class TrajectoryParameters:
     key_poses: list[Pose]  # the path goes through them, in order
     segment_time: float  # s from one key pose to the next
@@ -68,11 +76,15 @@ class Control:
     speed: SpeedControl
 
 
+# key poses -> a pose and a velocity per control step (linear, cubic)
+type TrajectoryShape = Callable[[TrajectoryParameters], tuple[list[Pose], list[Velocity]]]
 # wheel 1 and 2 speed setpoints (rad/s), then the x and y speeds the tracker asked for
 type TrackerOutput = tuple[float, float, float, float]
+# reference pose, reference velocity, the robot's pose -> TrackerOutput
+type Tracker = Callable[[Pose, Velocity, Pose], TrackerOutput]
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class PIDHistory:
     """One wheel's speed PID: what the incremental form needs from the previous steps."""
 

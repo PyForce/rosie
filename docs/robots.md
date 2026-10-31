@@ -118,7 +118,7 @@ A board is a module in `boards/` with a class that has the four methods of `Boar
   motor currents;
 - `set_speeds(speed_1, speed_2, measured_1, measured_2)`: the wheel speeds to reach, and the ones just
   measured. A board that controls the speeds itself sends the first two; one that only takes powers turns
-  them into powers with rosie's `PIDSpeedController`, as the MD25 does;
+  them into powers with rosie's speed PID (`motion/pid.py`), as the MD25 does;
 - `stop()` and `reset()` (before each new movement).
 
 It talks to its hardware through what it's given (a serial port, an I2C bus), so it can be tested with a

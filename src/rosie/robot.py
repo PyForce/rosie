@@ -5,6 +5,7 @@ maps and rosie's, and the sensors the profile names.
 """
 
 import logging
+from functools import partial
 from pathlib import Path
 
 from rosie.boards import open_board
@@ -12,16 +13,11 @@ from rosie.core import Robot
 from rosie.errors import SetupError
 from rosie.models import Profile
 from rosie.motion.controller import MotionController
-from rosie.motion.models import Clock
-from rosie.motion.odometry import RungeKutta2Localizer
+from rosie.motion.models import Clock, TrajectoryShape
 from rosie.motion.recording import MovementRecorder
 from rosie.motion.supervisors import Supervisors
-from rosie.motion.tracking import IOLinearizationTracker
-from rosie.motion.trajectories import (
-    CubicTrajectoryPlanner,
-    LinearTrajectoryPlanner,
-    TrajectoryPlanner,
-)
+from rosie.motion.tracking import io_linearization
+from rosie.motion.trajectories import cubic_trajectory, linear_trajectory
 from rosie.planning.maps import BUILTIN_MAPS, list_maps
 from rosie.planning.planner import Planner
 from rosie.sensors import open_sensors
@@ -48,9 +44,8 @@ def motion_controller(profile: Profile, supervisors: Supervisors, clock: Clock) 
         raise SetupError(f"unsupported trajectory: {profile.trajectory} (known: {known})")
     return MotionController(
         supervisors,
-        TRAJECTORIES[profile.trajectory](),
-        RungeKutta2Localizer(profile.wheels),
-        IOLinearizationTracker(profile.control.tracking, profile.wheels),
+        TRAJECTORIES[profile.trajectory],
+        partial(io_linearization, profile.control.tracking, profile.wheels),
         open_board(profile, clock),
         profile.wheels,
         profile.control,
@@ -58,7 +53,4 @@ def motion_controller(profile: Profile, supervisors: Supervisors, clock: Clock) 
     )
 
 
-TRAJECTORIES: dict[str, type[TrajectoryPlanner]] = {
-    "linear": LinearTrajectoryPlanner,
-    "cubic": CubicTrajectoryPlanner,
-}
+TRAJECTORIES: dict[str, TrajectoryShape] = {"linear": linear_trajectory, "cubic": cubic_trajectory}
