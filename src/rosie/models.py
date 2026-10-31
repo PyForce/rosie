@@ -32,18 +32,9 @@ class Body:
 @dataclass(frozen=True, slots=True)
 class Wheels:
     radius: float  # m
-    distance: float  # m between the wheels
-    encoder_steps: float  # per wheel turn
+    separation: float  # m between the wheels
+    encoder_resolution: float  # encoder steps per wheel turn
     max_speed: float  # rad/s
-
-
-@dataclass(frozen=True, slots=True)
-class TrackingGains:
-    """Input-output linearization."""
-
-    b: float  # m, the tracked point ahead of the wheel axis
-    k1: float
-    k2: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,11 +47,56 @@ class PIDGains:
 
 
 @dataclass(frozen=True, slots=True)
+class CameraSettings:
+    stream: str  # served by another program, ":port/path" on the robot's host
+
+
+@dataclass(frozen=True, slots=True)
+class PlanningSettings:
+    planner: str  # linear or cubic
+    clearance: float = 0.2  # of the body's largest side, kept from walls and furniture
+
+
+@dataclass(frozen=True, slots=True)
+class TrackingGains:
+    k1: float
+    k2: float
+
+
+@dataclass(frozen=True, slots=True)
+class TrackingSettings:
+    """Input-output linearization."""
+
+    lookahead: float  # m: the tracked point ahead of the wheel axis
+    gains: TrackingGains
+
+
+@dataclass(frozen=True, slots=True)
+class RegulationGains:
+    distance: float = 1.0  # 1/s
+    angle: float = 3.0  # 1/s
+
+
+@dataclass(frozen=True, slots=True)
+class RegulationSettings:
+    """The go-to-point controller, once a planned trajectory is over."""
+
+    tolerance: float  # m: the movement ends this close to its last point
+    timeout: float  # s it may take, after the planned time, to get that close
+    gains: RegulationGains
+
+
+@dataclass(frozen=True, slots=True)
+class TeleoperationSettings:
+    max_speed: float = 8.0  # rad/s of a wheel for a full command
+
+
+@dataclass(frozen=True, slots=True)
 class ControlSettings:
     sample_time: float  # s between control steps
-    arrival_tolerance: float  # m: a planned movement ends this close to its last point
-    arrival_timeout: float  # s it may take, after the planned time, to get that close
-    tracking: TrackingGains
+    tracking: TrackingSettings
+    regulation: RegulationSettings
+    teleoperation: TeleoperationSettings
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,15 +106,15 @@ class Profile:
     folder_name: str
     directory: Path
     name: str
-    trajectory_planner: str  # linear or cubic
-    video: str | None  # stream served by another program, ":port/path" on this host
     body: Body
     wheels: Wheels
     drive_type: str  # virtual, arduino or md25
     drive_settings: dict[str, Any]  # the rest of the [drive] table, as the profile gives it
     drive_gains: PIDGains | None  # [drive.gains]; the virtual drive has no PID
-    control: ControlSettings
+    camera: CameraSettings | None
     sensors: dict[str, dict[str, Any]]  # sensor name -> its table, as the profile gives it
+    planning: PlanningSettings
+    control: ControlSettings
 
     @property
     def picture(self) -> Path:

@@ -32,7 +32,7 @@ alone.
 
 *Read:* [Trajectories](motion-control.md#where-should-it-be-trajectories), `planning/trajectory.py`.
 
-1. Follow the same square with `trajectory_planner = "linear"` and `"cubic"`, with [recordings](motion-control.md#watch-it-recordings)
+1. Follow the same square with `planner = "linear"` and `"cubic"`, with [recordings](motion-control.md#watch-it-recordings)
    on. Plot the reference paths and the driven ones.
 2. Plot the reference speeds: where does the linear plan ask the impossible?
 3. Change the cubic planner's $k$ (the tangent gain) and describe the shapes.
@@ -41,7 +41,7 @@ alone.
 
 *Read:* [Trajectory tracking](motion-control.md#getting-there-trajectory-tracking), `control/tracking.py`.
 
-1. Change `k1`, `k2` and `b` in the profile. Measure the largest and final tracking errors on the same path.
+1. Change `k1`, `k2` (`[control.tracking.gains]`) and `lookahead` in the profile. Measure the largest and final tracking errors on the same path.
 2. Push the robot off its path mid-movement (`teleport` it 10 cm aside) and watch how fast the error
    dies out, against the theory.
 3. [Write your own tracker](motion-control.md#write-your-own-tracker) (the Kanayama controller, a

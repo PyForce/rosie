@@ -2,19 +2,19 @@
 
 from rosie.control.models import WheelSpeeds
 
-# wheel speed (rad/s) of a full command
-MANUAL_SPEED = 8
 
-
-def steer(steering: float, throttle: float, spin: float, max_speed: float) -> WheelSpeeds:
+def steer(
+    steering: float, throttle: float, spin: float, command_speed: float, max_speed: float
+) -> WheelSpeeds:
     """
     Racing-game driving, each command in [-1, 1]: the throttle (+1 forward) sets both
     wheels' speed, the steering (+1 right) slows one of them while moving, and the spin
-    (+1 clockwise) turns on the spot when the robot isn't moving.
+    (+1 clockwise) turns on the spot when the robot isn't moving. A full command turns a
+    wheel at command_speed (rad/s); max_speed is the wheels' own.
     """
-    turning = steering * MANUAL_SPEED
-    forward = throttle * MANUAL_SPEED
-    spinning = spin * MANUAL_SPEED
+    turning = steering * command_speed
+    forward = throttle * command_speed
+    spinning = spin * command_speed
     if (turning, forward) != (0, 0):
         wheel_1 = wheel_2 = forward
         ratio = abs(turning / max_speed)

@@ -25,16 +25,19 @@ def test_records_planned_movements(
     (recording,) = (tmp_path / "recordings").iterdir()
     lines = recording.read_text().splitlines()
     assert lines[0] == "# wheels.radius = 0.05"
-    assert "# control.tracking.b = 0.1" in lines
-    assert lines[10].startswith("time,elapsed,x,y,theta")  # simubot: no drive gains
-    assert len(lines) > 11 + 30
+    assert "# control.tracking.lookahead = 0.1" in lines
+    assert "# control.regulation.gains.angle = 3.0" in lines  # a default, recorded too
+    assert lines[13].startswith("time,elapsed,x,y,theta")  # simubot: no drive gains
+    assert len(lines) > 14 + 30
 
 
 @pytest.mark.parametrize(
     ("change", "message"),
     [
         (
-            lambda p: dataclasses.replace(p, trajectory_planner="spline"),
+            lambda p: dataclasses.replace(
+                p, planning=dataclasses.replace(p.planning, planner="spline")
+            ),
             "unsupported trajectory planner: spline",
         ),
         (lambda p: dataclasses.replace(p, drive_type="lego"), "unsupported drive: lego"),
@@ -101,12 +104,14 @@ def test_gives_up_on_a_robot_that_never_arrives(
     profile = load_profile("kevin")
     robot = build_robot(profile, DEFAULT_MAP, None, clock)  # its wheels never turn
     robot.goto(1, 0, 1)
-    run(robot, 1 + profile.control.arrival_timeout + 0.5)
+    run(robot, 1 + profile.control.regulation.timeout + 0.5)
     assert "stopping 1.000 m short of (1.00, 0.00)" in caplog.text
 
 
 def test_cubic_robot(simubot_profile: Profile, clock: FakeClock, run: Run) -> None:
-    cubic = dataclasses.replace(simubot_profile, trajectory_planner="cubic")
+    cubic = dataclasses.replace(
+        simubot_profile, planning=dataclasses.replace(simubot_profile.planning, planner="cubic")
+    )
     robot = build_robot(cubic, DEFAULT_MAP, None, clock)
     robot.follow([(1.0, 0.0), (1.0, 1.0)], 3)
     run(robot, 8)

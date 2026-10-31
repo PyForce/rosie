@@ -46,7 +46,7 @@ def metadata(request: Request, robot: RobotDependency) -> RobotInfo:
         name=profile.name,
         thumbnail=request.app.url_path_for("thumbnail"),
         vector=request.app.url_path_for("vector"),
-        video=profile.video or False,
+        video=profile.camera.stream if profile.camera else False,
         size=(profile.body.length, profile.body.width, profile.body.height),
         profile=profile.folder_name,
     )

@@ -41,8 +41,8 @@ start, and `POST /map/{name}` switches it while running.
 
 The robot isn't a point. Instead of checking its whole body against every obstacle, rosie shrinks the problem:
 the floor's outline moves inwards and every obstacle grows outwards by a *clearance*, and then the robot can
-be treated as a point in what's left, the **free space**. The clearance is a fifth of the robot's longest
-side (body length or width in its profile). The offsets use shapely's `offset_curve` with mitred corners, so
+be treated as a point in what's left, the **free space**. The clearance is `[planning] clearance` (a fifth
+by default) of the robot's longest side (body length or width in its profile). The offsets use shapely's `offset_curve` with mitred corners, so
 the grown shapes keep their corners.
 
 ## The visibility graph

@@ -10,7 +10,20 @@ from pathlib import Path
 from typing import Any
 
 from rosie.errors import SetupError
-from rosie.models import Body, ControlSettings, PIDGains, Profile, TrackingGains, Wheels
+from rosie.models import (
+    Body,
+    CameraSettings,
+    ControlSettings,
+    PIDGains,
+    PlanningSettings,
+    Profile,
+    RegulationGains,
+    RegulationSettings,
+    TeleoperationSettings,
+    TrackingGains,
+    TrackingSettings,
+    Wheels,
+)
 
 BUILTIN_PROFILES = Path(__file__).parent / "builtin" / "profiles"
 
@@ -36,26 +49,35 @@ def _parse(path: Path) -> Profile:
         )
     try:
         drive: dict[str, Any] = dict(data["drive"])
-        gains = drive.pop("gains", None)
+        drive_gains = drive.pop("gains", None)
+        camera = data.get("camera")
         control = data["control"]
+        tracking = control["tracking"]
+        regulation = control["regulation"]
         return Profile(
             folder_name=path.parent.resolve().name,
             directory=path.parent,
             name=data["name"],
-            trajectory_planner=data["trajectory_planner"],
-            video=data.get("video"),
             body=Body(**data["body"]),
             wheels=Wheels(**data["wheels"]),
             drive_type=drive.pop("type"),
             drive_settings=drive,
-            drive_gains=None if gains is None else PIDGains(**gains),
+            drive_gains=None if drive_gains is None else PIDGains(**drive_gains),
+            camera=None if camera is None else CameraSettings(**camera),
+            sensors=data.get("sensors", {}),
+            planning=PlanningSettings(**data["planning"]),
             control=ControlSettings(
                 sample_time=control["sample_time"],
-                arrival_tolerance=control["arrival_tolerance"],
-                arrival_timeout=control["arrival_timeout"],
-                tracking=TrackingGains(**control["tracking"]),
+                tracking=TrackingSettings(
+                    lookahead=tracking["lookahead"], gains=TrackingGains(**tracking["gains"])
+                ),
+                regulation=RegulationSettings(
+                    tolerance=regulation["tolerance"],
+                    timeout=regulation["timeout"],
+                    gains=RegulationGains(**regulation.get("gains", {})),
+                ),
+                teleoperation=TeleoperationSettings(**control.get("teleoperation", {})),
             ),
-            sensors=data.get("sensors", {}),
         )
     except (KeyError, TypeError) as error:
         raise SetupError(f"{path}: missing or unknown setting ({error})") from error

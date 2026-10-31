@@ -15,11 +15,11 @@ class VirtualDrive:
     encoders count what they turned between two readings.
     """
 
-    def __init__(self, encoder_steps: float, max_speed: float, clock: Clock) -> None:
+    def __init__(self, encoder_resolution: float, max_speed: float, clock: Clock) -> None:
         self.current_speed_1 = 0.0
         self.current_speed_2 = 0.0
         self.max_speed = max_speed
-        self.encoder_steps = encoder_steps
+        self.encoder_resolution = encoder_resolution
         self.clock = clock
         # (speed 1, speed 2, since when) for every speed change since the last reading
         self.history: list[tuple[float, float, float]] = []
@@ -59,11 +59,11 @@ class VirtualDrive:
             delta_angle_1 += speed_1 * (end - start)
             delta_angle_2 += speed_2 * (end - start)
         return (
-            delta_angle_1 / 2.0 / math.pi * self.encoder_steps,
-            delta_angle_2 / 2.0 / math.pi * self.encoder_steps,
+            delta_angle_1 / 2.0 / math.pi * self.encoder_resolution,
+            delta_angle_2 / 2.0 / math.pi * self.encoder_resolution,
         )
 
 
 def open_drive(profile: Profile, clock: Clock) -> VirtualDrive:
     read_table(VirtualDriveSettings, profile.drive_settings, f"[drive] of {profile.folder_name}")
-    return VirtualDrive(profile.wheels.encoder_steps, profile.wheels.max_speed, clock)
+    return VirtualDrive(profile.wheels.encoder_resolution, profile.wheels.max_speed, clock)

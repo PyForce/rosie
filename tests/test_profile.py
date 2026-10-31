@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from rosie.models import CameraSettings, PlanningSettings, RegulationGains, TeleoperationSettings
 from rosie.profile import BUILTIN_PROFILES, load_profile
 
 
@@ -59,4 +60,29 @@ def test_incomplete_profile(tmp_path: Path) -> None:
 def test_a_profile_from_rosie_1(tmp_path: Path) -> None:
     (tmp_path / "profile.toml").write_text('name = "OLD"\nboard = "virtual"\n')
     with pytest.raises(ValueError, match=r"needs a \[drive\] table"):
+        load_profile(str(tmp_path))
+
+
+def test_optional_settings_have_defaults() -> None:
+    profile = load_profile("simubot")
+    assert profile.planning == PlanningSettings(planner="linear", clearance=0.2)
+    assert profile.control.regulation.gains == RegulationGains(distance=1.0, angle=3.0)
+    assert profile.control.teleoperation == TeleoperationSettings(max_speed=8.0)
+    assert profile.camera is None
+    assert load_profile("ltl").camera == CameraSettings(stream=":8080/stream/video.mjpeg")
+
+
+def test_your_robot_sets_them(tmp_path: Path) -> None:
+    extra = (
+        "\n[control.teleoperation]\nmax_speed = 5.0\n\n[control.regulation.gains]\nangle = 2.0\n"
+    )
+    profile = load_profile(str(copy_of_simubot(tmp_path / "slowbot", extra)))
+    assert profile.control.teleoperation.max_speed == 5.0
+    assert profile.control.regulation.gains == RegulationGains(distance=1.0, angle=2.0)
+
+
+def test_an_unknown_planning_setting(tmp_path: Path) -> None:
+    text = (BUILTIN_PROFILES / "simubot" / "profile.toml").read_text()
+    (tmp_path / "profile.toml").write_text(text.replace("[planning]\n", "[planning]\nspeed = 1\n"))
+    with pytest.raises(ValueError, match="missing or unknown setting"):
         load_profile(str(tmp_path))

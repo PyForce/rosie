@@ -81,7 +81,7 @@ $$
 \theta_d = \operatorname{atan2}(\dot y, \dot x) \qquad \dot\theta_d = \frac{\ddot y \dot x - \ddot x \dot y}{\dot x^2 + \dot y^2}
 $$
 
-Pick one in the [profile](robots.md#profiles): `trajectory_planner = "linear"` or `"cubic"`.
+Pick one in the [profile](robots.md#profiles): `[planning] planner = "linear"` or `"cubic"`.
 
 ## Getting there: trajectory tracking
 
@@ -110,8 +110,8 @@ v = u_1\cos\theta + u_2\sin\theta \qquad \omega = \frac{-u_1\sin\theta + u_2\cos
 $$
 
 then turn $(v, \omega)$ into wheel speeds. The error of $B$ then shrinks exponentially, at rates $k_1$
-and $k_2$. This is *input-output linearization*. Its gains are in the profile's `[control.tracking]`:
-`b`, `k1`, `k2`.
+and $k_2$. This is *input-output linearization*. In the profile, $b$ is `[control.tracking] lookahead`, and
+$k_1$ and $k_2$ are `[control.tracking.gains]`: `k1`, `k2`.
 
 ## Arriving: the go-to-point controller
 
@@ -125,9 +125,10 @@ $$
 v = K_\rho\,\rho\cos\alpha \qquad \omega = K_\alpha\,\alpha
 $$
 
-($K_\rho = 1$, $K_\alpha = 3$). If the target is behind, the robot backs up instead of turning around.
-The movement ends when the robot is within `arrival_tolerance` of the target, or `arrival_timeout` seconds
-after the planned time, with a warning in the log.
+($K_\rho$ and $K_\alpha$ are `[control.regulation.gains]`: `distance` and `angle`, 1 and 3 by default). If
+the target is behind, the robot backs up instead of turning around. The movement ends when the robot is within
+`[control.regulation] tolerance` of the target, or `timeout` seconds after the planned time, with a warning in
+the log.
 
 ## Turning the wheels: speed control
 
@@ -151,7 +152,8 @@ $$
 `control/teleoperation.py` · `steer`
 
 Under manual control, the keyboard or the joystick (in WebRosie, or the Python client) gives three commands,
-each in $[-1, 1]$: the steering, the throttle and the spin. Throttle turns both wheels at up to 8 rad/s;
+each in $[-1, 1]$: the steering, the throttle and the spin. Throttle turns both wheels at up to
+`[control.teleoperation] max_speed` (8 rad/s by default);
 steering slows the inner wheel, but only while moving, like a car; spin turns the wheels in opposite
 directions, turning on the spot. No odometry is
 needed to drive, but it keeps running, so the map still shows where the robot is.

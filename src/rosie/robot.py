@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock: Clock) -> Robot:
     sensors = open_sensors(profile)
-    if profile.trajectory_planner not in TRAJECTORY_PLANNERS:
+    if profile.planning.planner not in TRAJECTORY_PLANNERS:
         known = ", ".join(TRAJECTORY_PLANNERS)
         raise SetupError(
-            f"unsupported trajectory planner: {profile.trajectory_planner} (known: {known})"
+            f"unsupported trajectory planner: {profile.planning.planner} (known: {known})"
         )
     drive = open_drive(profile, clock)
     # the robot's own maps first: they win a name over rosie's
@@ -44,7 +44,7 @@ def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock:
     return Robot(
         profile,
         drive,
-        TRAJECTORY_PLANNERS[profile.trajectory_planner],
+        TRAJECTORY_PLANNERS[profile.planning.planner],
         partial(track_by_io_linearization, profile.control.tracking, profile.wheels),
         planner,
         sensors,

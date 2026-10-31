@@ -9,8 +9,6 @@ the folder (`rosie start --robot-profile ./my-robot`). To change a built-in robo
 
 ```toml
 name = "SIMUBOT"
-trajectory_planner = "linear"  # linear or cubic
-# video = ":8085/stream.mjpeg"  # a camera stream served by another program, ":port/path" on this host
 
 [body]  # m
 length = 0.2  # front to back
@@ -19,32 +17,56 @@ height = 0
 
 [wheels]
 radius = 0.05  # m
-distance = 0.2995  # m between the wheels
-encoder_steps = 360  # per wheel turn
+separation = 0.2995  # m between the wheels
+encoder_resolution = 360  # encoder steps per wheel turn
 max_speed = 20.0  # rad/s
 
 [drive]
 type = "virtual"  # simulated
 
+# [camera]  # optional
+# stream = ":8085/stream.mjpeg"  # served by another program, ":port/path" on this host
+
+[planning]
+planner = "linear"  # linear or cubic
+# clearance = 0.2  # optional: of the body's largest side, kept from walls and furniture
+
 [control]
 sample_time = 0.05  # s between control steps
-arrival_tolerance = 0.01  # m: a planned movement ends this close to its last point
-arrival_timeout = 5.0  # s it may take, after the planned time, to get that close
 
 [control.tracking]  # input-output linearization
-b = 0.1  # m, the tracked point ahead of the wheel axis
+lookahead = 0.1  # m: the tracked point ahead of the wheel axis
+
+[control.tracking.gains]
 k1 = 1.0
 k2 = 1.0
+
+[control.regulation]  # the go-to-point controller, once the trajectory is over
+tolerance = 0.01  # m: the movement ends this close to its last point
+timeout = 5.0  # s it may take, after the planned time, to get that close
+
+# [control.regulation.gains]  # optional, 1/s
+# distance = 1.0
+# angle = 3.0
+
+# [control.teleoperation]  # optional
+# max_speed = 8.0  # rad/s of a wheel for a full command
 ```
 
-What each setting does: [Motion control](motion-control.md). The body's size also sets the planner's
+What each setting does: [Motion control](motion-control.md). Each part has its table, and its gains, if it
+has any, in a `gains` table under it: `[drive.gains]`, `[control.tracking.gains]`, `[control.regulation.gains]`.
+The tables marked optional take the defaults shown. The body's size and `clearance` set the planner's
 [clearance](navigation.md#free-space). `[drive]` says what turns the wheels, with its settings and, for a
 drive with a PID, its `[drive.gains]`: see [Drives](#drives). A sensor the robot has is a `[sensors.<name>]` table, such as the
 [ultrasound board](integration.md#the-ultrasound-board).
 
 A profile from rosie 1 (with `board = "..."` and `interpolation = "..."` at the top) needs a `[drive]` table
-(`type = "..."` and the drive's settings), `trajectory_planner` instead of `interpolation`, and its `[control.speed]`
-gains as `[drive.gains]`, without `max_power` (an MD25's `[drive]` setting); rosie says so when it reads one.
+(`type = "..."` and the drive's settings), and `[planning] planner` instead of `interpolation`. Its
+`[control.speed]` gains become `[drive.gains]`, without `max_power` (an MD25's `[drive]` setting);
+`[wheels]` says `separation` and `encoder_resolution` (were `distance` and `encoder_steps`); `video` becomes
+`[camera] stream`; `[control.tracking]` keeps `b` as `lookahead`, with `k1` and `k2` in its `gains`; and
+`arrival_tolerance` and `arrival_timeout` become `[control.regulation]`'s `tolerance` and `timeout`. When
+rosie reads one, it names the first setting it misses.
 
 ## Built-in robots
 

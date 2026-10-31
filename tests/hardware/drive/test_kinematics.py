@@ -3,7 +3,7 @@ import pytest
 from rosie.hardware.drive.kinematics import compute_wheel_speeds
 from rosie.models import Wheels
 
-WHEELS = Wheels(radius=0.05, distance=0.3, encoder_steps=360, max_speed=10.0)
+WHEELS = Wheels(radius=0.05, separation=0.3, encoder_resolution=360, max_speed=10.0)
 
 
 @pytest.mark.parametrize(

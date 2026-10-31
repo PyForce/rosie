@@ -39,7 +39,7 @@ class MovementRecorder:
     def __init__(
         self, wheels: Wheels, control: ControlSettings, gains: PIDGains | None, directory: Path
     ) -> None:
-        # as the profile names them: wheels.radius, control.tracking.b...
+        # as the profile names them: wheels.radius, control.tracking.lookahead...
         tables: dict[str, object] = {"wheels": asdict(wheels), "control": asdict(control)}
         if gains:
             tables["drive"] = {"gains": asdict(gains)}

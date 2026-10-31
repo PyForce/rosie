@@ -62,8 +62,9 @@ class Robot:
         now = self.clock()
         elapsed_time = now - self.last_step
         self.last_step = now
+        control = self.profile.control
         match movement:
-            case PlannedMovement() if is_over(movement, self.pose, now, self.profile.control):
+            case PlannedMovement() if is_over(movement, self.pose, now, control.regulation):
                 self.stop()
                 return
             case ManualMovement():
@@ -80,11 +81,25 @@ class Robot:
         match movement:
             case PlannedMovement():
                 self.movement, wheel_speeds, telemetry = planned_step(
-                    movement, self.pose, speeds, reading, elapsed_time, now, wheels, self.track
+                    movement,
+                    self.pose,
+                    speeds,
+                    reading,
+                    elapsed_time,
+                    now,
+                    wheels,
+                    control.regulation,
+                    self.track,
                 )
             case ManualMovement():
                 wheel_speeds, telemetry = manual_step(
-                    movement, self.pose, speeds, reading, elapsed_time, wheels
+                    movement,
+                    self.pose,
+                    speeds,
+                    reading,
+                    elapsed_time,
+                    wheels,
+                    control.teleoperation,
                 )
         self.drive.set_speeds(*wheel_speeds, *speeds)
         for observer in self.observers:
@@ -111,7 +126,8 @@ class Robot:
         """Drive to (x, y) around walls and furniture, t seconds per straight stretch."""
         self._check_duration(t)
         x0, y0, _ = self.position()
-        clearance = 0.2 * max(self.profile.body.width, self.profile.body.length)
+        body = self.profile.body
+        clearance = self.profile.planning.clearance * max(body.width, body.length)
         _start, *corners = self.planner.route((x0, y0), (x, y), clearance)
         self.follow(corners, t)
 

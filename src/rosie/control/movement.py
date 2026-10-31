@@ -14,7 +14,7 @@ from rosie.control.models import ManualMovement, PlannedMovement, Telemetry, Tra
 from rosie.control.regulation import go_to_point
 from rosie.control.teleoperation import steer
 from rosie.hardware.drive.models import DriveReading
-from rosie.models import STILL, ControlSettings, Pose, Wheels
+from rosie.models import STILL, Pose, RegulationSettings, TeleoperationSettings, Wheels
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +22,23 @@ logger = logging.getLogger(__name__)
 MIN_MANUAL_ELAPSED_TIME = 0.00001
 
 
-def is_over(movement: PlannedMovement, pose: Pose, now: float, control: ControlSettings) -> bool:
+def is_over(
+    movement: PlannedMovement, pose: Pose, now: float, regulation: RegulationSettings
+) -> bool:
     """A planned movement ends when its trajectory is done and the robot is there, or too late."""
     if not movement.trajectory_done:
         return False
     target = movement.points[-1].pose
-    if math.hypot(pose.x - target.x, pose.y - target.y) <= control.arrival_tolerance:
+    if math.hypot(pose.x - target.x, pose.y - target.y) <= regulation.tolerance:
         return True
-    if now - movement.finished_at <= control.arrival_timeout:
+    if now - movement.finished_at <= regulation.timeout:
         return False
     logger.warning(
         "stopping %.3f m short of (%.2f, %.2f): not there %.1f s after the planned time",
         math.hypot(pose.x - target.x, pose.y - target.y),
         target.x,
         target.y,
-        control.arrival_timeout,
+        regulation.timeout,
     )
     return True
 
@@ -49,13 +51,14 @@ def planned_step(
     elapsed_time: float,
     now: float,
     wheels: Wheels,
+    regulation: RegulationSettings,
     track: Tracker,
 ) -> tuple[PlannedMovement, WheelSpeeds, Telemetry]:
     """Follow the next point; once they are all followed, drive onto the last one."""
     speed_1, speed_2 = speeds
     if movement.trajectory_done:
         target = movement.points[-1].pose
-        set_point_1, set_point_2 = go_to_point(pose, target, wheels)
+        set_point_1, set_point_2 = go_to_point(pose, target, wheels, regulation.gains)
         telemetry = Telemetry(
             pose=pose,
             reference_pose=target,
@@ -104,11 +107,16 @@ def manual_step(
     reading: DriveReading,
     elapsed_time: float,
     wheels: Wheels,
+    teleoperation: TeleoperationSettings,
 ) -> tuple[WheelSpeeds, Telemetry]:
     """Drive as the commands say."""
     speed_1, speed_2 = speeds
     set_point_1, set_point_2 = steer(
-        movement.steering, movement.throttle, movement.spin, wheels.max_speed
+        movement.steering,
+        movement.throttle,
+        movement.spin,
+        teleoperation.max_speed,
+        wheels.max_speed,
     )
     telemetry = Telemetry(
         pose=pose,

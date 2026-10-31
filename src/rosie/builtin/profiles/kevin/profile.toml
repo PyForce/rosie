@@ -1,5 +1,4 @@
 name = "Kevin"
-trajectory_planner = "linear"  # linear or cubic
 
 [body]  # m
 length = 0.24  # front to back
@@ -8,8 +7,8 @@ height = 0.23
 
 [wheels]
 radius = 0.0325  # m
-distance = 0.154  # m between the wheels
-encoder_steps = 40.0  # per wheel turn
+separation = 0.154  # m between the wheels
+encoder_resolution = 40.0  # encoder steps per wheel turn
 max_speed = 8.0  # rad/s
 
 [drive]
@@ -22,12 +21,19 @@ kc = 3.75
 ki = 1.25
 kd = 1.25
 
+[planning]
+planner = "linear"  # linear or cubic
+
 [control]
 sample_time = 0.05  # s between control steps
-arrival_tolerance = 0.01  # m: a planned movement ends this close to its last point
-arrival_timeout = 5.0  # s it may take, after the planned time, to get that close
 
 [control.tracking]  # input-output linearization
-b = 0.1  # m, the tracked point ahead of the wheel axis
+lookahead = 0.1  # m: the tracked point ahead of the wheel axis
+
+[control.tracking.gains]
 k1 = 1.0
 k2 = 1.0
+
+[control.regulation]  # the go-to-point controller, once the trajectory is over
+tolerance = 0.01  # m: the movement ends this close to its last point
+timeout = 5.0  # s it may take, after the planned time, to get that close

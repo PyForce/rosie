@@ -3,11 +3,11 @@ import pytest
 from rosie.control.models import PlannedMovement, TrackerOutput
 from rosie.control.movement import is_over, planned_step
 from rosie.hardware.drive.models import DriveReading
-from rosie.models import STILL, ControlSettings, Pose, TrackingGains, Velocity, Wheels
+from rosie.models import STILL, Pose, RegulationGains, RegulationSettings, Velocity, Wheels
 from rosie.planning.models import TrajectoryPoint
 
-WHEELS = Wheels(radius=0.05, distance=0.3, encoder_steps=360, max_speed=10.0)
-CONTROL = ControlSettings(0.05, 0.01, 5.0, TrackingGains(0.1, 1.0, 1.0))
+WHEELS = Wheels(radius=0.05, separation=0.3, encoder_resolution=360, max_speed=10.0)
+REGULATION = RegulationSettings(tolerance=0.01, timeout=5.0, gains=RegulationGains())
 READING = DriveReading(steps_1=0.0, steps_2=0.0, battery_voltage=12.0, current_1=0.1, current_2=0.2)
 
 
@@ -22,7 +22,7 @@ def straight_ahead(reference: Pose, velocity: Velocity, pose: Pose) -> TrackerOu
 def test_a_planned_step_follows_the_next_reference() -> None:
     movement = planned(Pose(0.1, 0, 0), Pose(0.2, 0, 0))
     following, set_points, state = planned_step(
-        movement, Pose(0, 0, 0), (0.5, 0.5), READING, 0.05, 1.0, WHEELS, straight_ahead
+        movement, Pose(0, 0, 0), (0.5, 0.5), READING, 0.05, 1.0, WHEELS, REGULATION, straight_ahead
     )
     assert following.next_index == 1
     assert set_points == (1.0, 1.0)
@@ -36,7 +36,15 @@ def test_a_planned_step_follows_the_next_reference() -> None:
 
 def test_the_last_reference_marks_when_the_trajectory_was_done() -> None:
     following, _, _ = planned_step(
-        planned(Pose(0.1, 0, 0)), Pose(0, 0, 0), (0, 0), READING, 0.05, 7.0, WHEELS, straight_ahead
+        planned(Pose(0.1, 0, 0)),
+        Pose(0, 0, 0),
+        (0, 0),
+        READING,
+        0.05,
+        7.0,
+        WHEELS,
+        REGULATION,
+        straight_ahead,
     )
     assert following.trajectory_done
     assert following.finished_at == 7.0
@@ -45,7 +53,7 @@ def test_the_last_reference_marks_when_the_trajectory_was_done() -> None:
 def test_after_the_trajectory_it_drives_onto_the_target() -> None:
     done = PlannedMovement((TrajectoryPoint(Pose(1, 0, 0), STILL),), 1, 0.0)
     _, (left, right), state = planned_step(
-        done, Pose(0, 0, 0), (0, 0), READING, 0.05, 1.0, WHEELS, straight_ahead
+        done, Pose(0, 0, 0), (0, 0), READING, 0.05, 1.0, WHEELS, REGULATION, straight_ahead
     )
     assert left == right > 0  # straight ahead, forward
     assert state.reference_pose == Pose(1, 0, 0)
@@ -61,8 +69,8 @@ def test_after_the_trajectory_it_drives_onto_the_target() -> None:
 )
 def test_is_over(pose: Pose, now: float, over: bool) -> None:
     done = PlannedMovement((TrajectoryPoint(Pose(1, 0, 0), STILL),), 1, 0.0)
-    assert is_over(done, pose, now, CONTROL) is over
+    assert is_over(done, pose, now, REGULATION) is over
 
 
 def test_a_movement_is_not_over_before_its_trajectory_is() -> None:
-    assert not is_over(planned(Pose(1, 0, 0)), Pose(1, 0, 0), 100.0, CONTROL)
+    assert not is_over(planned(Pose(1, 0, 0)), Pose(1, 0, 0), 100.0, REGULATION)
