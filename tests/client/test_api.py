@@ -81,7 +81,7 @@ def test_follow(served: tuple[RosieClient, Robot]) -> None:
 def test_planner(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
     client.teleport(1, 1, 0)
-    with pytest.raises(NoRouteError, match="not found"):
+    with pytest.raises(NoRouteError, match="no route from"):
         client.goto_with_planner(5, 1, 3)
     client.goto_with_planner(1.5, 1.2, 0.5)
     arrive(client, 1.5, 1.2)

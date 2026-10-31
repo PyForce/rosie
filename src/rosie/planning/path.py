@@ -12,5 +12,6 @@ def plan_path(
 ) -> list[tuple[float, float]]:
     """The corners to drive through from `start` to `goal`, both included."""
     with_ends = with_endpoints(graph, np.array(start), np.array(goal))
-    path = astar_path(with_ends.vertices, with_ends.adjacency, np.array(start), np.array(goal))
-    return [(float(x), float(y)) for x, y in path]
+    goal_index = len(with_ends.vertices) - 1
+    path = astar_path(with_ends.vertices, with_ends.neighbors, goal_index - 1, goal_index)
+    return [(float(x), float(y)) for x, y in with_ends.vertices[path]]

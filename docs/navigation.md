@@ -42,17 +42,21 @@ start, and `POST /map/{name}` switches it while running.
 The robot isn't a point. Instead of checking its whole body against every obstacle, rosie shrinks the problem:
 the floor's outline moves inwards and every obstacle grows outwards by a *clearance*, and then the robot can
 be treated as a point in what's left, the **free space**. The clearance is `[planning] clearance` (a fifth
-by default) of the robot's longest side (body length or width in its profile). The offsets use shapely's `offset_curve` with mitred corners, so
-the grown shapes keep their corners.
+by default) of the robot's longest side (body length or width in its profile). In shapely, that's two
+`buffer`s with mitred corners (so the shapes keep their corners): the floor buffered by minus the clearance,
+minus the union of the obstacles buffered by it. Obstacles closer than twice the clearance merge, and a door
+narrower than that closes: the free space can even split in pieces.
 
 ## The visibility graph
 
 The shortest way around polygonal obstacles always bends at their corners. So the graph's vertices are the
-corners of the free space and of the grown obstacles, and two vertices are linked when the straight line
-between them stays in the free space: running along an obstacle's side is allowed, crossing it isn't.
+corners of the free space (its outline and its holes, the grown obstacles), and two vertices are linked when
+the straight line between them stays in the free space: running along an obstacle's side is allowed,
+crossing it isn't. Each vertex keeps the list of the vertices it sees.
 
-For each route, the robot's position and the target are added as two more vertices, linked to every corner
-they can see. The graph itself is built once per map (and clearance) and reused.
+For each route, the robot's position and the target are added as two more vertices, linked to every vertex
+they can see, each other included: a target in plain sight is a straight line. The graph itself is built
+once per map and reused.
 
 ## A*
 
@@ -75,7 +79,7 @@ rounds its corners, so it can cut a little into the clearance.
 ## Try it
 
 - Draw a map of your classroom and drive the simulated robot across it.
-- Print the graph: `visibility_graph(load_world(path), 0.1)` gives the vertices and the adjacency matrix; plot
-  them with matplotlib on top of the map.
+- Print the graph: `visibility_graph(load_world(path), 0.1)` gives the free space, the vertices and what each
+  vertex sees; plot them with matplotlib on top of the map.
 - Change the clearance and watch routes appear and disappear through narrow doors.
 - Replace A* with Dijkstra (A* with a zero heuristic) and count how many vertices each one explores.

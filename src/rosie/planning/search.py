@@ -1,76 +1,47 @@
-from heapq import heappop, heappush
-from itertools import count
+"""A* on a graph whose vertices are points: the cost of an edge is its length."""
 
-import numpy as np
+import math
+from heapq import heappop, heappush
 
 from rosie.errors import NoRouteError
 from rosie.world.models import Points
 
 
 def astar_path(
-    vertices: Points, adjacency: np.ndarray, source: Points, target: Points
-) -> list[Points]:
-    """Shortest path between two of the vertices (A*, after NetworkX's)."""
-    source_index = _index_of(vertices, source)
-    tie_breaker = count()
-    queue = [(0.0, next(tie_breaker), source_index, 0.0, -1)]
-    enqueued: dict[int, tuple[float, float]] = {}
-    explored: dict[int, int] = {}
-
-    while queue:
-        _, _, u, path_dist, parent = heappop(queue)
-        vertex = vertices[u]
-        if all(vertex == target):
-            return _path(vertices, explored, u, parent)
-
-        if u in explored:
+    vertices: Points, neighbors: tuple[tuple[int, ...], ...], source: int, target: int
+) -> list[int]:
+    """The shortest path from `source` to `target`, as vertex indices, both included."""
+    goal = vertices[target]
+    cost = {source: 0.0}
+    came_from: dict[int, int] = {}
+    frontier = [(_distance(vertices[source], goal), source)]
+    done: set[int] = set()
+    while frontier:
+        _, vertex = heappop(frontier)
+        if vertex == target:
+            return _walk_back(came_from, source, target)
+        if vertex in done:
             continue
-
-        explored[u] = parent
-
-        for v in _neighbors(adjacency, u):
-            neighbor = vertices[v]
-            if v in explored:
-                continue
-            ncost = path_dist + _distance(vertex, neighbor)
-            if v in enqueued:
-                qcost, h = enqueued[v]
-                if qcost <= ncost:
-                    continue
-            else:
-                h = _distance(neighbor, target)
-            enqueued[v] = ncost, h
-            heappush(queue, (ncost + h, next(tie_breaker), v, ncost, u))
-
-    raise NoRouteError(f"no route from {_point(source)} to {_point(target)}: target not found")
+        done.add(vertex)
+        for neighbor in neighbors[vertex]:
+            new_cost = cost[vertex] + _distance(vertices[vertex], vertices[neighbor])
+            if new_cost < cost.get(neighbor, math.inf):
+                cost[neighbor] = new_cost
+                came_from[neighbor] = vertex
+                heappush(frontier, (new_cost + _distance(vertices[neighbor], goal), neighbor))
+    raise NoRouteError(f"no route from {_point(vertices[source])} to {_point(goal)}")
 
 
-def _index_of(vertices: Points, source: Points) -> int:
-    for index, vertex in enumerate(vertices):
-        if all(source == vertex):
-            return index
-    raise NoRouteError(f"the start {_point(source)} is not in the graph")
-
-
-def _path(vertices: Points, explored: dict[int, int], end: int, parent: int) -> list[Points]:
-    path = [vertices[end]]
-    node = parent
-    while node != -1:
-        path.append(vertices[node])
-        node = explored[node]
-    path.reverse()
-    return path
-
-
-def _neighbors(adjacency: np.ndarray, u: int) -> list[int]:
-    return [v for v in range(len(adjacency)) if adjacency[u, v]]
+def _walk_back(came_from: dict[int, int], source: int, target: int) -> list[int]:
+    path = [target]
+    while path[-1] != source:
+        path.append(came_from[path[-1]])
+    return path[::-1]
 
 
 def _distance(a: Points, b: Points) -> float:
-    x, y = a - b
-    return float(np.hypot(x, y))
+    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
 def _point(point: Points) -> str:
-    x, y = point
-    return f"({x:.2f}, {y:.2f})"
+    return f"({point[0]:.2f}, {point[1]:.2f})"

@@ -1,72 +1,64 @@
 """
-Visibility graph: the corners of the free space (the map shrunk by the robot's
-clearance, its obstacles grown by it), linked when the robot can drive
+Visibility graph: the corners of the free space (the floor shrunk by the robot's
+clearance, minus its obstacles grown by it), linked when the robot can drive
 straight from one to the other.
 """
 
-from itertools import chain
+from collections.abc import Iterable
 
 import numpy as np
-from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
+from shapely.geometry import LineString, MultiPolygon, Polygon
+from shapely.ops import unary_union
 
+from rosie.errors import NoRouteError
 from rosie.planning.models import VisibilityGraph
 from rosie.world.models import Points, World
 
 
 def visibility_graph(world: World, clearance: float) -> VisibilityGraph:
-    border = _offset(world.border, clearance, "left", "right")
-    holes = [
-        _offset(obstacle, clearance, "right", "left")
-        for obstacle in world.obstacles
-        if obstacle.size > 0
-    ]
-
-    vertices = border
-    for hole in holes:
-        vertices = np.append(vertices, hole, axis=0)
-
-    free_space = Polygon(border)
-    obstacles = [Polygon(hole) for hole in holes]
-
-    adjacency = np.zeros(shape=(len(vertices), len(vertices)))
-    for i in range(vertices.shape[0]):
-        for j in range(vertices.shape[0]):
-            line = LineString(np.array((vertices[i], vertices[j])))
-            if _is_free(line, free_space, obstacles):
-                adjacency[i, j] = True
-    return VisibilityGraph(vertices, adjacency, free_space, obstacles)
+    floor = Polygon(world.border).buffer(-clearance, join_style="mitre")
+    grown = [Polygon(item).buffer(clearance, join_style="mitre") for item in world.obstacles]
+    free_space = floor.difference(unary_union(grown))
+    if not isinstance(free_space, Polygon | MultiPolygon) or free_space.is_empty:
+        raise NoRouteError(f"no free space on {world.name} with a clearance of {clearance:.2f} m")
+    vertices = _corners(free_space)
+    return VisibilityGraph(
+        free_space, vertices, _neighbors(free_space, vertices, range(len(vertices)))
+    )
 
 
-def with_endpoints(graph: VisibilityGraph, start: Points, end: Points) -> VisibilityGraph:
-    """The graph plus `start` and `end` as its last two vertices."""
-    vertices = np.append(graph.vertices, [start, end], axis=0)
-    count = len(vertices) - 2
-    adjacency = np.zeros(shape=(count + 2, count + 2))
-    adjacency[:-2, :-2] = graph.adjacency
-    for i in range(count):
-        for j in range(count, count + 2):
-            line = LineString(np.array((vertices[i], vertices[j])))
-            if _is_free(line, graph.free_space, graph.obstacles):
-                adjacency[i, j] = adjacency[j, i] = True
-    return VisibilityGraph(vertices, adjacency, graph.free_space, graph.obstacles)
+def with_endpoints(graph: VisibilityGraph, start: Points, goal: Points) -> VisibilityGraph:
+    """The graph plus `start` and `goal` as its last two vertices, linked to what they see."""
+    vertices = np.append(graph.vertices, [start, goal], axis=0)
+    new = (len(vertices) - 2, len(vertices) - 1)
+    seen_from_new = dict(zip(new, _neighbors(graph.free_space, vertices, new), strict=True))
+    old = tuple(
+        (*seen, *(index for index in new if i in seen_from_new[index]))
+        for i, seen in enumerate(graph.neighbors)
+    )
+    return VisibilityGraph(graph.free_space, vertices, (*old, *seen_from_new.values()))
 
 
-def _offset(outline: Points, clearance: float, side_if_ccw: str, side_if_cw: str) -> Points:
-    closed = np.append(outline, [outline[0], outline[1]], axis=0)
-    side = side_if_ccw if LinearRing(outline).is_ccw else side_if_cw
-    # offset_curve goes left for positive distances, right for negative ones
-    distance = clearance if side == "left" else -clearance
-    offset = LineString(closed).offset_curve(distance, join_style=JOIN_STYLE.mitre)
-    if offset.geom_type == "MultiLineString":
-        first, second, *_ = offset.geoms
-        return np.array(list(chain(first.coords, second.coords)))
-    return np.array(list(offset.coords))
+def _neighbors(
+    free_space: Polygon | MultiPolygon, vertices: Points, of: Iterable[int]
+) -> tuple[tuple[int, ...], ...]:
+    """For each vertex in `of`, the vertices it sees."""
+    return tuple(
+        tuple(
+            j
+            for j in range(len(vertices))
+            if j != i and _sees(free_space, vertices[i], vertices[j])
+        )
+        for i in of
+    )
 
 
-def _is_free(line: LineString, free_space: Polygon, obstacles: list[Polygon]) -> bool:
-    for obstacle in obstacles:
-        if obstacle.touches(line):
-            continue
-        if obstacle.intersects(line):
-            return False
-    return bool(free_space.contains(line))
+def _corners(free_space: Polygon | MultiPolygon) -> Points:
+    polygons = free_space.geoms if isinstance(free_space, MultiPolygon) else [free_space]
+    rings = [ring for polygon in polygons for ring in (polygon.exterior, *polygon.interiors)]
+    # each ring repeats its first point at the end
+    return np.array([point for ring in rings for point in ring.coords[:-1]])
+
+
+def _sees(free_space: Polygon | MultiPolygon, a: Points, b: Points) -> bool:
+    return bool(free_space.covers(LineString([a, b])))

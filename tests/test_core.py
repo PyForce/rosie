@@ -78,7 +78,7 @@ def test_planner_crosses_rooms(robot: Robot, run: Run) -> None:
 
 def test_planner_refuses_unreachable_targets(robot: Robot) -> None:
     robot.teleport(1, 1, 0)
-    with pytest.raises(NoRouteError, match="not found"):
+    with pytest.raises(NoRouteError, match="no route from"):
         robot.goto_with_planner(5, 1, 3)
 
 

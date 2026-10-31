@@ -1,8 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import MultiPolygon, Polygon
 
 from rosie.models import Pose, Velocity
 from rosie.world.models import Points
@@ -28,7 +27,10 @@ class TrajectoryRequest:
 
 @dataclass(frozen=True, slots=True)
 class VisibilityGraph:
-    vertices: Points
-    adjacency: np.ndarray  # n x n, non-zero where two vertices see each other
-    free_space: Polygon
-    obstacles: list[Polygon]
+    """The corners of the free space, and which of them see each other."""
+
+    free_space: (
+        Polygon | MultiPolygon
+    )  # the floor shrunk by the clearance, minus the grown obstacles
+    vertices: Points  # n x 2
+    neighbors: tuple[tuple[int, ...], ...]  # for each vertex, the vertices it sees

@@ -65,7 +65,7 @@ def test_goto_without_a_route(client: TestClient, robot: Robot) -> None:
     robot.teleport(1, 1, 0)
     response = client.post("/goto", content='{"target": [5, 1, 3], "planner": true}')
     assert response.status_code == 409
-    assert "not found" in response.json()["error"]
+    assert "no route from" in response.json()["error"]
 
 
 @pytest.mark.parametrize(
