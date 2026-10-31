@@ -91,7 +91,8 @@ src/rosie/
 ├── errors.py
 ├── hardware/             what the robot is made of
 │   ├── drive/            the motors, their encoders, the wheel-speed loop
-│   │   ├── virtual.py, arduino.py, md25.py
+│   │   ├── devices/      virtual.py, arduino.py, md25.py: one module per drive
+│   │   ├── kinematics.py the differential-drive model
 │   │   ├── pid.py        speed control, for drives that only take powers (MD25)
 │   │   └── models.py     Drive, its settings
 │   ├── sensors/          the ultrasound board, and its settings (models.py)

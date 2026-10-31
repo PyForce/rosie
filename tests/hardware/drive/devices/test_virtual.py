@@ -3,7 +3,7 @@ import math
 import pytest
 
 from conftest import FakeClock
-from rosie.hardware.drive.virtual import VirtualDrive
+from rosie.hardware.drive.devices.virtual import VirtualDrive
 
 
 def test_counts_what_the_wheels_turned(clock: FakeClock) -> None:

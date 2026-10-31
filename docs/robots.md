@@ -58,7 +58,7 @@ gains as `[drive.gains]`, without `max_power` (an MD25's `[drive]` setting); ros
 
 ## Drives
 
-`hardware/drive/`
+`hardware/drive/devices/`
 
 A drive turns the two wheels at the speeds rosie asks, and reports what their encoders counted.
 
@@ -119,7 +119,7 @@ docker run -p 8080:8080 --device /dev/i2c-1 --group-add $(getent group i2c | cut
 
 ## Your own drive
 
-A drive is a module in `hardware/drive/` with a class that has the four methods of `Drive`
+A drive is a module in `hardware/drive/devices/` with a class that has the four methods of `Drive`
 (`hardware/drive/models.py`):
 
 - `read_encoders()`: the encoder steps of both wheels since the last reading, the battery voltage and the
@@ -133,4 +133,4 @@ It talks to its hardware through what it's given (a serial port, an I2C bus), so
 fake. The module also has an `open_drive(profile, clock)`, which reads the `[drive]` settings (a dataclass in
 `hardware/drive/models.py`), and `profile.gains` if it runs a PID, and opens the hardware. Add it to `DRIVES`
 in `hardware/drive/__init__.py`, under the name your profiles use as the `[drive]`'s `type`. The Arduino and
-MD25 drives, and their tests in `tests/hardware/drive/`, are the examples to follow.
+MD25 drives, and their tests in `tests/hardware/drive/devices/`, are the examples to follow.

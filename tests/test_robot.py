@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-import rosie.hardware.drive.arduino
-import rosie.hardware.drive.md25
+import rosie.hardware.drive.devices.arduino
+import rosie.hardware.drive.devices.md25
 from conftest import FakeClock, FakeI2C, FakeSerial, distance
 from rosie.core import Robot
 from rosie.models import PIDGains, Profile
@@ -63,8 +63,10 @@ class StuckArduino(FakeSerial):
 @pytest.fixture
 def fake_drives(monkeypatch: pytest.MonkeyPatch) -> tuple[FakeSerial, FakeI2C]:
     serial, bus = StuckArduino(), FakeI2C()
-    monkeypatch.setattr(rosie.hardware.drive.arduino, "open_serial", lambda port, baudrate: serial)
-    monkeypatch.setattr(rosie.hardware.drive.md25, "open_i2c", lambda number: bus)
+    monkeypatch.setattr(
+        rosie.hardware.drive.devices.arduino, "open_serial", lambda port, baudrate: serial
+    )
+    monkeypatch.setattr(rosie.hardware.drive.devices.md25, "open_i2c", lambda number: bus)
     return serial, bus
 
 
@@ -117,7 +119,7 @@ def test_the_drive_settings_come_from_the_profile(
         opened.append((port, baudrate))
         return StuckArduino()
 
-    monkeypatch.setattr(rosie.hardware.drive.arduino, "open_serial", open_serial)
+    monkeypatch.setattr(rosie.hardware.drive.devices.arduino, "open_serial", open_serial)
     arduino = dataclasses.replace(
         simubot_profile,
         drive="arduino",

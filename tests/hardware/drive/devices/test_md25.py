@@ -1,7 +1,7 @@
 import pytest
 
 from conftest import FakeI2C
-from rosie.hardware.drive.md25 import MD25Drive
+from rosie.hardware.drive.devices.md25 import MD25Drive
 from rosie.models import PIDGains
 
 ADDRESS = 0x58

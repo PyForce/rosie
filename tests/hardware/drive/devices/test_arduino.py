@@ -3,7 +3,7 @@ import struct
 import pytest
 
 from conftest import FakeSerial
-from rosie.hardware.drive.arduino import ArduinoDrive
+from rosie.hardware.drive.devices.arduino import ArduinoDrive
 
 
 class BrokenSerial(FakeSerial):

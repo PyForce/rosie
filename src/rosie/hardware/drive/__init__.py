@@ -1,7 +1,7 @@
 """The drives rosie knows, one module each, picked by the profile's [drive] type."""
 
 from rosie.errors import SetupError
-from rosie.hardware.drive import arduino, md25, virtual
+from rosie.hardware.drive.devices import arduino, md25, virtual
 from rosie.hardware.drive.models import Drive, DriveFactory
 from rosie.models import Clock, Profile
 
