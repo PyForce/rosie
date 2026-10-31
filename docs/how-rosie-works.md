@@ -84,6 +84,7 @@ src/rosie/
 ├── core.py            Robot: what interfaces can ask of the robot
 ├── robot.py           build_robot: a Robot from its profile (boards, sensors, maps)
 ├── profile.py         reading a profile.toml
+├── buses.py           opening serial ports and I2C buses, for boards and sensors
 ├── errors.py
 ├── motion/
 │   ├── models.py      Pose, Velocity, Wheels, Control, RobotState
@@ -94,7 +95,7 @@ src/rosie/
 │   ├── motors.py      motor handlers and the speed PID
 │   ├── supervisors.py
 │   ├── recording.py   the CSV recorder
-│   └── drivers/       simulated, Arduino, MD25 boards; serial and I2C
+│   └── drivers/       simulated, Arduino, MD25 boards, and their settings (models.py)
 ├── planning/          maps, visibility graph, A*, route planner
 ├── apis/web/          the REST + WebSocket API (FastAPI)
 ├── sensors/          the ultrasound board, and its settings (models.py)

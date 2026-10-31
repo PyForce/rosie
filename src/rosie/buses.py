@@ -7,7 +7,7 @@ import importlib
 from types import ModuleType
 
 from rosie.errors import HardwareUnavailableError
-from rosie.motion.drivers.models import I2CBus, SerialPort
+from rosie.models import I2CBus, SerialPort
 
 
 def open_serial(port: str, baudrate: int) -> SerialPort:

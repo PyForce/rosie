@@ -3,8 +3,8 @@ import types
 
 import pytest
 
+from rosie.buses import open_i2c, open_serial
 from rosie.errors import HardwareUnavailableError
-from rosie.motion.drivers.buses import open_i2c, open_serial
 
 
 def fake_library(

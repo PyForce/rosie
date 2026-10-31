@@ -12,9 +12,9 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from rosie.buses import open_i2c
 from rosie.errors import SetupError
-from rosie.motion.drivers.buses import open_i2c
-from rosie.motion.drivers.models import I2CBus
+from rosie.models import I2CBus
 from rosie.sensors.models import UltrasoundSettings
 
 logger = logging.getLogger(__name__)

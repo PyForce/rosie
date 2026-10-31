@@ -7,12 +7,12 @@ maps and rosie's, and the sensors the profile names.
 import logging
 from pathlib import Path
 
+from rosie.buses import open_i2c, open_serial
 from rosie.core import Robot
 from rosie.errors import SetupError
 from rosie.models import MotorHandlerFactory, Profile, SensorFactory
 from rosie.motion.controller import MotionController
 from rosie.motion.drivers.arduino import ArduinoMotorDriver
-from rosie.motion.drivers.buses import open_i2c, open_serial
 from rosie.motion.drivers.md25 import MD25MotorDriver
 from rosie.motion.drivers.models import ArduinoBoard, MD25Board, VirtualBoard
 from rosie.motion.drivers.virtual import VirtualMotorDriver

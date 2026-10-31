@@ -6,8 +6,8 @@ The rosie motor driver shield on an Arduino, over a serial port
 import logging
 import struct
 
+from rosie.models import SerialPort
 from rosie.motion.drivers.base import SpeedMotorDriver
-from rosie.motion.drivers.models import SerialPort
 from rosie.motion.models import EncoderReading
 
 logger = logging.getLogger(__name__)
