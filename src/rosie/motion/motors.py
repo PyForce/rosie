@@ -1,15 +1,7 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
 from rosie.motion.drivers.base import PowerMotorDriver, SpeedMotorDriver
-from rosie.motion.models import EncoderReading
-
-
-@dataclass(slots=True)
-class _WheelHistory:
-    error_1: float  # error one step ago
-    error_2: float  # error two steps ago
-    action_1: float  # control action one step ago
+from rosie.motion.models import EncoderReading, PIDHistory, SpeedControl
 
 
 class SpeedController(ABC):
@@ -24,25 +16,18 @@ class SpeedController(ABC):
 
 
 class PIDSpeedController(SpeedController):
-    def __init__(
-        self,
-        constant_kc: float,
-        constant_ki: float,
-        constant_kd: float,
-        max_control_action: float,
-        min_control_action: float,
-    ) -> None:
-        self.min_control_action = min_control_action
-        self.max_control_action = max_control_action
-        self.constant_kd = constant_kd
-        self.constant_ki = constant_ki
-        self.constant_kc = constant_kc
-        self._wheel_1 = _WheelHistory(0.0, 0.0, 0.0)
-        self._wheel_2 = _WheelHistory(0.0, 0.0, 0.0)
+    def __init__(self, speed: SpeedControl, max_power: float) -> None:
+        """Powers go from -max_power to max_power."""
+        self.max_power = max_power
+        self.kd = speed.kd
+        self.ki = speed.ki
+        self.kc = speed.kc
+        self._wheel_1 = PIDHistory(0.0, 0.0, 0.0)
+        self._wheel_2 = PIDHistory(0.0, 0.0, 0.0)
 
     def reset(self) -> None:
-        self._wheel_1 = _WheelHistory(0.0, 0.0, 0.0)
-        self._wheel_2 = _WheelHistory(0.0, 0.0, 0.0)
+        self._wheel_1 = PIDHistory(0.0, 0.0, 0.0)
+        self._wheel_2 = PIDHistory(0.0, 0.0, 0.0)
 
     def regulate(
         self, set_point_1: float, set_point_2: float, angular_speed_1: float, angular_speed_2: float
@@ -52,25 +37,21 @@ class PIDSpeedController(SpeedController):
             self._regulate(self._wheel_2, set_point_2 - angular_speed_2),
         )
 
-    def _regulate(self, wheel: _WheelHistory, error: float) -> float:
-        if self.constant_ki == 0:
-            action = error * self.constant_kc
+    def _regulate(self, wheel: PIDHistory, error: float) -> float:
+        if self.ki == 0:
+            action = error * self.kc
         else:
+            action = error * self.kc + (self.ki - self.kc) * wheel.error_1 + wheel.action_1
+
+        if self.kd != 0:
             action = (
-                error * self.constant_kc
-                + (self.constant_ki - self.constant_kc) * wheel.error_1
+                self.kc * (error - wheel.error_1)
+                + self.ki * error
                 + wheel.action_1
+                + self.kd * (error - 2 * wheel.error_1 + wheel.error_2)
             )
 
-        if self.constant_kd != 0:
-            action = (
-                self.constant_kc * (error - wheel.error_1)
-                + self.constant_ki * error
-                + wheel.action_1
-                + self.constant_kd * (error - 2 * wheel.error_1 + wheel.error_2)
-            )
-
-        action = min(max(action, self.min_control_action), self.max_control_action)
+        action = min(max(action, -self.max_power), self.max_power)
 
         wheel.action_1 = action
         wheel.error_2 = wheel.error_1

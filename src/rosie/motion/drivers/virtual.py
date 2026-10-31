@@ -1,9 +1,8 @@
 import math
-from collections.abc import Callable
 from itertools import pairwise
 
 from rosie.motion.drivers.base import SpeedMotorDriver
-from rosie.motion.models import EncoderReading
+from rosie.motion.models import Clock, EncoderReading
 
 MOTOR_CURRENT = 0.0  # A
 BATTERY_VOLTAGE = 12.0  # V
@@ -15,13 +14,11 @@ class VirtualMotorDriver(SpeedMotorDriver):
     encoders count what they turned between two readings.
     """
 
-    def __init__(
-        self, steps_per_revolution: float, max_speed: float, clock: Callable[[], float]
-    ) -> None:
+    def __init__(self, encoder_steps: float, max_speed: float, clock: Clock) -> None:
         self.current_speed_1 = 0.0
         self.current_speed_2 = 0.0
         self.max_speed = max_speed
-        self.steps_per_revolution = steps_per_revolution
+        self.encoder_steps = encoder_steps
         self.clock = clock
         # (speed 1, speed 2, since when) for every speed change since the last reading
         self.history: list[tuple[float, float, float]] = []
@@ -51,6 +48,6 @@ class VirtualMotorDriver(SpeedMotorDriver):
             delta_angle_1 += speed_1 * (end - start)
             delta_angle_2 += speed_2 * (end - start)
         return (
-            delta_angle_1 / 2.0 / math.pi * self.steps_per_revolution,
-            delta_angle_2 / 2.0 / math.pi * self.steps_per_revolution,
+            delta_angle_1 / 2.0 / math.pi * self.encoder_steps,
+            delta_angle_2 / 2.0 / math.pi * self.encoder_steps,
         )

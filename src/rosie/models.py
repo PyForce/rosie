@@ -1,26 +1,72 @@
 from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Protocol
 
+from rosie.motion.models import Clock, Control, Wheels
 
-@dataclass(frozen=True, slots=True)
-class StartupOption:
-    """Single setting of rosie start. A flag beats its environment variable, which beats the default."""
-
-    name: str
-    flag: str
-    env: str
-    default: str  # as it would come from the environment
-    help: str
-    type: Callable[[str], object]
-    choices: tuple[str, ...] | None
+if TYPE_CHECKING:
+    from rosie.core import Robot
+    from rosie.motion.motors import MotorHandler
 
 
 @dataclass(frozen=True, slots=True)
 class Settings:
-    robot: str  # one of rosie's robots by name, or the folder of yours
+    profile: str  # one of rosie's robot profiles by name, or the folder of yours
     map: str  # the map the planner starts with
     interfaces: tuple[str, ...]  # what gives the robot its orders
     host: str  # where the web API listens
     port: int
     record: Path | None  # folder for a CSV of every planned movement
+
+
+@dataclass(frozen=True, slots=True)
+class Body:
+    length: float  # m, front to back
+    width: float  # m
+    height: float  # m
+
+
+@dataclass(frozen=True, slots=True)
+class Profile:
+    """A robot profile: its folder holds profile.toml, its pictures and its own maps."""
+
+    id: str  # folder name
+    directory: Path
+    name: str
+    trajectory: str  # linear or cubic
+    video: str | None  # stream served by another program, ":port/path" on this host
+    body: Body
+    wheels: Wheels
+    board: str  # virtual, arduino or md25
+    board_settings: dict[str, Any]  # the rest of the [board] table, as the profile gives it
+    control: Control
+    sensors: dict[str, dict[str, Any]]  # sensor name -> its table, as the profile gives it
+
+    @property
+    def thumbnail(self) -> Path:
+        return self.directory / "thumbnail.png"
+
+    @property
+    def vector(self) -> Path:
+        return self.directory / "vector.svg"
+
+    @property
+    def maps(self) -> Path:
+        return self.directory / "maps"
+
+
+class Tickable(Protocol):
+    @property
+    def sample_time(self) -> float: ...
+
+    def tick(self) -> None: ...
+
+
+# a board's type -> the motor handler driving it, from the profile
+type MotorHandlerFactory = Callable[[Profile, Clock], MotorHandler]
+# a sensor's table in the profile -> the function reading it
+type SensorFactory = Callable[[dict[str, Any]], Callable[[], object]]
+# an interface serves the robot while inside its context
+type Interface = Callable[[Robot, Settings], AbstractAsyncContextManager[None]]

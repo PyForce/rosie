@@ -36,6 +36,7 @@ robot = [
     "pyserial>=3.5",
     "shapely>=2.2",
     "smbus2>=0.6",
+    "typer>=0.27",
     "uvicorn[standard]>=0.54",
 ]
 

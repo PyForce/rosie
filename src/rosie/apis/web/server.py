@@ -10,8 +10,8 @@ from fastapi.responses import Response
 from pydantic import ValidationError
 
 from rosie.apis.web import routes
+from rosie.core import Robot
 from rosie.models import Settings
-from rosie.robot import Robot
 
 logger = logging.getLogger(__name__)
 

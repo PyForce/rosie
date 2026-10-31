@@ -1,14 +1,15 @@
 import logging
 import math
-from collections.abc import Callable
 
 from rosie.motion.models import (
     RESTING,
     STILL,
+    Clock,
+    Control,
     Pose,
-    RobotParameters,
     RobotState,
     TrajectoryParameters,
+    Wheels,
 )
 from rosie.motion.motors import MotorHandler
 from rosie.motion.odometry import OdometryLocalizer
@@ -40,13 +41,15 @@ class MovementController:
         odometry_localizer: OdometryLocalizer,
         trajectory_tracker: TrajectoryTracker,
         motor_handler: MotorHandler,
-        robot_parameters: RobotParameters,
-        clock: Callable[[], float],
+        wheels: Wheels,
+        control: Control,
+        clock: Clock,
     ) -> None:
         self.ordered_stop = True
-        self.sample_time = robot_parameters.sample_time
+        self.sample_time = control.sample_time
         self.movement_supervisor = movement_supervisor
-        self.robot_parameters = robot_parameters
+        self.wheels = wheels
+        self.control = control
         self.clock = clock
         self.motor_handler = motor_handler
         self.trajectory_tracker = trajectory_tracker
@@ -205,10 +208,10 @@ class MovementController:
             elapsed_time = MIN_ELAPSED_TIME
             logger.warning("almost dividing by zero")
         steps_per_sec_1 = delta_steps_1 / elapsed_time
-        angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
+        angular_speed_1 = steps_per_sec_1 * 2 * math.pi / self.wheels.encoder_steps
 
         steps_per_sec_2 = delta_steps_2 / elapsed_time
-        angular_speed_2 = steps_per_sec_2 * 2 * math.pi / self.robot_parameters.steps_per_revolution
+        angular_speed_2 = steps_per_sec_2 * 2 * math.pi / self.wheels.encoder_steps
 
         return angular_speed_1, angular_speed_2
 
@@ -243,9 +246,9 @@ class MovementController:
             direction = -1.0
         v = direction * APPROACH_GAIN_DISTANCE * distance * math.cos(angle)
         omega = APPROACH_GAIN_ANGLE * angle
-        radius = self.robot_parameters.wheel_radius
-        half_axis = self.robot_parameters.wheel_distance / 2
-        limit = self.robot_parameters.max_speed
+        radius = self.wheels.radius
+        half_axis = self.wheels.distance / 2
+        limit = self.wheels.max_speed
         return (
             _clamp((v - omega * half_axis) / radius, limit),
             _clamp((v + omega * half_axis) / radius, limit),
@@ -253,13 +256,10 @@ class MovementController:
 
     def _arrived(self, target: Pose) -> bool:
         pose = self.odometry_localizer.pose
-        return (
-            math.hypot(pose.x - target.x, pose.y - target.y)
-            <= self.robot_parameters.arrival_tolerance
-        )
+        return math.hypot(pose.x - target.x, pose.y - target.y) <= self.control.arrival_tolerance
 
     def _overtime(self, now: float) -> bool:
-        if now - self.finished_planning_at <= self.robot_parameters.arrival_timeout:
+        if now - self.finished_planning_at <= self.control.arrival_timeout:
             return False
         pose, target = self.odometry_localizer.pose, self.trajectory_planner.final_pose()
         logger.warning(
@@ -267,7 +267,7 @@ class MovementController:
             math.hypot(pose.x - target.x, pose.y - target.y),
             target.x,
             target.y,
-            self.robot_parameters.arrival_timeout,
+            self.control.arrival_timeout,
         )
         return True
 
@@ -279,7 +279,7 @@ class MovementController:
         """Racing-game driving: y is the throttle, x steers while moving, z turns on the spot."""
         if (x, y) != (0, 0):
             left = right = y
-            ratio = abs(x / self.robot_parameters.max_speed)
+            ratio = abs(x / self.wheels.max_speed)
             if x < 0:
                 right *= 1 - ratio
             elif x > 0:

@@ -330,7 +330,7 @@ release publishes downloads the WebRosie release named by `WEBROSIE_VERSION` and
 For a real robot, give the container the board and your robot's folder:
 
 ```bash
-docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
+docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot-profile /robot
 # I2C boards (MD25, ultrasound): --device /dev/i2c-1 --group-add $(getent group i2c | cut -d: -f3)
 ```
 

@@ -3,28 +3,26 @@ import socket
 import threading
 import time
 from collections.abc import Iterator
-from pathlib import Path
 
 import pytest
 import uvicorn
 
-from rosie import runner
 from rosie.apis.web.server import create_app
 from rosie.client import Metadata, Position, RosieClient
-from rosie.const import MAP
+from rosie.core import Robot
 from rosie.errors import NoRouteError, RequestError
-from rosie.profile import Profile
-from rosie.robot import Robot
-
-HOUSE = MAP.default  # rosie's own map
+from rosie.models import Profile
+from rosie.planning.maps import DEFAULT_MAP
+from rosie.robot import build_robot
+from rosie.ticker import keep_ticking
 
 FORWARD = (0.0, 1.0, 0.0)
 
 
 @pytest.fixture
-def served(simubot_profile: Profile, maps: dict[str, Path]) -> Iterator[tuple[RosieClient, Robot]]:
+def served(simubot_profile: Profile) -> Iterator[tuple[RosieClient, Robot]]:
     """A real rosie, web API and control loop, on a free port in a background thread."""
-    robot = Robot(simubot_profile, maps, HOUSE, None, time.monotonic)
+    robot = build_robot(simubot_profile, DEFAULT_MAP, None, time.monotonic)
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         port = probe.getsockname()[1]
@@ -33,7 +31,7 @@ def served(simubot_profile: Profile, maps: dict[str, Path]) -> Iterator[tuple[Ro
     )
 
     async def serve() -> None:
-        ticking = asyncio.create_task(runner.run(robot))
+        ticking = asyncio.create_task(keep_ticking(robot))
         await server.serve()
         ticking.cancel()
 
@@ -102,10 +100,10 @@ def test_impossible_orders(served: tuple[RosieClient, Robot]) -> None:
 
 def test_maps(served: tuple[RosieClient, Robot]) -> None:
     client, _ = served
-    assert client.maps() == [HOUSE]
-    assert client.map(HOUSE) == client.current_map()
+    assert client.maps() == [DEFAULT_MAP]
+    assert client.map(DEFAULT_MAP) == client.current_map()
     assert set(client.current_map()["rooms"]) == {"Dinning Room", "Hall", "Kitchen", "Living Room"}
-    client.use_map(HOUSE)
+    client.use_map(DEFAULT_MAP)
     with pytest.raises(RequestError, match="404: no map Nowhere") as refused:
         client.use_map("Nowhere")
     assert refused.value.status == 404

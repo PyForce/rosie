@@ -1,6 +1,5 @@
 name = "SIMUBOT"
-board = "virtual"  # virtual (simulated), arduino or md25
-interpolation = "linear"  # linear or cubic
+trajectory = "linear"  # linear or cubic
 
 [body]  # m
 length = 0.2  # front to back
@@ -13,6 +12,9 @@ distance = 0.2995  # m between the wheels
 encoder_steps = 360  # per wheel turn
 max_speed = 20.0  # rad/s
 
+[board]
+type = "virtual"  # simulated
+
 [control]
 sample_time = 0.05  # s between control steps
 arrival_tolerance = 0.01  # m: a planned movement ends this close to its last point
@@ -23,8 +25,7 @@ b = 0.1  # m, the tracked point ahead of the wheel axis
 k1 = 1.0
 k2 = 1.0
 
-[control.speed]  # wheel speed PID: on the board (arduino) or in rosie (md25)
+[control.speed]  # wheel speed PID (not used by the virtual board)
 kc = 2.0
 ki = 1.0
 kd = 1.0
-max_power = 127.0  # md25: powers go from -max_power to max_power

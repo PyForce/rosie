@@ -5,27 +5,9 @@ needed by robots with such a board, so they're imported when a bus is opened.
 
 import importlib
 from types import ModuleType
-from typing import Protocol
 
 from rosie.errors import HardwareUnavailableError
-
-
-class SerialPort(Protocol):
-    def write(self, data: bytes, /) -> int | None: ...
-
-    def read(self, size: int = 1, /) -> bytes: ...
-
-
-class I2CBus(Protocol):
-    def write_byte(self, address: int, value: int, /) -> None: ...
-
-    def read_byte(self, address: int, /) -> int: ...
-
-    def write_byte_data(self, address: int, register: int, value: int, /) -> None: ...
-
-    def write_i2c_block_data(self, address: int, register: int, data: list[int], /) -> None: ...
-
-    def read_i2c_block_data(self, address: int, register: int, length: int, /) -> list[int]: ...
+from rosie.motion.drivers.models import I2CBus, SerialPort
 
 
 def open_serial(port: str, baudrate: int) -> SerialPort:

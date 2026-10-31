@@ -30,7 +30,7 @@ Under manual control, steps 3 and 4 are replaced by the pressed keys. That's all
 `rosie start` runs one Python process with one [asyncio](https://docs.python.org/3/library/asyncio.html)
 event loop:
 
-- The control loop (`runner.py`) calls `robot.tick()` every `sample_time` seconds. A late step doesn't make
+- The control loop (`ticker.py`) calls `robot.tick()` every `sample_time` seconds. A late step doesn't make
   the next ones rush to catch up.
 - Each interface (the web API, by default) is a task on the same loop.
 - A stop signal (Ctrl+C, `docker stop`) stops the control loop first, then the motors, then the interfaces.
@@ -46,19 +46,19 @@ A new interface is a function from the robot and the settings to an async contex
 while inside, added to `INTERFACES` in `service.py`.
 
 So the robot code never needs locks: when a web request asks for the position, no control step is half done.
-The robot core itself (`robot.py` and below) has no asyncio and no threads at all; it's plain Python you can
+The robot core itself (`core.py` and below) has no asyncio and no threads at all; it's plain Python you can
 drive from a test, a notebook or your own loop.
 
 ## The robot is built from parts
 
-`Robot` (in `robot.py`) puts the parts together from a [profile](robots.md#profiles):
+`build_robot` (in `robot.py`) puts a `Robot` together from the parts a [profile](robots.md#profiles) names:
 
 | Part | Interface | rosie's implementations |
 |---|---|---|
-| Trajectory planner | `TrajectoryPlanner` | linear, cubic (`interpolation` in the profile) |
+| Trajectory planner | `TrajectoryPlanner` | linear, cubic (`trajectory` in the profile) |
 | Odometry | `OdometryLocalizer` | second-order Runge-Kutta |
 | Trajectory tracker | `TrajectoryTracker` | input-output linearization |
-| Motors | `MotorHandler` + a driver | simulated, Arduino board, MD25 board (`board` in the profile) |
+| Motors | `MotorHandler` + a driver | simulated, Arduino board, MD25 board (`[board]` in the profile) |
 | Route planner | `Planner` | visibility graph + A* |
 | Supervisors | `MovementSupervisor` | web API, CSV recorder |
 
@@ -67,7 +67,7 @@ Each interface is a small abstract class, so replacing a part means writing one 
 
 ## Time is a parameter
 
-`Robot` takes a `clock`: a function returning the time in seconds. `rosie start` gives it `time.monotonic`;
+`build_robot` takes a `clock`: a function returning the time in seconds. `rosie start` gives it `time.monotonic`;
 tests and experiments give it a clock they move by hand, so a 10-second movement is simulated in
 milliseconds and comes out the same every run ([example](getting-started.md#simulate-faster-than-real-time)).
 The simulated motor board uses the same clock to integrate the wheel speeds.
@@ -76,16 +76,17 @@ The simulated motor board uses the same clock to integrate the wheel speeds.
 
 ```text
 src/rosie/
-├── __main__.py        the `rosie` command
-├── const.py           the options of rosie start
-├── models.py          StartupOption, Settings
+├── __main__.py        the `rosie` command (it needs the `robot` extra)
+├── cli.py             rosie start and its options (Typer)
+├── models.py          Settings, Profile, and the types the modules share
 ├── service.py         rosie start: the robot, its control loop and its interfaces
-├── runner.py          the control loop's timing
-├── robot.py           Robot: the parts put together, and what interfaces can ask of it
-├── profile.py         robot profiles (TOML)
+├── ticker.py          the control loop's timing
+├── core.py            Robot: what interfaces can ask of the robot
+├── robot.py           build_robot: a Robot from its profile (boards, sensors, maps)
+├── profile.py         reading a profile.toml
 ├── errors.py
 ├── motion/
-│   ├── models.py      Pose, Velocity, RobotParameters, RobotState
+│   ├── models.py      Pose, Velocity, Wheels, Control, RobotState
 │   ├── controller.py  the control step; manual driving; the go-to-point controller
 │   ├── odometry.py
 │   ├── trajectories.py

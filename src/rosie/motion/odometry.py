@@ -1,12 +1,12 @@
 import math
 from abc import ABC, abstractmethod
 
-from rosie.motion.models import ORIGIN, Pose, RobotParameters
+from rosie.motion.models import ORIGIN, Pose, Wheels
 
 
 class OdometryLocalizer(ABC):
-    def __init__(self, robot_parameters: RobotParameters) -> None:
-        self.robot_parameters = robot_parameters
+    def __init__(self, wheels: Wheels) -> None:
+        self.wheels = wheels
         self.pose = ORIGIN
 
     @abstractmethod
@@ -16,11 +16,11 @@ class OdometryLocalizer(ABC):
 
 class RungeKutta2Localizer(OdometryLocalizer):
     def update_location(self, delta_steps_1: float, delta_steps_2: float) -> Pose:
-        dfr = delta_steps_2 * 2 * math.pi / self.robot_parameters.steps_per_revolution
-        dfl = delta_steps_1 * 2 * math.pi / self.robot_parameters.steps_per_revolution
+        dfr = delta_steps_2 * 2 * math.pi / self.wheels.encoder_steps
+        dfl = delta_steps_1 * 2 * math.pi / self.wheels.encoder_steps
 
-        ds = (dfr + dfl) * self.robot_parameters.wheel_radius / 2
-        dz = (dfr - dfl) * self.robot_parameters.wheel_radius / self.robot_parameters.wheel_distance
+        ds = (dfr + dfl) * self.wheels.radius / 2
+        dz = (dfr - dfl) * self.wheels.radius / self.wheels.distance
 
         self.pose = _advance(self.pose, ds, dz)
         return self.pose

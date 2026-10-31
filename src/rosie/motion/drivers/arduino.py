@@ -7,7 +7,7 @@ import logging
 import struct
 
 from rosie.motion.drivers.base import SpeedMotorDriver
-from rosie.motion.drivers.buses import SerialPort
+from rosie.motion.drivers.models import SerialPort
 from rosie.motion.models import EncoderReading
 
 logger = logging.getLogger(__name__)

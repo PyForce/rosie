@@ -10,15 +10,12 @@ from typing import Any
 
 from websockets.sync.client import ClientConnection, connect
 
-from rosie.client.models import Metadata, Position
+from rosie.client.models import Direction, Metadata, Position
 from rosie.errors import NoRouteError, RequestError
 
 logger = logging.getLogger(__name__)
 
 TIMEOUT = 10.0  # s for a request to be answered
-
-# steer (+1 right), throttle (+1 forward), rotation (+1 clockwise, like E), each in [-1, 1]
-type Direction = tuple[float, float, float]
 
 
 class Driver:

@@ -4,21 +4,12 @@ clearance, its obstacles grown by it), linked when the robot can drive
 straight from one to the other.
 """
 
-from dataclasses import dataclass
 from itertools import chain
 
 import numpy as np
 from shapely.geometry import JOIN_STYLE, LinearRing, LineString, Polygon
 
-from rosie.planning.maps import Map, Points
-
-
-@dataclass(frozen=True, slots=True)
-class VisibilityGraph:
-    vertices: Points
-    adjacency: np.ndarray  # n x n, non-zero where two vertices see each other
-    free_space: Polygon
-    obstacles: list[Polygon]
+from rosie.planning.models import Map, Points, VisibilityGraph
 
 
 def visibility_graph(world: Map, clearance: float) -> VisibilityGraph:

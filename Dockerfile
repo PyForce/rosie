@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # rosie with WebRosie: docker run -p 8080:8080 ghcr.io/pyforce/rosie, then open http://localhost:8080
 # Arguments and ROSIE_* variables go to rosie start, for example your own robot:
-#   docker run -p 8080:8080 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
+#   docker run -p 8080:8080 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot-profile /robot
 #
 # WebRosie comes from its release zip. To build with a local WebRosie instead:
 #   docker build --build-context webrosie=../WebRosie/dist .

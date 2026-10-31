@@ -41,14 +41,22 @@ def test_sensors(tmp_path: Path) -> None:
     assert load_profile(str(folder)).sensors == {"usound": {"address": 0x11}}
 
 
-def test_unknown_robot(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match=r"unknown robot nobot: .*rosie's own: blubot, kevin"):
+def test_unknown_profile(tmp_path: Path) -> None:
+    with pytest.raises(
+        ValueError, match=r"unknown robot profile nobot: .*rosie's own: blubot, kevin"
+    ):
         load_profile("nobot")
     with pytest.raises(ValueError, match="unknown robot"):
         load_profile(str(tmp_path))
 
 
 def test_incomplete_profile(tmp_path: Path) -> None:
-    (tmp_path / "profile.toml").write_text('name = "HALF"\nboard = "virtual"\n')
+    (tmp_path / "profile.toml").write_text('name = "HALF"\n[board]\ntype = "virtual"\n')
     with pytest.raises(ValueError, match="missing or unknown setting"):
+        load_profile(str(tmp_path))
+
+
+def test_a_profile_from_rosie_1(tmp_path: Path) -> None:
+    (tmp_path / "profile.toml").write_text('name = "OLD"\nboard = "virtual"\n')
+    with pytest.raises(ValueError, match=r"needs a \[board\] table"):
         load_profile(str(tmp_path))

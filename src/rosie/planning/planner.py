@@ -5,8 +5,9 @@ import numpy as np
 
 from rosie.errors import NoRouteError
 from rosie.planning.graph import astar_path
-from rosie.planning.maps import Map, load_map, read_map
-from rosie.planning.visibility import VisibilityGraph, visibility_graph, with_endpoints
+from rosie.planning.maps import load_map, read_map
+from rosie.planning.models import Map, VisibilityGraph
+from rosie.planning.visibility import visibility_graph, with_endpoints
 
 
 class Planner:

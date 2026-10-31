@@ -71,21 +71,21 @@ curl localhost:8080/odometry
 ## Configure it
 
 There is no configuration file. Every option of `rosie start` has a default, which its flag or its
-environment variable overrides; a flag beats its variable. Each option is one `StartupOption` in
-`src/rosie/const.py`, with its flag, variable, default and help:
+environment variable overrides; a flag beats its variable. `rosie start --help` lists them, and each one is a
+parameter of `start` in `src/rosie/cli.py`:
 
 | Flag | Variable | Default | |
 |---|---|---|---|
-| `--robot` | `ROSIE_ROBOT` | `simubot` | one of rosie's robots by name, or the folder of yours ([Robots and hardware](robots.md)) |
+| `--robot-profile` | `ROSIE_ROBOT_PROFILE` | `simubot` | one of rosie's robot profiles by name, or the folder of yours ([Robots and hardware](robots.md)) |
 | `--map` | `ROSIE_MAP` | `Gustavo's House` | the map the planner starts with |
-| `--interfaces` | `ROSIE_INTERFACES` | `web` | what gives the robot its orders, comma-separated; empty: the robot alone |
+| `--interfaces` | `ROSIE_INTERFACES` | `web` | what gives the robot its orders, comma-separated; `--interfaces ""`: the robot alone |
 | `--host` | `ROSIE_HOST` | `0.0.0.0` | where the web API listens: every network, so other machines reach the robot; `127.0.0.1` for this computer only |
 | `--port` | `ROSIE_PORT` | `5000` | the web API's port |
 | `--record` | `ROSIE_RECORD` | none | a folder for a CSV file per planned movement |
 | `--log-level` | `ROSIE_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR` |
 
 ```bash
-rosie start --robot ./my-robot --record recordings
+rosie start --robot-profile ./my-robot --record recordings
 ROSIE_LOG_LEVEL=DEBUG rosie start
 ```
 
@@ -93,7 +93,7 @@ With Docker, arguments and variables go to `rosie start` the same way (the image
 which its web server needs). Mount your robot's folder and name it:
 
 ```bash
-docker run -p 8080:8080 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot /robot
+docker run -p 8080:8080 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot-profile /robot
 docker run -p 8080:8080 -e ROSIE_LOG_LEVEL=DEBUG ghcr.io/pyforce/rosie
 ```
 
@@ -105,9 +105,8 @@ always get the same result. This is how rosie's own tests work, and the quickest
 ```python
 from pathlib import Path
 
-from rosie.planning.maps import MAPS_DIR, list_maps
 from rosie.profile import load_profile
-from rosie.robot import Robot
+from rosie.robot import build_robot
 
 
 class Clock:
@@ -122,7 +121,7 @@ class Clock:
 
 clock = Clock()
 profile = load_profile("simubot")
-robot = Robot(profile, list_maps([MAPS_DIR]), "Gustavo's House", Path("recordings"), clock)
+robot = build_robot(profile, "Gustavo's House", Path("recordings"), clock)
 
 robot.follow([(1, 0), (1, 1), (0, 1)], 2)  # 2 s per side
 for step in range(200):  # 10 s, computed in a blink

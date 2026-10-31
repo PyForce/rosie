@@ -1,6 +1,5 @@
 name = "Kevin"
-board = "arduino"  # virtual (simulated), arduino or md25
-interpolation = "linear"  # linear or cubic
+trajectory = "linear"  # linear or cubic
 
 [body]  # m
 length = 0.24  # front to back
@@ -13,6 +12,11 @@ distance = 0.154  # m between the wheels
 encoder_steps = 40.0  # per wheel turn
 max_speed = 8.0  # rad/s
 
+[board]
+type = "arduino"  # speed PID on the board, over a serial port
+port = "/dev/ttyACM0"
+baudrate = 9600
+
 [control]
 sample_time = 0.05  # s between control steps
 arrival_tolerance = 0.01  # m: a planned movement ends this close to its last point
@@ -23,8 +27,7 @@ b = 0.1  # m, the tracked point ahead of the wheel axis
 k1 = 1.0
 k2 = 1.0
 
-[control.speed]  # wheel speed PID: on the board (arduino) or in rosie (md25)
+[control.speed]  # wheel speed PID (not used by the virtual board)
 kc = 3.75
 ki = 1.25
 kd = 1.25
-max_power = 0.0  # md25: powers go from -max_power to max_power

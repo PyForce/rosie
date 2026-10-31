@@ -66,7 +66,7 @@ first time A* reaches the target it has the shortest route through the graph. If
 
 ## Driving the route
 
-`robot.py` · `Robot.go_to_with_planner`
+`core.py` · `Robot.go_to_with_planner`
 
 The route is a list of corners, and the robot follows them with the [trajectory planner](motion-control.md)
 of its profile, `t` seconds per straight stretch. The linear planner drives the route as found; the cubic one

@@ -1,15 +1,13 @@
 import math
 from collections.abc import Callable
-from pathlib import Path
 
 import pytest
 
-from rosie.const import MAP
-from rosie.planning.maps import MAPS_DIR, list_maps
-from rosie.profile import Profile, load_profile
-from rosie.robot import Robot
-
-HOUSE = MAP.default  # rosie's own map
+from rosie.core import Robot
+from rosie.models import Profile
+from rosie.planning.maps import DEFAULT_MAP
+from rosie.profile import load_profile
+from rosie.robot import build_robot
 
 SAMPLE_TIME = 0.05
 
@@ -89,13 +87,8 @@ def simubot_profile() -> Profile:
 
 
 @pytest.fixture
-def maps() -> dict[str, Path]:
-    return list_maps([MAPS_DIR])
-
-
-@pytest.fixture
-def robot(simubot_profile: Profile, maps: dict[str, Path], clock: FakeClock) -> Robot:
-    return Robot(simubot_profile, maps, HOUSE, None, clock)
+def robot(simubot_profile: Profile, clock: FakeClock) -> Robot:
+    return build_robot(simubot_profile, DEFAULT_MAP, None, clock)
 
 
 @pytest.fixture

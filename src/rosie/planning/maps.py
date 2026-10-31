@@ -4,7 +4,6 @@ items (furniture) in them.
 """
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -12,16 +11,10 @@ import numpy as np
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from rosie.planning.models import Map, Points
+
 MAPS_DIR = Path(__file__).parent.parent / "maps"
-
-type Points = np.ndarray  # n x 2: x, y in m
-
-
-@dataclass(frozen=True, slots=True)
-class Map:
-    name: str
-    border: Points  # outline of all the rooms together, first point not repeated
-    obstacles: list[Points]  # outline of every item
+DEFAULT_MAP = "Gustavo's House"
 
 
 def list_maps(search: list[Path]) -> dict[str, Path]:

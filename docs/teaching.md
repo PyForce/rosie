@@ -32,7 +32,7 @@ alone.
 
 *Read:* [Trajectories](motion-control.md#where-should-it-be-trajectories), `motion/trajectories.py`.
 
-1. Follow the same square with `interpolation = "linear"` and `"cubic"`, with [recordings](motion-control.md#watch-it-recordings)
+1. Follow the same square with `trajectory = "linear"` and `"cubic"`, with [recordings](motion-control.md#watch-it-recordings)
    on. Plot the reference paths and the driven ones.
 2. Plot the reference speeds: where does the linear plan ask the impossible?
 3. Change the cubic planner's $k$ (the tangent gain) and describe the shapes.

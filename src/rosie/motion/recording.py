@@ -3,7 +3,7 @@ Records every control step of a planned movement (goto, follow) into a CSV
 file, to analyse how well the robot tracked it.
 
 One file per movement, named after the time it ended (EYYYYmmddHHMMSS.csv).
-The robot's parameters come first, as `# name = value` comment lines
+The robot's wheels and control settings come first, as `# name = value` comment lines
 (pandas: `read_csv(path, comment='#')`; MATLAB: `readtable(path,
 'CommentStyle', '#')`).
 """
@@ -12,10 +12,10 @@ import csv
 import io
 import logging
 import time
-from dataclasses import astuple
+from dataclasses import asdict, astuple
 from pathlib import Path
 
-from rosie.motion.models import STILL, RobotParameters, RobotState
+from rosie.motion.models import STILL, Control, RobotState, Row, Wheels
 from rosie.motion.supervisors import MovementSupervisor
 
 logger = logging.getLogger(__name__)
@@ -32,18 +32,11 @@ COLUMNS = (
     "wheel_2_speed", "wheel_2_setpoint", "wheel_2_current",
 )  # fmt: skip
 
-PARAMETERS = (
-    "wheel_radius", "wheel_distance",
-    "constant_b", "constant_k1", "constant_k2",
-    "constant_kc", "constant_ki", "constant_kd",
-)  # fmt: skip
-
-type Row = tuple[float | None, ...]
-
 
 class MovementRecorder(MovementSupervisor):
-    def __init__(self, robot_parameters: RobotParameters, directory: Path) -> None:
-        self.robot_parameters = robot_parameters
+    def __init__(self, wheels: Wheels, control: Control, directory: Path) -> None:
+        # as the profile names them: wheels.radius, control.tracking.b...
+        self.settings = _flatten("", {"wheels": asdict(wheels), "control": asdict(control)})
         self.directory = directory
         directory.mkdir(parents=True, exist_ok=True)
         self.rows: list[Row] | None = None  # None: not recording (manual control)
@@ -82,11 +75,21 @@ class MovementRecorder(MovementSupervisor):
             return
         path = self.directory / f"{time.strftime('E%Y%m%d%H%M%S')}.csv"
         text = io.StringIO()
-        for name in PARAMETERS:
-            text.write(f"# {name} = {getattr(self.robot_parameters, name)!r}\n")
+        for name, value in self.settings.items():
+            text.write(f"# {name} = {value!r}\n")
         writer = csv.writer(text, lineterminator="\n")
         writer.writerow(COLUMNS)
         writer.writerows(self.rows)
         path.write_text(text.getvalue())
         logger.info("movement recorded in %s (%d steps)", path, len(self.rows))
         self.rows = None
+
+
+def _flatten(prefix: str, table: dict[str, object]) -> dict[str, object]:
+    flat: dict[str, object] = {}
+    for key, value in table.items():
+        if isinstance(value, dict):
+            flat |= _flatten(f"{prefix}{key}.", value)
+        else:
+            flat[f"{prefix}{key}"] = value
+    return flat

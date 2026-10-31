@@ -1,14 +1,21 @@
-import logging
-from collections.abc import Callable, Iterator, Sequence
-from pathlib import Path
-from typing import Any
+"""
+A robot built from its profile: the motion controller with the profile's
+trajectory planner and motor board, the route planner with the robot's own
+maps and rosie's, and the sensors the profile names.
+"""
 
+import logging
+from pathlib import Path
+
+from rosie.core import Robot
+from rosie.models import MotorHandlerFactory, Profile, SensorFactory
 from rosie.motion.controller import MovementController
 from rosie.motion.drivers.arduino import ArduinoMotorDriver
 from rosie.motion.drivers.buses import open_i2c, open_serial
 from rosie.motion.drivers.md25 import MD25MotorDriver
+from rosie.motion.drivers.models import ArduinoBoard, MD25Board, VirtualBoard
 from rosie.motion.drivers.virtual import VirtualMotorDriver
-from rosie.motion.models import Pose, RobotParameters, TrajectoryParameters
+from rosie.motion.models import Clock
 from rosie.motion.motors import (
     HardwareSpeedMotorHandler,
     MotorHandler,
@@ -24,187 +31,72 @@ from rosie.motion.trajectories import (
     LinearTrajectoryPlanner,
     TrajectoryPlanner,
 )
+from rosie.planning.maps import MAPS_DIR, list_maps
 from rosie.planning.planner import Planner
-from rosie.profile import Profile
 from rosie.sensors import usound
 
 logger = logging.getLogger(__name__)
 
 
-ARDUINO_PORT = "/dev/ttyACM0"
-ARDUINO_BAUDRATE = 9600
-MD25_BUS = 1
-MD25_ADDRESS = 0x58
-
-type Clock = Callable[[], float]
-type MotorHandlerFactory = Callable[[Profile, RobotParameters, Clock], MotorHandler]
-# a sensor's settings (its table in the profile) -> the function reading it
-type SensorFactory = Callable[[dict[str, Any]], Callable[[], object]]
-
-
-class Robot:
-    """The robot core: everything rosie's interfaces can ask of the robot."""
-
-    def __init__(
-        self,
-        profile: Profile,
-        maps: dict[str, Path],
-        map_name: str,
-        recordings: Path | None,
-        clock: Clock,
-    ) -> None:
-        self.profile = profile
-        self.parameters = robot_parameters(profile)
-        self.supervisors = SupervisorContainer()
-        # sensor name -> function reading it (extensions can add theirs)
-        self.sensors: dict[str, Callable[[], object]] = {
-            name: _choose(SENSORS, "sensor", name)(settings)
-            for name, settings in profile.sensors.items()
-        }
-        self.motion = movement_controller(profile, self.parameters, self.supervisors, clock)
-        self.planner = Planner(maps)
-        self.planner.use_map(map_name)
-        if recordings:
-            self.supervisor().append(MovementRecorder(self.parameters, recordings))
-        logger.info("profile: %s", profile.id)
-
-    @property
-    def sample_time(self) -> float:
-        return self.motion.sample_time
-
-    def tick(self) -> None:
-        self.motion.tick()
-
-    def stop(self) -> None:
-        self.motion.movement_finish()
-
-    def position(self) -> tuple[float, float, float]:
-        pose = self.motion.odometry_localizer.pose
-        return pose.x, pose.y, pose.theta
-
-    def teleport(self, x: float, y: float, theta: float) -> None:
-        self.motion.odometry_localizer.pose = Pose(x, y, theta)
-
-    def go_to(self, x: float, y: float, t: float) -> None:
-        """Drive to (x, y) in t seconds."""
-        self._check_duration(t)
-        self._track(
-            TrajectoryParameters([Pose(*self.position()), Pose(x, y, 0.0)], t, self.sample_time)
-        )
-
-    def go_to_with_planner(self, x: float, y: float, t: float) -> None:
-        """Drive to (x, y) around walls and furniture, t seconds per straight stretch."""
-        self._check_duration(t)
-        x0, y0, _ = self.position()
-        clearance = 0.2 * max(self.profile.body.width, self.profile.body.length)
-        _start, *corners = self.planner.route((x0, y0), (x, y), clearance)
-        self.follow(corners, t)
-
-    def follow(self, points: Sequence[Sequence[float]], t: float) -> None:
-        """Drive through the points in order, t seconds from one to the next."""
-        self._check_duration(t)
-        poses = [Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)]
-        self._track(TrajectoryParameters(poses, t, self.sample_time))
-
-    def start_open_loop_control(self) -> None:
-        logger.debug("set mode: MANUAL")
-        self.motion.movement_init(None)
-        self.motion.movement_start()
-
-    def add_movement(self, direction: list[float]) -> None:
-        self.motion.direction = direction
-
-    def stop_open_loop_control(self) -> None:
-        logger.debug("set mode: AUTO")
-        self.motion.movement_finish()
-
-    def supervisor(self) -> SupervisorContainer:
-        return self.supervisors
-
-    def maps(self) -> Iterator[str]:
-        return iter(self.planner.maps)
-
-    def get_map(self, map_name: str) -> dict[str, Any] | None:
-        return self.planner.get_map(map_name)
-
-    @property
-    def map_name(self) -> str | None:
-        return self.planner.map_name
-
-    def use_map(self, map_name: str) -> None:
-        """Plan routes on this map from now on (ValueError if there's no such map)."""
-        self.planner.use_map(map_name)
-
-    def _check_duration(self, t: float) -> None:
-        if t < self.sample_time:
-            raise ValueError(f"the time must be at least one control step ({self.sample_time} s)")
-
-    def _track(self, trajectory: TrajectoryParameters) -> None:
-        self.motion.movement_init(trajectory)
-        self.motion.movement_start()
+def build_robot(profile: Profile, map_name: str, recordings: Path | None, clock: Clock) -> Robot:
+    supervisors = SupervisorContainer()
+    sensors = {
+        name: _choose(SENSORS, "sensor", name)(table) for name, table in profile.sensors.items()
+    }
+    motion = motion_controller(profile, supervisors, clock)
+    # the robot's own maps first: they win a name over rosie's
+    planner = Planner(list_maps([profile.maps, MAPS_DIR]))
+    planner.use_map(map_name)
+    if recordings:
+        supervisors.append(MovementRecorder(profile.wheels, profile.control, recordings))
+    logger.info("profile: %s", profile.id)
+    return Robot(profile, motion, planner, sensors, supervisors)
 
 
-def movement_controller(
-    profile: Profile, parameters: RobotParameters, supervisors: SupervisorContainer, clock: Clock
+def motion_controller(
+    profile: Profile, supervisors: SupervisorContainer, clock: Clock
 ) -> MovementController:
-    planner = _choose(PLANNERS, "interpolation", profile.interpolation)()
-    motors = _choose(MOTOR_HANDLERS, "board", profile.board)(profile, parameters, clock)
     return MovementController(
         supervisors,
-        planner,
-        RungeKutta2Localizer(parameters),
-        IOLinearizationTracker(parameters),
-        motors,
-        parameters,
+        _choose(TRAJECTORIES, "trajectory", profile.trajectory)(),
+        RungeKutta2Localizer(profile.wheels),
+        IOLinearizationTracker(profile.control.tracking, profile.wheels),
+        _choose(BOARDS, "board", profile.board)(profile, clock),
+        profile.wheels,
+        profile.control,
         clock,
     )
 
 
-def robot_parameters(profile: Profile) -> RobotParameters:
-    return RobotParameters(
-        profile.wheels.radius,
-        profile.wheels.distance,
-        profile.wheels.encoder_steps,
-        profile.tracking.b,
-        profile.tracking.k1,
-        profile.tracking.k2,
-        profile.speed.ki,
-        profile.speed.kd,
-        profile.speed.kc,
-        profile.speed.max_power,
-        -profile.speed.max_power,
-        profile.sample_time,
-        profile.wheels.max_speed,
-        profile.arrival_tolerance,
-        profile.arrival_timeout,
-    )
-
-
-def _virtual_motors(_profile: Profile, parameters: RobotParameters, clock: Clock) -> MotorHandler:
+def _virtual_motors(profile: Profile, clock: Clock) -> MotorHandler:
+    _board_settings(VirtualBoard, profile)
+    wheels = profile.wheels
     return HardwareSpeedMotorHandler(
-        VirtualMotorDriver(parameters.steps_per_revolution, parameters.max_speed, clock)
+        VirtualMotorDriver(wheels.encoder_steps, wheels.max_speed, clock)
     )
 
 
-def _arduino_motors(profile: Profile, parameters: RobotParameters, _clock: Clock) -> MotorHandler:
-    driver = ArduinoMotorDriver(
-        open_serial(ARDUINO_PORT, ARDUINO_BAUDRATE), profile.wheels.max_speed
-    )
-    driver.set_constants(parameters.constant_kc, parameters.constant_ki, parameters.constant_kd)
+def _arduino_motors(profile: Profile, _clock: Clock) -> MotorHandler:
+    board = _board_settings(ArduinoBoard, profile)
+    driver = ArduinoMotorDriver(open_serial(board.port, board.baudrate), profile.wheels.max_speed)
+    speed = profile.control.speed
+    driver.set_constants(speed.kc, speed.ki, speed.kd)
     return HardwareSpeedMotorHandler(driver)
 
 
-def _md25_motors(_profile: Profile, parameters: RobotParameters, _clock: Clock) -> MotorHandler:
-    speed_controller = PIDSpeedController(
-        parameters.constant_kc,
-        parameters.constant_ki,
-        parameters.constant_kd,
-        parameters.max_value_power,
-        parameters.min_value_power,
-    )
+def _md25_motors(profile: Profile, _clock: Clock) -> MotorHandler:
+    board = _board_settings(MD25Board, profile)
     return SoftwareSpeedMotorHandler(
-        speed_controller, MD25MotorDriver(open_i2c(MD25_BUS), MD25_ADDRESS)
+        PIDSpeedController(profile.control.speed, board.max_power),
+        MD25MotorDriver(open_i2c(board.bus), board.address),
     )
+
+
+def _board_settings[T](board: type[T], profile: Profile) -> T:
+    try:
+        return board(**profile.board_settings)
+    except TypeError as error:
+        raise ValueError(f"[board] of {profile.id}: unknown setting ({error})") from error
 
 
 def _choose[T](options: dict[str, T], setting: str, value: str) -> T:
@@ -213,11 +105,11 @@ def _choose[T](options: dict[str, T], setting: str, value: str) -> T:
     return options[value]
 
 
-PLANNERS: dict[str, Callable[[], TrajectoryPlanner]] = {
+TRAJECTORIES: dict[str, type[TrajectoryPlanner]] = {
     "linear": LinearTrajectoryPlanner,
     "cubic": CubicTrajectoryPlanner,
 }
-MOTOR_HANDLERS: dict[str, MotorHandlerFactory] = {
+BOARDS: dict[str, MotorHandlerFactory] = {
     "virtual": _virtual_motors,
     "arduino": _arduino_motors,
     "md25": _md25_motors,

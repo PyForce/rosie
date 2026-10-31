@@ -6,10 +6,8 @@ from fastapi.testclient import TestClient
 
 from conftest import FakeClock
 from rosie.apis.web.server import create_app
-from rosie.const import MAP
-from rosie.robot import Robot
-
-HOUSE = MAP.default  # rosie's own map
+from rosie.core import Robot
+from rosie.planning.maps import DEFAULT_MAP
 
 
 @pytest.fixture
@@ -105,10 +103,10 @@ def test_follow(client: TestClient, robot: Robot, clock: FakeClock) -> None:
 
 
 def test_maps(client: TestClient) -> None:
-    assert client.get("/maps").json() == {"maps": [HOUSE]}
-    assert client.get("/map").json() == client.get(f"/map/{HOUSE}").json()
+    assert client.get("/maps").json() == {"maps": [DEFAULT_MAP]}
+    assert client.get("/map").json() == client.get(f"/map/{DEFAULT_MAP}").json()
     assert client.get("/map/Nowhere").status_code == 404
-    assert client.post(f"/map/{HOUSE}").status_code == 200
+    assert client.post(f"/map/{DEFAULT_MAP}").status_code == 200
     assert client.post("/map/Nowhere").status_code == 404
 
 

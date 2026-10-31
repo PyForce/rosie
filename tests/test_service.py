@@ -3,18 +3,17 @@ import dataclasses
 import os
 import signal
 import socket
+import time
 from pathlib import Path
 
 import pytest
 
 from rosie import service
-from rosie.const import MAP
 from rosie.errors import HardwareUnavailableError
-from rosie.models import Settings
-from rosie.planning.maps import MAPS_DIR
+from rosie.models import Profile, Settings
+from rosie.planning.maps import DEFAULT_MAP, MAPS_DIR
 from rosie.profile import PROFILES_DIR
-
-HOUSE = MAP.default  # rosie's own map
+from rosie.robot import build_robot
 
 
 def free_port() -> int:
@@ -33,7 +32,7 @@ async def get(port: int, path: str) -> str:
 
 
 def settings(robot: str, port: int) -> Settings:
-    return Settings(robot, HOUSE, ("web",), "127.0.0.1", port, None)
+    return Settings(robot, DEFAULT_MAP, ("web",), "127.0.0.1", port, None)
 
 
 def test_runs_the_robot_and_its_web_api_until_a_signal(
@@ -46,7 +45,7 @@ def test_runs_the_robot_and_its_web_api_until_a_signal(
     (robot / "maps").mkdir(parents=True)
     (robot / "profile.toml").write_text((PROFILES_DIR / "simubot" / "profile.toml").read_text())
     house = (MAPS_DIR / "house.json").read_text()
-    (robot / "maps" / "garage.json").write_text(house.replace(HOUSE, "Garage"))
+    (robot / "maps" / "garage.json").write_text(house.replace(DEFAULT_MAP, "Garage"))
 
     async def scenario() -> tuple[str, str]:
         running = asyncio.create_task(service.run(settings(str(robot), port)))
@@ -65,7 +64,7 @@ def test_runs_the_robot_and_its_web_api_until_a_signal(
     odometry, maps = asyncio.run(scenario())
     assert odometry.startswith("HTTP/1.1 200")
     assert '"x":0.0' in odometry
-    assert '"Garage"' in maps and HOUSE in maps
+    assert '"Garage"' in maps and DEFAULT_MAP in maps
     assert f"web API on http://127.0.0.1:{port}" in caplog.text
     assert caplog.messages[-2:] == ["stopping...", "stopped"]
 
@@ -99,3 +98,19 @@ def test_an_unknown_interface_starts_nothing(caplog: pytest.LogCaptureFixture) -
     with pytest.raises(ValueError, match=r"unsupported interfaces: web, ros \(known: web\)"):
         asyncio.run(service.run(ros))
     assert "profile:" not in caplog.text  # not even the robot
+
+
+def test_control_loop_stops_the_motors_on_the_way_out(simubot_profile: Profile) -> None:
+    robot = build_robot(simubot_profile, DEFAULT_MAP, None, time.monotonic)
+
+    async def scenario() -> None:
+        robot.go_to(1, 0, 2)
+        async with service.start_control_loop(robot):
+            await asyncio.sleep(0.3)
+        assert not robot.motion.running  # the movement ended with the loop
+        moved = robot.position()
+        await asyncio.sleep(0.1)
+        assert robot.position() == moved  # no tick after the loop ended
+
+    asyncio.run(scenario())
+    assert robot.position()[0] > 0

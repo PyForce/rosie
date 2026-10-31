@@ -3,7 +3,7 @@
 import logging
 
 from rosie.motion.drivers.base import PowerMotorDriver
-from rosie.motion.drivers.buses import I2CBus
+from rosie.motion.drivers.models import I2CBus
 from rosie.motion.models import EncoderReading
 
 logger = logging.getLogger(__name__)

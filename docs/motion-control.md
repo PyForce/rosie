@@ -79,7 +79,7 @@ $$
 \theta_d = \operatorname{atan2}(\dot y, \dot x) \qquad \dot\theta_d = \frac{\ddot y \dot x - \ddot x \dot y}{\dot x^2 + \dot y^2}
 $$
 
-Pick one in the [profile](robots.md#profiles): `interpolation = "linear"` or `"cubic"`.
+Pick one in the [profile](robots.md#profiles): `trajectory = "linear"` or `"cubic"`.
 
 ## Getting there: trajectory tracking
 
@@ -140,7 +140,8 @@ $$
 u_k = u_{k-1} + k_c (e_k - e_{k-1}) + k_i\, e_k + k_d (e_k - 2e_{k-1} + e_{k-2})
 $$
 
-  limited to $\pm$`max_power`. Gains in the profile's `[control.speed]`: `kc`, `ki`, `kd`.
+  limited to $\pm$`max_power` (the MD25's `[board]`). Gains in the profile's `[control.speed]`: `kc`, `ki`,
+  `kd`.
 - the **simulated** board turns its wheels at exactly the speed asked, up to `max_speed`.
 
 ## Driving by hand
@@ -182,13 +183,13 @@ by Kanayama et al. (1990), which works with the errors in the robot's own frame:
 ```python
 import math
 
-from rosie.motion.models import Pose, RobotParameters, Velocity
-from rosie.motion.tracking import TrackerOutput, TrajectoryTracker
+from rosie.motion.models import Pose, TrackerOutput, Velocity, Wheels
+from rosie.motion.tracking import TrajectoryTracker
 
 
 class KanayamaTracker(TrajectoryTracker):
-    def __init__(self, parameters: RobotParameters, kx: float, ky: float, ktheta: float) -> None:
-        self.parameters = parameters
+    def __init__(self, wheels: Wheels, kx: float, ky: float, ktheta: float) -> None:
+        self.wheels = wheels
         self.kx, self.ky, self.ktheta = kx, ky, ktheta
 
     def reset(self) -> None:
@@ -204,7 +205,7 @@ class KanayamaTracker(TrajectoryTracker):
         v_ref = math.hypot(reference_velocity.x, reference_velocity.y)
         v = v_ref * math.cos(etheta) + self.kx * ex
         omega = reference_velocity.theta + v_ref * (self.ky * ey + self.ktheta * math.sin(etheta))
-        r, half_axis = self.parameters.wheel_radius, self.parameters.wheel_distance / 2
+        r, half_axis = self.wheels.radius, self.wheels.distance / 2
         return (v - omega * half_axis) / r, (v + omega * half_axis) / r, v, omega
 ```
 
@@ -212,7 +213,7 @@ Give it to a robot, here the simulated one from
 [Getting started](getting-started.md#simulate-faster-than-real-time):
 
 ```python
-robot.motion.trajectory_tracker = KanayamaTracker(robot.parameters, 2.0, 10.0, 4.0)
+robot.motion.trajectory_tracker = KanayamaTracker(robot.profile.wheels, 2.0, 10.0, 4.0)
 ```
 
 Then compare the two trackers' recordings on the same path.
