@@ -7,6 +7,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from rosie.apis.web.server import start_web_api
 from rosie.core import Robot
+from rosie.errors import SetupError
 from rosie.models import Interface, Settings
 from rosie.profile import load_profile
 from rosie.robot import build_robot
@@ -30,7 +31,7 @@ async def run(settings: Settings) -> None:
 
 def choose_interfaces(names: tuple[str, ...]) -> list[Interface]:
     if any(name not in INTERFACES for name in names):
-        raise ValueError(
+        raise SetupError(
             f"unsupported interfaces: {', '.join(names)} (known: {', '.join(INTERFACES)})"
         )
     return [INTERFACES[name] for name in names]

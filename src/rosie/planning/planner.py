@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 
-from rosie.errors import NoRouteError
+from rosie.errors import NoRouteError, SetupError
 from rosie.planning.graph import astar_path
 from rosie.planning.maps import load_map, read_map
 from rosie.planning.models import Map, VisibilityGraph
@@ -22,7 +22,7 @@ class Planner:
 
     def use_map(self, name: str) -> None:
         if name not in self.maps:
-            raise ValueError(f"unknown map: {name}")
+            raise SetupError(f"unknown map: {name}")
         self.world = load_map(self.maps[name])
         self.map_name = name
         self._graph = None

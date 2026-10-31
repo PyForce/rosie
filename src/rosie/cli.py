@@ -6,6 +6,7 @@ from typing import Annotated, Final, Literal
 import typer
 
 from rosie import service
+from rosie.errors import HardwareUnavailableError, SetupError
 from rosie.models import Settings
 from rosie.planning.maps import DEFAULT_MAP
 
@@ -88,4 +89,8 @@ def start(
         port=port,
         record=record.expanduser() if record else None,
     )
-    asyncio.run(service.run(settings))
+    try:
+        asyncio.run(service.run(settings))
+    except (SetupError, HardwareUnavailableError) as error:
+        typer.echo(f"rosie: {error}", err=True)
+        raise typer.Exit(1) from error

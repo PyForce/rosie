@@ -9,6 +9,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+from rosie.errors import SetupError
 from rosie.models import Body, Profile
 from rosie.motion.models import Control, SpeedControl, Tracking, Wheels
 
@@ -22,14 +23,14 @@ def load_profile(profile: str) -> Profile:
     path = folder / "profile.toml"
     if not path.is_file():
         known = ", ".join(sorted(path.parent.name for path in PROFILES_DIR.glob("*/profile.toml")))
-        raise ValueError(f"unknown robot profile {profile}: no {path} (rosie's own: {known})")
+        raise SetupError(f"unknown robot profile {profile}: no {path} (rosie's own: {known})")
     return _parse(path)
 
 
 def _parse(path: Path) -> Profile:
     data = tomllib.loads(path.read_text())
     if not isinstance(data.get("board"), dict):
-        raise ValueError(
+        raise SetupError(
             f'{path}: needs a [board] table, with its type = "virtual", "arduino" or "md25"'
         )
     try:
@@ -55,4 +56,4 @@ def _parse(path: Path) -> Profile:
             sensors=data.get("sensors", {}),
         )
     except (KeyError, TypeError) as error:
-        raise ValueError(f"{path}: missing or unknown setting ({error})") from error
+        raise SetupError(f"{path}: missing or unknown setting ({error})") from error

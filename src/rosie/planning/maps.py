@@ -11,6 +11,7 @@ import numpy as np
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from rosie.errors import SetupError
 from rosie.planning.models import Map, Points
 
 MAPS_DIR = Path(__file__).parent.parent / "maps"
@@ -35,7 +36,7 @@ def load_map(path: Path) -> Map:
     rooms = data["rooms"].values()
     union = unary_union([Polygon(_room_border(room)) for room in rooms])
     if not isinstance(union, Polygon):
-        raise ValueError(f"the rooms of {path.name} don't form one connected floor")
+        raise SetupError(f"the rooms of {path.name} don't form one connected floor")
     obstacles = [
         np.array(item["geometry"]["coordinates"][0])
         for room in rooms

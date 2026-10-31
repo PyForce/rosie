@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 
 from rosie.core import Robot
+from rosie.errors import SetupError
 from rosie.models import MotorHandlerFactory, Profile, SensorFactory
 from rosie.motion.controller import MotionController
 from rosie.motion.drivers.arduino import ArduinoMotorDriver
@@ -94,12 +95,12 @@ def _board_settings[T](board: type[T], profile: Profile) -> T:
     try:
         return board(**profile.board_settings)
     except TypeError as error:
-        raise ValueError(f"[board] of {profile.id}: unknown setting ({error})") from error
+        raise SetupError(f"[board] of {profile.id}: unknown setting ({error})") from error
 
 
 def _choose[T](options: dict[str, T], setting: str, value: str) -> T:
     if value not in options:
-        raise ValueError(f"unsupported {setting}: {value} (known: {', '.join(options)})")
+        raise SetupError(f"unsupported {setting}: {value} (known: {', '.join(options)})")
     return options[value]
 
 

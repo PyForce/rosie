@@ -95,3 +95,19 @@ def test_starts_and_stops_on_a_signal() -> None:
     result = CliRunner().invoke(cli.app, args)
     timer.join()
     assert result.exit_code == 0, result.output
+
+
+@pytest.mark.parametrize(
+    ("args", "message"),
+    [
+        (["--robot-profile", "nobot"], "rosie: unknown robot profile nobot"),
+        (["--robot-profile", "kevin"], "rosie: nothing answers on /dev/ttyACM0"),
+        (["--map", "Nowhere"], "rosie: unknown map: Nowhere"),
+        (["--interfaces", "ros"], "rosie: unsupported interfaces: ros (known: web)"),
+    ],
+)
+def test_setup_problems_are_one_line(args: list[str], message: str) -> None:
+    result = CliRunner().invoke(cli.app, ["start", "--port", "0", *args], env={"COLUMNS": "200"})
+    assert result.exit_code == 1
+    (line,) = result.output.strip().splitlines()  # no traceback
+    assert line.startswith(message)

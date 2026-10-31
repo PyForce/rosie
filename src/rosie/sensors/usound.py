@@ -12,6 +12,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from rosie.errors import SetupError
 from rosie.motion.drivers.buses import open_i2c
 from rosie.motion.drivers.models import I2CBus
 from rosie.sensors.models import UltrasoundSettings
@@ -50,7 +51,7 @@ def open_sensor(table: dict[str, Any]) -> Callable[[], list[float | None]]:
     try:
         settings = UltrasoundSettings(**table)
     except TypeError as error:
-        raise ValueError(f"[sensors.usound]: unknown setting ({error})") from error
+        raise SetupError(f"[sensors.usound]: unknown setting ({error})") from error
     return UltrasoundBoard(open_i2c(settings.bus), settings.address).read_all
 
 
