@@ -12,7 +12,7 @@ from rosie.client import Metadata, Position, RosieClient
 from rosie.core import Robot
 from rosie.errors import NoRouteError, RequestError
 from rosie.models import Profile
-from rosie.planning.maps import DEFAULT_MAP
+from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.robot import build_robot
 from rosie.service import start_control_loop
 

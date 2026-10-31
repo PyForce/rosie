@@ -23,7 +23,7 @@ runs one **control step**:
    writes a row.
 
 Under manual control, steps 3 and 4 are replaced by the pressed keys. `Robot.tick` (in `core.py`) does the
-reading and the writing; the step itself is a function in `motion/control.py`, `planned_step` or
+reading and the writing; the step itself is a function in `control/movement.py`, `planned_step` or
 `manual_step`: the movement, the pose and the measured speeds in; the wheel speeds to ask for and the step's
 `RobotState` out. The movement is a value too: `Planned` (the references, and the next one to follow) or
 `Manual` (the pressed keys).
@@ -58,16 +58,16 @@ drive from a test, a notebook or your own loop.
 
 | Part | Shape | rosie's |
 |---|---|---|
-| Trajectory | a function, `TrajectoryShape` | `linear_trajectory`, `cubic_trajectory` (`trajectory` in the profile) |
+| Trajectory | a function, `TrajectoryShape` | `linear`, `cubic` (`trajectory` in the profile) |
 | Odometry | a function | `advance`: second-order Runge-Kutta |
 | Trajectory tracker | a function, `Tracker` | `io_linearization`: input-output linearization |
-| Motor board | a class with the `Board` methods | simulated, Arduino board, MD25 board (`[board]` in the profile) |
+| Drive | a class with the `Drive` methods | simulated, Arduino, MD25 (`[board]` in the profile) |
 | Route planner | `Planner` | visibility graph + A* |
 | Supervisors | a class with the `MovementSupervisor` methods | web API, CSV recorder |
 
 The math is plain functions on frozen dataclasses, one equation each, so replacing a part means writing one
 function: see [writing your own tracker](motion-control.md#write-your-own-tracker). Classes are left where
-there is real state: the boards (their hardware), the supervisors, and the robot itself.
+there is real state: the drives (their hardware), the supervisors, and the robot itself.
 
 ## Time is a parameter
 
@@ -80,29 +80,36 @@ The simulated motor board uses the same clock to integrate the wheel speeds.
 
 ```text
 src/rosie/
-├── __main__.py        the `rosie` command (it needs the `robot` extra)
-├── cli.py             rosie start and its options (Typer)
-├── models.py          Settings, Profile, and the types the modules share
-├── service.py         rosie start: the robot, its control loop and its interfaces
-├── core.py            Robot: its state, its tick, and what interfaces can ask of it
-├── robot.py           build_robot: a Robot from its profile (boards, sensors, maps)
-├── profile.py         reading a profile.toml
-├── buses.py           opening serial ports and I2C buses, for boards and sensors
+├── __main__.py           the `rosie` command (it needs the `robot` extra)
+├── cli.py                rosie start and its options (Typer)
+├── service.py            rosie start: the robot, its control loop and its interfaces
+├── core.py               Robot: its state, its tick, and what interfaces can ask of it
+├── robot.py              build_robot: a Robot from its profile
+├── profile.py            reading a profile.toml
+├── models.py             Settings, Profile and its tables, Pose, the types every layer shares
+├── recording.py          the CSV recorder
 ├── errors.py
-├── motion/
-│   ├── models.py      Pose, Wheels, Control, Planned, Manual, RobotState, MovementSupervisor
-│   ├── control.py     the control step; manual driving; the go-to-point controller
-│   ├── odometry.py
-│   ├── trajectories.py
-│   ├── tracking.py
-│   ├── pid.py         the speed PID
-│   └── recording.py   the CSV recorder
-├── boards/            simulated, Arduino, MD25 motor boards, and their settings (models.py)
-├── planning/          maps, visibility graph, A*, route planner
-├── apis/web/          the REST + WebSocket API (FastAPI)
-├── sensors/           the ultrasound board, and its settings (models.py)
-├── client/            the Python client
+├── hardware/             what the robot is made of
+│   ├── drive/            the motors, their encoders, the wheel-speed loop
+│   │   ├── virtual.py, arduino.py, md25.py
+│   │   ├── pid.py        speed control, for drives that only take powers (MD25)
+│   │   └── models.py     Drive, its settings
+│   ├── sensors/          the ultrasound board, and its settings (models.py)
+│   └── buses.py          opening serial ports and I2C buses
+├── localization/         where the robot is
+│   └── odometry.py       encoder steps → wheel speeds and pose
+├── planning/             where it should be
+│   ├── trajectory.py     key poses → one reference per control step (linear, cubic)
+│   └── path/             around walls and furniture: maps, visibility graph, A*, the planner
+├── control/              how to get there
+│   ├── tracking.py       follow a trajectory (input-output linearization)
+│   ├── regulation.py     stop on a point (the go-to-point controller)
+│   ├── teleoperation.py  the pressed keys
+│   ├── movement.py       one control step: which controller, when a movement ends
+│   └── models.py         Planned, Manual, RobotState, MovementSupervisor
+├── apis/web/             the REST + WebSocket API (FastAPI)
+├── client/               the Python client
 └── builtin/
-    ├── profiles/      rosie's own robot profiles
-    └── maps/          rosie's own maps
+    ├── profiles/         rosie's own robot profiles
+    └── maps/             rosie's own maps
 ```

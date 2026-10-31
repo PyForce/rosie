@@ -5,7 +5,7 @@ import pytest
 
 from rosie.core import Robot
 from rosie.models import Profile
-from rosie.planning.maps import DEFAULT_MAP
+from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.profile import load_profile
 from rosie.robot import build_robot
 

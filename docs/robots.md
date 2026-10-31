@@ -63,7 +63,7 @@ table, `trajectory` instead of `interpolation`, and `max_power` moved from `[con
 
 ## Boards
 
-`boards/`
+`hardware/drive/`
 
 - **virtual** (`virtual.py`): a simulated board. The wheels turn exactly at the speeds asked (up to
   `max_speed`), and the encoders count what they turned, integrated over rosie's clock.
@@ -75,7 +75,7 @@ table, `trajectory` instead of `interpolation`, and `max_power` moved from `[con
   [speed PID](motion-control.md#turning-the-wheels-speed-control). It also reports the battery voltage and
   the motor currents, and rosie filters out encoder glitches.
 
-Their `[board]` settings, with the defaults (`boards/models.py`):
+Their `[board]` settings, with the defaults (`hardware/drive/models.py`):
 
 ```toml
 [board]
@@ -112,17 +112,17 @@ docker run -p 8080:8080 --device /dev/i2c-1 --group-add $(getent group i2c | cut
 
 ## Your own board
 
-A board is a module in `boards/` with a class that has the four methods of `Board` (`boards/models.py`):
+A board is a module in `hardware/drive/` with a class that has the four methods of `Drive` (`hardware/drive/models.py`):
 
 - `read_encoders()`: the encoder steps of both wheels since the last reading, the battery voltage and the
   motor currents;
 - `set_speeds(speed_1, speed_2, measured_1, measured_2)`: the wheel speeds to reach, and the ones just
   measured. A board that controls the speeds itself sends the first two; one that only takes powers turns
-  them into powers with rosie's speed PID (`motion/pid.py`), as the MD25 does;
+  them into powers with rosie's speed PID (`hardware/drive/pid.py`), as the MD25 does;
 - `stop()` and `reset()` (before each new movement).
 
 It talks to its hardware through what it's given (a serial port, an I2C bus), so it can be tested with a
-fake. The module also has an `open_board(profile, clock)`, which reads the `[board]` settings (a dataclass in
-`boards/models.py`) and opens the hardware; add it to `BOARDS` in `boards/__init__.py`, under the name your
-profiles use as the `[board]`'s `type`. The Arduino and MD25 boards, and their tests in `tests/boards/`, are
+fake. The module also has an `open_drive(profile, clock)`, which reads the `[board]` settings (a dataclass in
+`hardware/drive/models.py`) and opens the hardware; add it to `DRIVES` in `hardware/drive/__init__.py`, under the name your
+profiles use as the `[board]`'s `type`. The Arduino and MD25 boards, and their tests in `tests/hardware/drive/`, are
 the examples to follow.

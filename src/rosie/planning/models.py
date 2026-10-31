@@ -1,21 +1,23 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 
-import numpy as np
-from shapely.geometry import Polygon
-
-type Points = np.ndarray  # n x 2: x, y in m
+from rosie.models import Pose, Velocity
 
 
 @dataclass(frozen=True, slots=True)
-class Map:
-    name: str
-    border: Points  # outline of all the rooms together, first point not repeated
-    obstacles: list[Points]  # outline of every item
+class Reference:
+    """Where the robot should be at one control step, and how fast it should be moving."""
+
+    pose: Pose
+    velocity: Velocity
 
 
 @dataclass(frozen=True, slots=True)
-class VisibilityGraph:
-    vertices: Points
-    adjacency: np.ndarray  # n x n, non-zero where two vertices see each other
-    free_space: Polygon
-    obstacles: list[Polygon]
+class TrajectoryParameters:
+    key_poses: list[Pose]  # the path goes through them, in order
+    segment_time: float  # s from one key pose to the next
+    sample_time: float  # s between control steps
+
+
+# key poses -> a pose and a velocity per control step (linear, cubic)
+type TrajectoryShape = Callable[[TrajectoryParameters], tuple[list[Pose], list[Velocity]]]

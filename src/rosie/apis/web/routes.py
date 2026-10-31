@@ -8,9 +8,9 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import ValidationError
 
 from rosie.apis.web.models import Follow, Goto, Maps, Metadata, Move, Position, PositionUpdate
+from rosie.control.models import RobotState
 from rosie.core import Robot
 from rosie.errors import NoRouteError
-from rosie.motion.models import RobotState
 
 logger = logging.getLogger(__name__)
 

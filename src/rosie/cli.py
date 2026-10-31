@@ -8,7 +8,7 @@ import typer
 from rosie import service
 from rosie.errors import HardwareUnavailableError, SetupError
 from rosie.models import Settings
-from rosie.planning.maps import DEFAULT_MAP
+from rosie.planning.path.maps import DEFAULT_MAP
 
 LOG_FORMAT = "[%(asctime)-15s] %(levelname)s %(message)s"
 

@@ -57,7 +57,7 @@ to one or more rosies through this API; the Docker image serves it together with
 
 ## The ultrasound board
 
-`sensors/usound.py`
+`hardware/sensors/usound.py`
 
 Twelve ultrasonic range sensors and an LM35 thermometer behind a microcontroller on the I2C bus. A robot
 that has one says so in its `profile.toml`:
@@ -77,7 +77,7 @@ time](getting-started.md#simulate-faster-than-real-time)). From there it can:
 
 - **add a sensor**: `robot.sensors["name"] = read`, a function returning the reading; the web API serves it at
   `/sensor/name`. For a sensor that profiles can name, write a function from its profile table to that
-  reading function (like `open_sensor` in `sensors/usound.py`) and add it to `SENSORS` in `sensors/__init__.py`;
+  reading function (like `open_sensor` in `hardware/sensors/usound.py`) and add it to `SENSORS` in `hardware/sensors/__init__.py`;
 - **follow every movement**: write a class with the three methods of `MovementSupervisor`
   (`movement_begin`, `movement_update`, `movement_end`; no base class needed) and
   `robot.supervisors.append(...)` it; `movement_update` gets the full `RobotState` of each

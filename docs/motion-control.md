@@ -26,7 +26,7 @@ The robot can't move sideways: it's *nonholonomic*, which is what makes controll
 
 ## Where is the robot? Odometry
 
-`motion/odometry.py` · `advance`
+`localization/odometry.py` · `advance`
 
 Each step, the encoders say how many steps each wheel turned ($n$ steps per turn). As angles:
 $\Delta\varphi_i = 2\pi\,\Delta\text{steps}_i / n$. The robot advanced and turned
@@ -49,17 +49,17 @@ wrong radius make the estimate drift. `POST /position` (`teleport`) tells rosie 
 
 ## Where should it be? Trajectories
 
-`motion/trajectories.py`
+`planning/trajectory.py`
 
 A movement is a list of key points (the robot's position, then the targets) and a time per stretch. The
 planner turns it into one reference per control step: a pose $(x_d, y_d, \theta_d)$ and a velocity
 $(\dot x_d, \dot y_d, \dot\theta_d)$.
 
-**Linear** (`linear_trajectory`): straight lines at constant speed, heading along the line. Simple,
+**Linear** (`linear`): straight lines at constant speed, heading along the line. Simple,
 but the heading jumps at every corner, which the robot can't do: watch it overshoot corners in a
 [recording](#watch-it-recordings).
 
-**Cubic** (`cubic_trajectory`): each stretch is a cubic polynomial in $s \in [0, 1]$:
+**Cubic** (`cubic`): each stretch is a cubic polynomial in $s \in [0, 1]$:
 
 $$
 x(s) = s^3 x_f - (s-1)^3 x_i + \alpha_x s^2 (s-1) + \beta_x s (s-1)^2
@@ -83,7 +83,7 @@ Pick one in the [profile](robots.md#profiles): `trajectory = "linear"` or `"cubi
 
 ## Getting there: trajectory tracking
 
-`motion/tracking.py` · `io_linearization`
+`control/tracking.py` · `io_linearization`
 
 The tracker compares where the robot is with where it should be, every step, and asks for wheel speeds. A
 differential drive can't be told "move to the left", so rosie doesn't control the middle of the axle but a
@@ -113,7 +113,7 @@ and $k_2$. This is *input-output linearization*. Its gains are in the profile's 
 
 ## Arriving: the go-to-point controller
 
-`motion/control.py` · `approach_speeds`
+`control/regulation.py` · `go_to_point`
 
 The tracker steers point $B$, not the robot's centre, and it can't hold a two-wheeled robot still on a
 point. So when the trajectory is over, a second controller takes the robot the rest of the way. With $\rho$
@@ -129,7 +129,7 @@ after the planned time, with a warning in the log.
 
 ## Turning the wheels: speed control
 
-`motion/pid.py` · `pid`
+`hardware/drive/pid.py` · `pid`
 
 Wheel speeds are what the tracker asks for; motors take power. Something has to close that loop:
 
@@ -146,7 +146,7 @@ $$
 
 ## Driving by hand
 
-`motion/control.py` · `manual_speeds`
+`control/teleoperation.py` · `from_keys`
 
 Under manual control, the keys (or the joystick) give a direction (steer, throttle, rotation), each in
 $[-1, 1]$. Throttle turns both wheels at up to 8 rad/s; steering slows the inner wheel, but only while
@@ -155,7 +155,7 @@ needed to drive, but it keeps running, so the map still shows where the robot is
 
 ## Watch it: recordings
 
-`motion/recording.py`
+`recording.py`
 
 With `rosie start --record FOLDER` (or a folder passed to `Robot`), every planned movement is saved
 as a CSV file: the robot's parameters as `#` comment lines, then one row per control step with the pose, the
@@ -184,7 +184,8 @@ robot's own frame:
 ```python
 import math
 
-from rosie.motion.models import Pose, TrackerOutput, Velocity, Wheels
+from rosie.control.models import TrackerOutput
+from rosie.models import Pose, Velocity, Wheels
 
 
 def kanayama(

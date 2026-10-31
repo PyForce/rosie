@@ -10,8 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from rosie.errors import SetupError
-from rosie.models import Body, Profile
-from rosie.motion.models import Control, SpeedControl, Tracking, Wheels
+from rosie.models import Body, Control, Profile, SpeedControl, Tracking, Wheels
 
 BUILTIN_PROFILES = Path(__file__).parent / "builtin" / "profiles"
 

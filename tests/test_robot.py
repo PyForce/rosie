@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-import rosie.boards.arduino
-import rosie.boards.md25
+import rosie.hardware.drive.arduino
+import rosie.hardware.drive.md25
 from conftest import FakeClock, FakeI2C, FakeSerial, distance
 from rosie.core import Robot
 from rosie.models import Profile
-from rosie.planning.maps import DEFAULT_MAP
+from rosie.planning.path.maps import DEFAULT_MAP
 from rosie.profile import load_profile
 from rosie.robot import build_robot
 
@@ -63,8 +63,8 @@ class StuckArduino(FakeSerial):
 @pytest.fixture
 def fake_boards(monkeypatch: pytest.MonkeyPatch) -> tuple[FakeSerial, FakeI2C]:
     serial, bus = StuckArduino(), FakeI2C()
-    monkeypatch.setattr(rosie.boards.arduino, "open_serial", lambda port, baudrate: serial)
-    monkeypatch.setattr(rosie.boards.md25, "open_i2c", lambda number: bus)
+    monkeypatch.setattr(rosie.hardware.drive.arduino, "open_serial", lambda port, baudrate: serial)
+    monkeypatch.setattr(rosie.hardware.drive.md25, "open_i2c", lambda number: bus)
     return serial, bus
 
 
@@ -117,7 +117,7 @@ def test_the_board_settings_come_from_the_profile(
         opened.append((port, baudrate))
         return StuckArduino()
 
-    monkeypatch.setattr(rosie.boards.arduino, "open_serial", open_serial)
+    monkeypatch.setattr(rosie.hardware.drive.arduino, "open_serial", open_serial)
     arduino = dataclasses.replace(
         simubot_profile,
         board="arduino",

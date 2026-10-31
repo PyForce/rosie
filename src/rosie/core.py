@@ -2,30 +2,14 @@ import logging
 from collections.abc import Callable, Iterator, Sequence
 from typing import Any
 
-from rosie.boards.models import Board
-from rosie.models import Profile
-from rosie.motion.control import (
-    MIN_MANUAL_ELAPSED_TIME,
-    encoder_speeds,
-    is_over,
-    manual_step,
-    planned_step,
-)
-from rosie.motion.models import (
-    ORIGIN,
-    Clock,
-    Manual,
-    Movement,
-    MovementSupervisor,
-    Planned,
-    Pose,
-    Tracker,
-    TrajectoryParameters,
-    TrajectoryShape,
-)
-from rosie.motion.odometry import advance
-from rosie.motion.trajectories import plan
-from rosie.planning.planner import Planner
+from rosie.control.models import Manual, Movement, MovementSupervisor, Planned, Tracker
+from rosie.control.movement import MIN_MANUAL_ELAPSED_TIME, is_over, manual_step, planned_step
+from rosie.hardware.drive.models import Drive
+from rosie.localization.odometry import advance, measured_speeds
+from rosie.models import ORIGIN, Clock, Pose, Profile
+from rosie.planning.models import TrajectoryParameters, TrajectoryShape
+from rosie.planning.path.planner import Planner
+from rosie.planning.trajectory import plan
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +17,14 @@ logger = logging.getLogger(__name__)
 class Robot:
     """
     The robot core: everything rosie's interfaces can ask of the robot, and its
-    state. Each tick reads the board, runs one control step (motion/control.py)
-    and writes the board.
+    state. Each tick reads the drive, runs one control step (control/movement.py)
+    and writes the drive.
     """
 
     def __init__(
         self,
         profile: Profile,
-        board: Board,
+        drive: Drive,
         shape: TrajectoryShape,
         track: Tracker,
         planner: Planner,
@@ -49,7 +33,7 @@ class Robot:
         clock: Clock,
     ) -> None:
         self.profile = profile
-        self.board = board
+        self.drive = drive
         self.shape = shape
         self.track = track
         self.planner = planner
@@ -79,13 +63,13 @@ class Robot:
             case Manual():
                 elapsed_time = max(elapsed_time, MIN_MANUAL_ELAPSED_TIME)
 
-        reading = self.board.read_encoders()
+        reading = self.drive.read_encoders()
         if not reading:
-            logger.error("no reading from the motor board")
+            logger.error("no reading from the drive")
             return
         wheels = self.profile.wheels
         delta_steps_1, delta_steps_2, *_ = reading
-        speeds = encoder_speeds(wheels, delta_steps_1, delta_steps_2, elapsed_time)
+        speeds = measured_speeds(wheels, delta_steps_1, delta_steps_2, elapsed_time)
         self.pose = advance(self.pose, wheels, delta_steps_1, delta_steps_2)
 
         match movement:
@@ -97,13 +81,13 @@ class Robot:
                 set_points, state = manual_step(
                     movement, self.pose, speeds, reading, elapsed_time, wheels
                 )
-        self.board.set_speeds(*set_points, *speeds)
+        self.drive.set_speeds(*set_points, *speeds)
         for supervisor in self.supervisors:
             supervisor.movement_update(state)
 
     def stop(self) -> None:
         self.movement = None
-        self.board.stop()
+        self.drive.stop()
         for supervisor in self.supervisors:
             supervisor.movement_end()
 
@@ -173,6 +157,6 @@ class Robot:
         self._start(Planned(tuple(references), 0, self.last_step))
 
     def _start(self, movement: Movement) -> None:
-        self.board.reset()
+        self.drive.reset()
         self.last_step = self.clock()
         self.movement = movement

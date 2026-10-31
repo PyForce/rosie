@@ -4,10 +4,66 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
-from rosie.motion.models import Control, Wheels
-
 if TYPE_CHECKING:
     from rosie.core import Robot
+
+type Clock = Callable[[], float]  # s, only differences matter
+
+
+@dataclass(frozen=True, slots=True)
+class Pose:
+    x: float  # m
+    y: float  # m
+    theta: float  # rad, counter-clockwise from the x axis
+
+
+@dataclass(frozen=True, slots=True)
+class Velocity:
+    x: float  # m/s
+    y: float  # m/s
+    theta: float  # rad/s
+
+
+ORIGIN = Pose(0.0, 0.0, 0.0)
+STILL = Velocity(0.0, 0.0, 0.0)
+
+
+@dataclass(frozen=True, slots=True)
+class Wheels:
+    radius: float  # m
+    distance: float  # m between the wheels
+    encoder_steps: float  # per wheel turn
+    max_speed: float  # rad/s
+
+
+@dataclass(frozen=True, slots=True)
+class Tracking:
+    """Input-output linearization."""
+
+    b: float  # m, the tracked point ahead of the wheel axis
+    k1: float
+    k2: float
+
+
+@dataclass(frozen=True, slots=True)
+class SpeedControl:
+    """The wheel speed PID: on the board (arduino) or in rosie (md25)."""
+
+    kc: float
+    ki: float
+    kd: float
+
+
+@dataclass(frozen=True, slots=True)
+class Control:
+    sample_time: float  # s between control steps
+    arrival_tolerance: float  # m: a planned movement ends this close to its last point
+    arrival_timeout: float  # s it may take, after the planned time, to get that close
+    tracking: Tracking
+    speed: SpeedControl
+
+
+type Row = tuple[float | None, ...]  # a recorded control step, one value per column
 
 
 @dataclass(frozen=True, slots=True)

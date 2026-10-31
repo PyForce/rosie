@@ -7,7 +7,7 @@ robot follows the route's corners like any other path.
 
 ## Maps
 
-`planning/maps.py` · `src/rosie/builtin/maps/house.json`
+`planning/path/maps.py` · `src/rosie/builtin/maps/house.json`
 
 A map is a JSON file of rooms, in metres, with [GeoJSON](https://geojson.org/) shapes:
 
@@ -37,7 +37,7 @@ start, and `POST /map/{name}` switches it while running.
 
 ## Free space
 
-`planning/visibility.py` · `visibility_graph`
+`planning/path/visibility.py` · `visibility_graph`
 
 The robot isn't a point. Instead of checking its whole body against every obstacle, rosie shrinks the problem:
 the floor's outline moves inwards and every obstacle grows outwards by a *clearance*, and then the robot can
@@ -56,7 +56,7 @@ they can see. The graph itself is built once per map (and clearance) and reused.
 
 ## A*
 
-`planning/graph.py` · `astar_path`
+`planning/path/graph.py` · `astar_path`
 
 A* explores the graph from the start, always expanding the vertex with the smallest *distance so far plus
 straight-line distance to the target*. The straight line never overestimates the remaining distance, so the
