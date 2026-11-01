@@ -1159,7 +1159,7 @@ wheels = [
 
 [[package]]
 name = "pyforce-rosie"
-version = "2.1.0b0"
+version = "2.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "websockets" },
