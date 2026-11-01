@@ -6,9 +6,9 @@
 # WebRosie comes from its release zip. To build with a local WebRosie instead:
 #   docker build --build-context webrosie=../WebRosie/dist .
 
-ARG WEBROSIE_VERSION=2.0.0
+ARG WEBROSIE_VERSION=2.1.0
 # of webrosie-<version>.zip on its GitHub Release
-ARG WEBROSIE_SHA256=51df3ac87ed46e92e1fc9468793ac3cd797544f3eba4e801a53faee1cdc5efdf
+ARG WEBROSIE_SHA256=581edf5471a9e0e791c347e01ddae8d987eefc5147c5885dad2c827edca6bfb5
 
 FROM python:3.15-slim AS builder
 
