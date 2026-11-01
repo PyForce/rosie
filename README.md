@@ -18,7 +18,7 @@
 <!-- Badges to move into the rows above once they apply:
 [![PyPI](https://img.shields.io/pypi/v/pyforce-rosie)](https://pypi.org/project/pyforce-rosie/)
 [![Docker image](https://img.shields.io/badge/docker-ghcr.io-2496ED?logo=docker&logoColor=white)](https://github.com/PyForce/rosie/pkgs/container/rosie)
-[![Docs](https://readthedocs.org/projects/rosie/badge/?version=latest)](https://rosie.readthedocs.io)
+[![Docs](https://readthedocs.org/projects/pyforce-rosie/badge/?version=latest)](https://pyforce-rosie.readthedocs.io)
 -->
 
 [Quick start](#quick-start) · [What you can learn](#what-you-can-learn) · [Documentation](#documentation) · [Development](#development)
