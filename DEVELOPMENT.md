@@ -130,6 +130,8 @@ public or upgrade the plan, then re-run `make repo` to apply the policies.
 It also turns on Dependabot alerts and security updates: when a version pinned in `uv.lock`
 has a published advisory, Dependabot opens a pull request that moves it to a fixed version.
 Routine version updates stay off, since every merge to `main` cuts a release.
+`.github/dependabot.yml` groups the security fixes, so each batch is one pull request (and one
+release) instead of one per package.
 
 The local steps need only git; the remote ones need the
 [GitHub CLI](https://cli.github.com) authenticated with `gh auth login`. Without it the
