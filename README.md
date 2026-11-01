@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.svg" alt="" width="96">
+<img src="https://raw.githubusercontent.com/PyForce/rosie/main/assets/logo.svg" alt="" width="96">
 
 # rosie
 
@@ -9,7 +9,7 @@
 [![QA](https://github.com/PyForce/rosie/actions/workflows/qa.yml/badge.svg)](https://github.com/PyForce/rosie/actions/workflows/qa.yml)
 [![Release](https://img.shields.io/github/v/release/PyForce/rosie?label=release)](https://github.com/PyForce/rosie/releases/latest)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/PyForce/rosie/blob/main/LICENSE)
 <br>
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -35,7 +35,7 @@ them with feedback controllers, and lets you drive by hand from a browser or fro
 It's made for learning and teaching robotics, from the control equations to the web page that drives the
 robot.
 
-![WebRosie, rosie's web page, with a robot in the built-in house](docs/images/webrosie.png)
+![WebRosie, rosie's web page, with a robot in the built-in house](https://raw.githubusercontent.com/PyForce/rosie/main/docs/images/webrosie.png)
 
 ## Quick start
 
@@ -98,7 +98,7 @@ uv sync
 uv run rosie start
 ```
 
-[Getting started](docs/getting-started.md) covers each of these in more detail, plus configuration.
+[Getting started](https://github.com/PyForce/rosie/blob/main/docs/getting-started.md) covers each of these in more detail, plus configuration.
 
 ## What you can learn
 
@@ -119,17 +119,17 @@ ready for pandas.
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md): running, driving and configuring rosie.
-- [How rosie works](docs/how-rosie-works.md): the control loop, and where everything lives.
-- [Motion control](docs/motion-control.md) and [Navigation](docs/navigation.md): the algorithms, with their
+- [Getting started](https://github.com/PyForce/rosie/blob/main/docs/getting-started.md): running, driving and configuring rosie.
+- [How rosie works](https://github.com/PyForce/rosie/blob/main/docs/how-rosie-works.md): the control loop, and where everything lives.
+- [Motion control](https://github.com/PyForce/rosie/blob/main/docs/motion-control.md) and [Navigation](https://github.com/PyForce/rosie/blob/main/docs/navigation.md): the algorithms, with their
   equations.
-- [Teaching with rosie](docs/teaching.md): lab ideas.
-- [Robots and hardware](docs/robots.md), [Web API and extensions](docs/integration.md),
-  [Python client](docs/client.md).
+- [Teaching with rosie](https://github.com/PyForce/rosie/blob/main/docs/teaching.md): lab ideas.
+- [Robots and hardware](https://github.com/PyForce/rosie/blob/main/docs/robots.md), [Web API and extensions](https://github.com/PyForce/rosie/blob/main/docs/integration.md),
+  [Python client](https://github.com/PyForce/rosie/blob/main/docs/client.md).
 
 ## Development
 
-Setup, QA, docs and releases: [DEVELOPMENT.md](DEVELOPMENT.md).
+Setup, QA, docs and releases: [DEVELOPMENT.md](https://github.com/PyForce/rosie/blob/main/DEVELOPMENT.md).
 
 ## Contributing
 
@@ -137,8 +137,8 @@ Issues and pull requests are welcome; `make qa` must pass.
 
 ## License
 
-MIT: see [LICENSE](LICENSE). rosie is a [PyForce](https://github.com/PyForce) project, started in 2015:
-[authors](docs/about.md).
+MIT: see [LICENSE](https://github.com/PyForce/rosie/blob/main/LICENSE). rosie is a [PyForce](https://github.com/PyForce) project, started in 2015:
+[authors](https://github.com/PyForce/rosie/blob/main/docs/about.md).
 
 ---
 
