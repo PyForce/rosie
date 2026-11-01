@@ -29,6 +29,9 @@ The interactive documentation of every route is at `/docs` (for example <http://
 | `POST /manual`, `POST /planned` | drive by hand, or go back to planned movements |
 | `/websocket` | positions out, driving commands in (below) |
 
+Both orders answer with the planned trajectory, where the robot should be at each control step:
+`{"trajectory": [[x, y], ...]}` (m).
+
 Errors: 422 for a malformed or impossible order (a speed of 0, or faster than the wheels can go), 409 when the planner
 finds no route, 404 for an unknown map, trajectory planner or sensor. Any web page may call the API (CORS is open), since
 WebRosie may be served from elsewhere.

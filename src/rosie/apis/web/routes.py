@@ -12,6 +12,7 @@ from rosie.apis.web.models import (
     FollowOrder,
     GotoOrder,
     Maps,
+    PlannedTrajectory,
     Position,
     PositionUpdate,
     RobotInfo,
@@ -79,35 +80,35 @@ async def position(request: Request, robot: RobotDependency) -> Response:
     return Response()
 
 
-@router.post("/goto")
-async def goto(request: Request, robot: RobotDependency) -> Response:
+@router.post("/goto", response_model=PlannedTrajectory)
+async def goto(request: Request, robot: RobotDependency) -> PlannedTrajectory | JSONResponse:
     order = GotoOrder.model_validate_json(await request.body())
     x, y = order.target
     try:
         if order.planner:
-            robot.follow_with_planner([(x, y)], order.speed)
+            points = robot.follow_with_planner([(x, y)], order.speed)
         else:
-            robot.goto(x, y, order.speed)
+            points = robot.goto(x, y, order.speed)
     except NoRouteError as error:
         return JSONResponse({"error": str(error)}, status_code=409)
     except ValueError as error:
         return JSONResponse({"detail": str(error)}, status_code=422)
-    return Response()
+    return PlannedTrajectory(trajectory=[(point.pose.x, point.pose.y) for point in points])
 
 
-@router.post("/follow")
-async def follow(request: Request, robot: RobotDependency) -> Response:
+@router.post("/follow", response_model=PlannedTrajectory)
+async def follow(request: Request, robot: RobotDependency) -> PlannedTrajectory | JSONResponse:
     order = FollowOrder.model_validate_json(await request.body())
     try:
         if order.planner:
-            robot.follow_with_planner(order.path, order.speed)
+            points = robot.follow_with_planner(order.path, order.speed)
         else:
-            robot.follow(order.path, order.speed)
+            points = robot.follow(order.path, order.speed)
     except NoRouteError as error:
         return JSONResponse({"error": str(error)}, status_code=409)
     except ValueError as error:
         return JSONResponse({"detail": str(error)}, status_code=422)
-    return Response()
+    return PlannedTrajectory(trajectory=[(point.pose.x, point.pose.y) for point in points])
 
 
 @router.get("/maps")
