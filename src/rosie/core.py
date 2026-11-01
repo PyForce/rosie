@@ -15,7 +15,7 @@ from rosie.errors import SetupError
 from rosie.hardware.drive.models import Drive
 from rosie.localization.odometry import advance, measure_speeds
 from rosie.models import ORIGIN, Clock, Pose, Profile
-from rosie.planning.models import TrajectoryRequest, VisibilityGraph
+from rosie.planning.models import TrajectoryPoint, TrajectoryRequest, VisibilityGraph
 from rosie.planning.path import plan_path
 from rosie.planning.trajectory import TRAJECTORY_PLANNERS, plan
 from rosie.planning.visibility import visibility_graph
@@ -128,21 +128,26 @@ class Robot:
     def teleport(self, x: float, y: float, theta: float) -> None:
         self.pose = Pose(x, y, theta)
 
-    def goto(self, x: float, y: float, speed: float) -> None:
-        """Drive straight to (x, y), at speed (m/s)."""
+    def goto(self, x: float, y: float, speed: float) -> tuple[TrajectoryPoint, ...]:
+        """Drive straight to (x, y), at speed (m/s); returns the planned trajectory."""
         self._check_speed(speed)
-        self._start_planned([Pose(*self.position()), Pose(x, y, 0.0)], speed)
+        return self._start_planned([Pose(*self.position()), Pose(x, y, 0.0)], speed)
 
-    def follow(self, points: Sequence[Sequence[float]], speed: float) -> None:
-        """Drive straight through the points in order, at speed (m/s)."""
+    def follow(
+        self, points: Sequence[Sequence[float]], speed: float
+    ) -> tuple[TrajectoryPoint, ...]:
+        """Drive straight through the points in order, at speed (m/s); returns the planned trajectory."""
         self._check_speed(speed)
         key_poses = [Pose(*self.position()), *(Pose(p[0], p[1], 0.0) for p in points)]
-        self._start_planned(key_poses, speed)
+        return self._start_planned(key_poses, speed)
 
-    def follow_with_planner(self, points: Sequence[Sequence[float]], speed: float) -> None:
+    def follow_with_planner(
+        self, points: Sequence[Sequence[float]], speed: float
+    ) -> tuple[TrajectoryPoint, ...]:
         """
         Drive through the points in order, at speed (m/s), going around walls and furniture
-        from each to the next (NoRouteError if one can't be reached).
+        from each to the next (NoRouteError if one can't be reached); returns the planned
+        trajectory.
         """
         self._check_speed(speed)
         if self.graph is None:
@@ -154,7 +159,7 @@ class Robot:
         for point in points:
             _start, *corners = plan_path(self.graph, route[-1], (point[0], point[1]))
             route += corners
-        self.follow(route[1:], speed)
+        return self.follow(route[1:], speed)
 
     def start_manual(self) -> None:
         """Drive by hand, standing still until the first commands arrive."""
@@ -203,12 +208,13 @@ class Robot:
         if not 0 < speed <= top:
             raise ValueError(f"the speed must be above 0 and at most {top:g} m/s")
 
-    def _start_planned(self, key_poses: list[Pose], speed: float) -> None:
+    def _start_planned(self, key_poses: list[Pose], speed: float) -> tuple[TrajectoryPoint, ...]:
         request = TrajectoryRequest(key_poses, speed, self.sample_time)
-        points = plan(TRAJECTORY_PLANNERS[self.trajectory_planner], request)
+        points = tuple(plan(TRAJECTORY_PLANNERS[self.trajectory_planner], request))
         for observer in self.observers:
             observer.movement_begin(len(points))
-        self._start(PlannedMovement(tuple(points), 0, self.last_step))
+        self._start(PlannedMovement(points, 0, self.last_step))
+        return points
 
     def _start(self, movement: Movement) -> None:
         self.drive.reset()

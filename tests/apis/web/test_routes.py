@@ -50,6 +50,21 @@ def test_goto(client: TestClient, robot: Robot, clock: FakeClock) -> None:
     assert (x, y) == pytest.approx((1, 0.5), abs=0.01)
 
 
+def test_orders_answer_the_planned_trajectory(client: TestClient, robot: Robot) -> None:
+    trajectory = client.post("/goto", content='{"target": [1, 0], "speed": 0.5}').json()[
+        "trajectory"
+    ]
+    assert len(trajectory) == pytest.approx(2 / 0.05, abs=2)  # 1 m at 0.5 m/s, a point per step
+    assert trajectory[-1] == pytest.approx([1, 0])
+    assert all(y == pytest.approx(0) for _x, y in trajectory)  # straight
+
+    robot.teleport(1, 1, 0)
+    body = '{"path": [[7.7, 1.2]], "speed": 0.5, "planner": true}'
+    trajectory = client.post("/follow", content=body).json()["trajectory"]
+    assert trajectory[-1] == pytest.approx([7.7, 1.2])
+    assert max(y for _x, y in trajectory) > 1.5  # around the furniture, not along y = 1.1
+
+
 def test_goto_with_the_planner(client: TestClient, robot: Robot, clock: FakeClock) -> None:
     robot.teleport(1, 1, 0)
     assert (

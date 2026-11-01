@@ -25,6 +25,12 @@ class FollowOrder(_Frozen):
     planner: bool = False  # go around walls and furniture from point to point
 
 
+class PlannedTrajectory(_Frozen):
+    """The answer to an order: where the robot should be at each control step."""
+
+    trajectory: list[tuple[float, float]]  # x, y (m)
+
+
 class RobotInfo(_Frozen):
     name: str
     thumbnail: str  # path of the robot's picture
