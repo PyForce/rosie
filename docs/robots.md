@@ -127,7 +127,9 @@ If a drive's hardware isn't there, rosie stops with a message such as *nothing a
 
 ## A real robot with Docker
 
-The same image runs on a Raspberry Pi (arm64) or a PC. Give it the drive's device and your robot's folder:
+The image is built for PCs (amd64). On a Raspberry Pi, install rosie with `pip install "pyforce-rosie[robot]"`,
+or build the image there with `docker build .` from a clone. Give the container the drive's device and your
+robot's folder:
 
 ```bash
 docker run -p 8080:8080 --device /dev/ttyACM0 -v ./my-robot:/robot ghcr.io/pyforce/rosie --robot-profile /robot
