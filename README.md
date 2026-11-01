@@ -8,18 +8,15 @@
 
 [![QA](https://github.com/PyForce/rosie/actions/workflows/qa.yml/badge.svg)](https://github.com/PyForce/rosie/actions/workflows/qa.yml)
 [![Release](https://img.shields.io/github/v/release/PyForce/rosie?label=release)](https://github.com/PyForce/rosie/releases/latest)
+[![PyPI](https://img.shields.io/pypi/v/pyforce-rosie)](https://pypi.org/project/pyforce-rosie/)
+[![Docker image](https://img.shields.io/badge/docker-ghcr.io-2496ED?logo=docker&logoColor=white)](https://github.com/PyForce/rosie/pkgs/container/rosie)
+[![Docs](https://readthedocs.org/projects/pyforce-rosie/badge/?version=latest)](https://pyforce-rosie.readthedocs.io)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/PyForce/rosie/blob/main/LICENSE)
 <br>
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
-
-<!-- Badges to move into the rows above once they apply:
-[![PyPI](https://img.shields.io/pypi/v/pyforce-rosie)](https://pypi.org/project/pyforce-rosie/)
-[![Docker image](https://img.shields.io/badge/docker-ghcr.io-2496ED?logo=docker&logoColor=white)](https://github.com/PyForce/rosie/pkgs/container/rosie)
-[![Docs](https://readthedocs.org/projects/pyforce-rosie/badge/?version=latest)](https://pyforce-rosie.readthedocs.io)
--->
 
 [Quick start](#quick-start) · [What you can learn](#what-you-can-learn) · [Documentation](#documentation) · [Development](#development)
 
