@@ -7,8 +7,8 @@
 #   docker build --build-context webrosie=../WebRosie/dist .
 
 ARG WEBROSIE_VERSION=2.0.0
-# filled in once WebRosie publishes the release
-ARG WEBROSIE_SHA256=
+# of webrosie-<version>.zip on its GitHub Release
+ARG WEBROSIE_SHA256=51df3ac87ed46e92e1fc9468793ac3cd797544f3eba4e801a53faee1cdc5efdf
 
 FROM python:3.15-slim AS builder
 
