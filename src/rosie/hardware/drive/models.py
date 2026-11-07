@@ -38,6 +38,11 @@ class MD25DriveSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class RpcDriveSettings:
+    url: str = "http://localhost:8000"
+
+
+@dataclass(frozen=True, slots=True)
 class PIDState:
     """One wheel's speed PID: what the incremental form needs from the previous steps."""
 
